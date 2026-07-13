@@ -5,5 +5,5 @@ export interface ValidationErrorDetail {
 export type ValidationError<T> = {
   [K in keyof T]?: ValidationErrorDetail[];
 } & {
-  unrecognized_key?: ValidationErrorDetail[];
+  unrecognizedKey?: ValidationErrorDetail[];
 };

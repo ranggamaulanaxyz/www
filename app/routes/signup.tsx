@@ -21,6 +21,27 @@ import { useEffect, useState } from "react";
 import { Checkbox } from "~/components/ui/checkbox";
 import { validate } from "~/lib/utils";
 import { SignupSchema } from "~/modules/auth/schemas";
+import { toast } from "sonner";
+
+async function userSignupApi(data: SignupSchema): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  const response = await fetch("http://localhost:8000/api/v1/auth/signup", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: data.username,
+      password: data.password,
+      confirm_password: data.confirmPassword,
+      terms_agreed: data.termsAgreed,
+    }),
+  });
+
+  return await response.json();
+}
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -43,35 +64,42 @@ async function validateFormData(formData: FormData) {
   return result;
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const result = await validateFormData(await request.formData());
-  if (result.success) {
-    return redirect("/");
+export async function clientAction({ request }: Route.ClientActionArgs) {
+  const validation = await validateFormData(await request.formData());
+  if (!validation.success) {
+    return {
+      errors: {
+        fieldErrors: validation.errors,
+      },
+    };
   }
 
-  return { errors: result.errors };
-}
-
-export async function clientAction({
-  request,
-  serverAction,
-}: Route.ClientActionArgs) {
-  const clientRequest = request.clone();
-  const result = await validateFormData(await clientRequest.formData());
-  if (result.success) {
-    return serverAction();
+  const signup = await userSignupApi(validation.data);
+  if (!signup.success) {
+    return {
+      errors: {
+        formErrors: [{ message: signup.message }],
+      },
+    };
   }
 
-  return { errors: result.errors };
+  redirect("/signin");
 }
 
 export default function Signin({ actionData }: Route.ComponentProps) {
-  const initialFieldErrors = actionData?.errors || null;
+  const formErrors = actionData?.errors.formErrors || null;
+  const initialFieldErrors = actionData?.errors.fieldErrors || null;
   const [fieldErrors, setFieldErrors] = useState(initialFieldErrors);
 
   useEffect(() => {
     setFieldErrors(initialFieldErrors);
   }, [initialFieldErrors]);
+
+  useEffect(() => {
+    formErrors?.map((error) => {
+      toast.error(error.message);
+    });
+  }, [actionData?.errors.formErrors]);
 
   const handleBlurForm = async (event: React.FocusEvent<HTMLFormElement>) => {
     const formData = new FormData(event.currentTarget);

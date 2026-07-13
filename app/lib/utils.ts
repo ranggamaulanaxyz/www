@@ -12,7 +12,7 @@ export function formatError<T>(error: z.ZodError): ValidationError<T> {
     Record<string, ValidationErrorDetail[]>
   >((prev, current) => {
     const key =
-      current.path.length > 0 ? String(current.path[0]) : "unrecognized_key";
+      current.path.length > 0 ? String(current.path[0]) : "unrecognizedKey";
     if (!prev[key]) {
       prev[key] = [];
     }
