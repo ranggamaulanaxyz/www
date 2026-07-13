@@ -10,6 +10,14 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { Toaster } from "./components/ui/sonner";
+import { supabaseMiddleware } from "./lib/supabase/middleware.server";
+import { supabaseClientMiddleware } from "./lib/supabase/middleware.client";
+
+export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
+
+export const clientMiddleware: Route.ClientMiddlewareFunction[] = [
+  supabaseClientMiddleware,
+];
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },

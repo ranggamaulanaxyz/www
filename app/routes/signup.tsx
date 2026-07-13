@@ -22,26 +22,7 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { validate } from "~/lib/utils";
 import { SignupSchema } from "~/modules/auth/schemas";
 import { toast } from "sonner";
-
-async function userSignupApi(data: SignupSchema): Promise<{
-  success: boolean;
-  message: string;
-}> {
-  const response = await fetch("http://localhost:8000/api/v1/auth/signup", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      username: data.username,
-      password: data.password,
-      confirm_password: data.confirmPassword,
-      terms_agreed: data.termsAgreed,
-    }),
-  });
-
-  return await response.json();
-}
+import { supabaseClientContext } from "~/lib/supabase/supabase.context";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -55,7 +36,9 @@ export function meta({}: Route.MetaArgs) {
 
 async function validateFormData(formData: FormData) {
   const data = {
-    username: formData.get("username") as string,
+    name: formData.get("name") as string,
+    lastName: formData.get("last_name") as string,
+    email: formData.get("email") as string,
     password: formData.get("password") as string,
     confirmPassword: formData.get("confirm_password") as string,
     termsAgreed: formData.get("terms_agreed") === "on",
@@ -64,7 +47,10 @@ async function validateFormData(formData: FormData) {
   return result;
 }
 
-export async function clientAction({ request }: Route.ClientActionArgs) {
+export async function clientAction({
+  request,
+  context,
+}: Route.ClientActionArgs) {
   const validation = await validateFormData(await request.formData());
   if (!validation.success) {
     return {
@@ -74,20 +60,24 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     };
   }
 
-  const signup = await userSignupApi(validation.data);
-  if (!signup.success) {
-    return {
-      errors: {
-        formErrors: [{ message: signup.message }],
+  const supabase = context.get(supabaseClientContext);
+  const { data, error } = await supabase.auth.signUp({
+    email: validation.data.email,
+    password: validation.data.password,
+    options: {
+      data: {
+        name: validation.data.name,
+        last_name: validation.data.lastName,
+        terms_agreed: validation.data.termsAgreed,
       },
-    };
-  }
+    },
+  });
 
   redirect("/signin");
 }
 
 export default function Signin({ actionData }: Route.ComponentProps) {
-  const formErrors = actionData?.errors.formErrors || null;
+  // const formErrors = actionData?.errors.formErrors || null;
   const initialFieldErrors = actionData?.errors.fieldErrors || null;
   const [fieldErrors, setFieldErrors] = useState(initialFieldErrors);
 
@@ -95,11 +85,11 @@ export default function Signin({ actionData }: Route.ComponentProps) {
     setFieldErrors(initialFieldErrors);
   }, [initialFieldErrors]);
 
-  useEffect(() => {
-    formErrors?.map((error) => {
-      toast.error(error.message);
-    });
-  }, [actionData?.errors.formErrors]);
+  // useEffect(() => {
+  //   formErrors?.map((error) => {
+  //     toast.error(error.message);
+  //   });
+  // }, [actionData?.errors.formErrors]);
 
   const handleBlurForm = async (event: React.FocusEvent<HTMLFormElement>) => {
     const formData = new FormData(event.currentTarget);
@@ -113,7 +103,7 @@ export default function Signin({ actionData }: Route.ComponentProps) {
 
   return (
     <main className="flex h-svh items-center justify-center">
-      <div className="mx-auto max-w-sm grow">
+      <div className="mx-auto max-w-xl grow">
         <Card>
           <CardHeader>
             <CardTitle>
@@ -126,15 +116,43 @@ export default function Signin({ actionData }: Route.ComponentProps) {
           <CardContent>
             <Form method="POST" onBlur={handleBlurForm}>
               <FieldGroup>
-                <Field data-invalid={!!fieldErrors?.username}>
-                  <FieldLabel htmlFor="username">Username</FieldLabel>
-                  <Input
-                    id="username"
-                    name="username"
-                    type="text"
-                    aria-invalid={!!fieldErrors?.username}
+                <FieldGroup>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <Field data-invalid={!!fieldErrors?.name}>
+                      <FieldLabel htmlFor="name">Name</FieldLabel>
+                      <Input
+                        id="name"
+                        name="name"
+                        type="text"
+                        aria-invalid={!!fieldErrors?.name}
+                      />
+                    </Field>
+                    <Field data-invalid={!!fieldErrors?.lastName}>
+                      <FieldLabel htmlFor="last_name">Last Name</FieldLabel>
+                      <Input
+                        id="last_name"
+                        name="last_name"
+                        type="text"
+                        aria-invalid={!!fieldErrors?.lastName}
+                      />
+                    </Field>
+                  </div>
+                  <FieldError
+                    errors={[
+                      ...(fieldErrors?.name || []),
+                      ...(fieldErrors?.lastName || []),
+                    ]}
                   />
-                  <FieldError errors={fieldErrors?.username} />
+                </FieldGroup>
+                <Field data-invalid={!!fieldErrors?.email}>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    aria-invalid={!!fieldErrors?.email}
+                  />
+                  <FieldError errors={fieldErrors?.email} />
                 </Field>
                 <Field data-invalid={!!fieldErrors?.password}>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
