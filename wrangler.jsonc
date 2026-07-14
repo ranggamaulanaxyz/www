@@ -1,16 +1,18 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "www",
-  "main": "./workers/app.ts",
-  "compatibility_date": "2026-07-14",
-  "compatibility_flags": ["nodejs_compat"],
-  "observability": {
-    "enabled": true
-  },
-  "upload_source_maps": true,
-  "vars": {
-    "PUBLIC_APP_NAME": "Rangga Maulana",
-    "PUBLIC_SUPABASE_URL": "https://xwzewesvhmamlfnhemem.supabase.co",
-    "PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_dE3O5VUTz6NVcyJnlr47fw_Qt4LBJz0"
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "www",
+    "main": "./workers/app.ts",
+    "compatibility_date": "2026-07-14",
+    "compatibility_flags": [
+        "nodejs_compat"
+    ],
+    "observability": {
+        "enabled": true
+    },
+    "upload_source_maps": true,
+    "vars": {
+        "PUBLIC_APP_NAME": "Rangga Maulana",
+        "PUBLIC_SUPABASE_URL": "https://xwzewesvhmamlfnhemem.supabase.co",
+        "PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_dE3O5VUTz6NVcyJnlr47fw_Qt4LBJz0"
     }
 }
