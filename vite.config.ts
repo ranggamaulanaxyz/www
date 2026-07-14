@@ -7,5 +7,6 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  envPrefix: ['PUBLIC_', 'VITE_']
+  envPrefix: ["PUBLIC_", "VITE_"],
+  envDir: false,
 });
