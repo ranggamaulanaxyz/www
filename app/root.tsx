@@ -14,7 +14,25 @@ import { Toaster } from "./components/ui/sonner";
 import { supabaseMiddleware } from "./lib/supabase/middleware.server";
 import { supabaseClientMiddleware } from "./lib/supabase/middleware.client";
 import { Logo } from "./components/brand/logo";
-import { Card, CardHeader } from "./components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
+import { Button } from "./components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "./components/ui/empty";
+import { Copy, FolderX, OctagonX } from "lucide-react";
+import { toast } from "sonner";
 
 export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
@@ -69,12 +87,13 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let status;
-  let message = "An unexpected error occurred.";
+  let status = 500;
+  let message =
+    "An unexpected error occurred. Please contact the administrator.";
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    status = error.status ? error.status.toString() : null;
+    status = error.status;
     message =
       error.status === 404
         ? "The requested page could not be found."
@@ -84,27 +103,106 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     stack = error.stack;
   }
 
-  return (
-    <main className="flex h-svh items-center justify-center">
-      <div className="mx-auto max-w-sm grow">
-        <div className="flex items-center justify-center">
-          <div className="flex aspect-square animate-pulse items-center justify-center rounded-full bg-red-300 p-2 text-5xl font-black text-red-500">
-            <span className="animate-none">{status ? status : "X"}</span>
-          </div>
+  if (import.meta.env.DEV && status !== 404) {
+    const formatStackTrace = (stackStr?: string) => {
+      if (!stackStr) return null;
+      return stackStr.split("\n").map((line, i) => {
+        const atIndex = line.indexOf("at ");
+        if (atIndex !== -1) {
+          const beforeAt = line.substring(0, atIndex + 3);
+          const afterAt = line.substring(atIndex + 3);
+          const openParen = afterAt.indexOf("(");
+          const closeParen = afterAt.lastIndexOf(")");
+
+          if (openParen !== -1 && closeParen !== -1) {
+            const functionName = afterAt.substring(0, openParen);
+            const pathInfo = afterAt.substring(openParen + 1, closeParen);
+            return (
+              <div key={i} className="text-muted-foreground">
+                {beforeAt}
+                <span className="text-foreground">{functionName}</span>(
+                <span
+                  className="text-primary cursor-pointer font-medium hover:underline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(stack || message);
+                    toast.success("Path copied to clipboard");
+                  }}
+                >
+                  {pathInfo}
+                </span>
+                )
+              </div>
+            );
+          } else {
+            return (
+              <div key={i} className="text-muted-foreground">
+                {beforeAt}
+                <span className="text-primary cursor-pointer font-medium hover:underline">
+                  {afterAt}
+                </span>
+              </div>
+            );
+          }
+        }
+        return <div key={i}>{line}</div>;
+      });
+    };
+
+    return (
+      <main>
+        <div className="p-4">
+          <Card className="pb-0">
+            <CardHeader>
+              <CardTitle>{status}</CardTitle>
+              <CardDescription>Message: {message}</CardDescription>
+              <CardAction>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(stack || message);
+                    toast.success("Copied to clipboard");
+                  }}
+                >
+                  <Copy /> Copy error
+                </Button>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              <pre className="bg-muted/50 m-0 -mx-(--card-spacing) overflow-y-scroll border-t px-(--card-spacing) py-4 text-sm leading-relaxed">
+                {formatStackTrace(stack)}
+              </pre>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex min-h-svh items-center justify-center">
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            {status === 404 ? <FolderX /> : <OctagonX />}
+          </EmptyMedia>
+          <EmptyTitle>{status ? status : "Something went wrong!"}</EmptyTitle>
+          <EmptyDescription>{message}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent className="flex-row justify-center">
+          <Button asChild>
+            <Link to="/">Back to Home</Link>
+          </Button>
+          {status === 404 ? (
+            <Button variant="outline" onClick={() => window.history.back()}>
+              Go back
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Reload
+            </Button>
+          )}
+        </EmptyContent>
+      </Empty>
     </main>
   );
-
-  // return (
-  //   <main className="container mx-auto p-4 pt-16">
-  //     <h1>{message}</h1>
-  //     <p>{details}</p>
-  //     {stack && (
-  //       <pre className="w-full overflow-x-auto p-4">
-  //         <code>{stack}</code>
-  //       </pre>
-  //     )}
-  //   </main>
-  // );
 }

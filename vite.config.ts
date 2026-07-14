@@ -13,5 +13,4 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   envPrefix: ["PUBLIC_", "VITE_"],
-  envDir: false,
 });
