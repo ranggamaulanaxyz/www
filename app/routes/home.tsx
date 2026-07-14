@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import type { Route } from "./+types/home";
 import { Button } from "~/components/ui/button";
 import { AuthContext, authMiddleware } from "~/modules/auth/middleware";
-import { Logo } from "~/components/ui/brand/logo";
+import { Logo } from "~/components/brand/logo";
 
 export const clientMiddleware: Route.ClientMiddlewareFunction[] = [
   authMiddleware,
@@ -28,7 +28,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     <div>
       <header className="flex items-center justify-between bg-white px-4 py-2">
         <div className="font-bold">
-          <Link to="/" title={import.meta.env.APP_NAME}>
+          <Link to="/" title={import.meta.env.PUBLIC_APP_NAME}>
             <Logo />
           </Link>
         </div>

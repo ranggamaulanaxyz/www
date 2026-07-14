@@ -1,5 +1,6 @@
 import {
   isRouteErrorResponse,
+  Link,
   Links,
   Meta,
   Outlet,
@@ -12,6 +13,8 @@ import "./app.css";
 import { Toaster } from "./components/ui/sonner";
 import { supabaseMiddleware } from "./lib/supabase/middleware.server";
 import { supabaseClientMiddleware } from "./lib/supabase/middleware.client";
+import { Logo } from "./components/brand/logo";
+import { Card, CardHeader } from "./components/ui/card";
 
 export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
@@ -66,30 +69,42 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
+  let status;
+  let message = "An unexpected error occurred.";
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
-    details =
+    status = error.status ? error.status.toString() : null;
+    message =
       error.status === 404
         ? "The requested page could not be found."
-        : error.statusText || details;
+        : error.statusText || message;
   } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message;
+    message = error.message;
     stack = error.stack;
   }
 
   return (
-    <main className="container mx-auto p-4 pt-16">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full overflow-x-auto p-4">
-          <code>{stack}</code>
-        </pre>
-      )}
+    <main className="flex h-svh items-center justify-center">
+      <div className="mx-auto max-w-sm grow">
+        <div className="flex items-center justify-center">
+          <div className="flex aspect-square animate-pulse items-center justify-center rounded-full bg-red-300 p-2 text-5xl font-black text-red-500">
+            <span className="animate-none">{status ? status : "X"}</span>
+          </div>
+        </div>
+      </div>
     </main>
   );
+
+  // return (
+  //   <main className="container mx-auto p-4 pt-16">
+  //     <h1>{message}</h1>
+  //     <p>{details}</p>
+  //     {stack && (
+  //       <pre className="w-full overflow-x-auto p-4">
+  //         <code>{stack}</code>
+  //       </pre>
+  //     )}
+  //   </main>
+  // );
 }

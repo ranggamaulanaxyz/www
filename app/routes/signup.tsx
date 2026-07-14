@@ -24,7 +24,7 @@ import { SignupSchema } from "~/modules/auth/schemas";
 import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 import { userSignUp } from "~/modules/auth/services";
 import { toast } from "sonner";
-import { Logo } from "~/components/ui/brand/logo";
+import { Logo } from "~/components/brand/logo";
 
 export function meta() {
   return [

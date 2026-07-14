@@ -22,7 +22,7 @@ import { ForgotPasswordSchema } from "~/modules/auth/schemas";
 import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 import { sendEmailResetPassword } from "~/modules/auth/services";
 import { authMiddleware, onlyGuestMiddleware } from "~/modules/auth/middleware";
-import { Logo } from "~/components/ui/brand/logo";
+import { Logo } from "~/components/brand/logo";
 
 export const middleware: Route.MiddlewareFunction[] = [
   authMiddleware,

@@ -1,15 +1,14 @@
-import { AuthSessionMissingError, isAuthSessionMissingError, type SupabaseClient } from "@supabase/supabase-js";
+import { isAuthSessionMissingError, type SupabaseClient } from "@supabase/supabase-js";
 import type { SignupSchema, SigninSchema, ForgotPasswordSchema } from "./schemas";
 import type { User } from "./types";
 import { getPartnerById } from "../partner/repositories";
-
-
 
 export async function userSignUp(supabase: SupabaseClient, data: SignupSchema) {
     const response = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
     options: {
+      emailRedirectTo: `${import.meta.env.PUBLIC_APP_URL}/signup/activation`,
       data: {
         name: data.name,
         last_name: data.lastName,
@@ -25,6 +24,18 @@ export async function userSignUp(supabase: SupabaseClient, data: SignupSchema) {
   }
 
   return {success: true, data, error: null}
+}
+
+export async function userActivation(supabase: SupabaseClient, tokenHash: string) {
+  const {data, error} = await supabase.auth.verifyOtp({token_hash: tokenHash, type: 'email'})
+  if (error) {
+    if (error.code === 'otp_expired') {
+      return {success: false, error}
+    }
+    throw error
+  }
+
+  return {success: true}
 }
 
 export async function userSignIn(supabase: SupabaseClient, data: SigninSchema) {

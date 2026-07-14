@@ -24,7 +24,7 @@ import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 import { userSignIn } from "~/modules/auth/services";
 import { toast } from "sonner";
 import { authMiddleware, onlyGuestMiddleware } from "~/modules/auth/middleware";
-import { Logo } from "~/components/ui/brand/logo";
+import { Logo } from "~/components/brand/logo";
 
 export const middleware: Route.MiddlewareFunction[] = [
   authMiddleware,
