@@ -19,14 +19,16 @@ import { Input } from "~/components/ui/input";
 import type { Route } from "./+types/signup";
 import { useEffect, useState } from "react";
 import { Checkbox } from "~/components/ui/checkbox";
-import { validate } from "~/lib/utils";
+import { getEmailClientUrl, validate } from "~/lib/utils";
 import { SignupSchema } from "~/modules/auth/schemas";
+import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
+import { userSignUp } from "~/modules/auth/services";
 import { toast } from "sonner";
-import { supabaseClientContext } from "~/lib/supabase/supabase.context";
+import { Logo } from "~/components/ui/brand/logo";
 
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [
-    { title: "Signup" },
+    { title: "Sign up" },
     {
       name: "description",
       content: "Create new account to join my community.",
@@ -41,7 +43,7 @@ async function validateFormData(formData: FormData) {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
     confirmPassword: formData.get("confirm_password") as string,
-    termsAgreed: formData.get("terms_agreed") === "on",
+    termAccepted: formData.get("term_accepted") === "on",
   };
   const result = await validate(SignupSchema, data);
   return result;
@@ -60,36 +62,37 @@ export async function clientAction({
     };
   }
 
-  const supabase = context.get(supabaseClientContext);
-  const { data, error } = await supabase.auth.signUp({
-    email: validation.data.email,
-    password: validation.data.password,
-    options: {
-      data: {
-        name: validation.data.name,
-        last_name: validation.data.lastName,
-        terms_agreed: validation.data.termsAgreed,
-      },
-    },
-  });
+  const supabase = context.get(SupabaseClientContext);
+  const { success, data, error } = await userSignUp(supabase, validation.data);
 
-  redirect("/signin");
+  if (success) {
+    return { success, data };
+  }
+
+  return {
+    success,
+    errors: {
+      formErrors: error ? [error] : null,
+    },
+  };
 }
 
 export default function Signin({ actionData }: Route.ComponentProps) {
-  // const formErrors = actionData?.errors.formErrors || null;
-  const initialFieldErrors = actionData?.errors.fieldErrors || null;
+  const success = actionData?.success;
+  const errors = actionData?.errors;
+  const formErrors = errors?.formErrors || null;
+  const initialFieldErrors = errors?.fieldErrors || null;
   const [fieldErrors, setFieldErrors] = useState(initialFieldErrors);
 
   useEffect(() => {
     setFieldErrors(initialFieldErrors);
   }, [initialFieldErrors]);
 
-  // useEffect(() => {
-  //   formErrors?.map((error) => {
-  //     toast.error(error.message);
-  //   });
-  // }, [actionData?.errors.formErrors]);
+  useEffect(() => {
+    formErrors?.map((error) => {
+      toast.error(error.message);
+    });
+  }, [formErrors]);
 
   const handleBlurForm = async (event: React.FocusEvent<HTMLFormElement>) => {
     const formData = new FormData(event.currentTarget);
@@ -101,9 +104,59 @@ export default function Signin({ actionData }: Route.ComponentProps) {
     }
   };
 
+  if (success) {
+    const email = actionData?.data?.email;
+    return (
+      <main className="flex min-h-svh items-center justify-center p-4">
+        <div className="mx-auto max-w-md grow">
+          <div className="mb-6 text-center">
+            <Link to="/" className="text-lg font-bold">
+              <Logo />
+            </Link>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h1>Registration successful</h1>
+              </CardTitle>
+              <CardDescription>
+                Please check your email to activate your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <p>
+                If you don't receive an email within a few minutes, please check
+                your spam folder.
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Button asChild>
+                  <a
+                    href={getEmailClientUrl(email)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open Inbox
+                  </a>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/signin">Signin Now</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main className="flex h-svh items-center justify-center">
+    <main className="flex min-h-svh items-center justify-center p-4">
       <div className="mx-auto max-w-xl grow">
+        <div className="mb-6 text-center">
+          <Link to="/" className="text-lg font-bold">
+            <Logo />
+          </Link>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>
@@ -178,15 +231,15 @@ export default function Signin({ actionData }: Route.ComponentProps) {
                 </Field>
                 <Field
                   orientation="horizontal"
-                  data-invalid={!!fieldErrors?.termsAgreed}
+                  data-invalid={!!fieldErrors?.termAccepted}
                 >
                   <Checkbox
-                    id="terms_agreed"
-                    name="terms_agreed"
-                    aria-invalid={!!fieldErrors?.termsAgreed}
+                    id="term_accepted"
+                    name="term_accepted"
+                    aria-invalid={!!fieldErrors?.termAccepted}
                   />
                   <FieldContent>
-                    <FieldLabel htmlFor="terms_agreed">
+                    <FieldLabel htmlFor="term_accepted">
                       Accept terms and conditions
                     </FieldLabel>
                     <FieldDescription>

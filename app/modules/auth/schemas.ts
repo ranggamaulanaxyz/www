@@ -7,7 +7,7 @@ export const SignupSchema = z
     email: z.email("Please input valid email"),
     password: z.string().min(8, "Password must be at least 8 characters long"),
     confirmPassword: z.string().nonempty("Please confirm your password"),
-    termsAgreed: z
+    termAccepted: z
       .boolean()
       .default(false)
       .refine((value) => value, "You must agree to the terms"),
@@ -18,3 +18,16 @@ export const SignupSchema = z
   });
 
 export type SignupSchema = z.infer<typeof SignupSchema>;
+
+export const SigninSchema = z.object({
+  email: z.string().nonempty("Email is required!"),
+  password: z.string().nonempty("Password is required!"),
+});
+
+export type SigninSchema = z.infer<typeof SigninSchema>;
+
+export const ForgotPasswordSchema = z.object({
+  email: z.string().nonempty("Email is required!"),
+});
+
+export type ForgotPasswordSchema = z.infer<typeof ForgotPasswordSchema>;

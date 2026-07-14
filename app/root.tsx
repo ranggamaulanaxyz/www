@@ -32,6 +32,16 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
+export function meta(): Route.MetaDescriptors {
+  return [
+    { title: "Rangga Maulana" },
+    {
+      name: "description",
+      content: "Welcome to my website.",
+    },
+  ];
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">

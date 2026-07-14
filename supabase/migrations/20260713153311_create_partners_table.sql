@@ -1,4 +1,4 @@
-CREATE TABLE public.partner (
+CREATE TABLE public.partners (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     last_name TEXT,

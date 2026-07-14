@@ -17,70 +17,47 @@ import {
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import type { Route } from "./+types/signin";
-import z, { ZodError } from "zod";
 import { useEffect, useState } from "react";
+import { validate } from "~/lib/utils";
+import { SigninSchema } from "~/modules/auth/schemas";
+import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
+import { userSignIn } from "~/modules/auth/services";
+import { toast } from "sonner";
+import { authMiddleware, onlyGuestMiddleware } from "~/modules/auth/middleware";
+import { Logo } from "~/components/ui/brand/logo";
 
-const SigninSchema = z.object({
-  username: z.string().nonempty("Username is required!"),
-  password: z.string().nonempty("Password is required!"),
-});
+export const middleware: Route.MiddlewareFunction[] = [
+  authMiddleware,
+  onlyGuestMiddleware,
+];
 
-interface ValidationErrorDetail {
-  message: string;
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Sign In" },
+    { name: "description", content: "Sign in to your account." },
+  ];
 }
 
-type ValidationError<T> = {
-  [K in keyof T]?: ValidationErrorDetail[];
-} & {
-  unrecognized_key?: ValidationErrorDetail[];
-};
-
-function formatError<T>(error: z.ZodError): ValidationError<T> {
-  const formattedErrors = error.issues.reduce<
-    Record<string, ValidationErrorDetail[]>
-  >((prev, current) => {
-    const key =
-      current.path.length > 0 ? String(current.path[0]) : "unrecognized_key";
-    if (!prev[key]) {
-      prev[key] = [];
-    }
-    prev[key].push({
-      message: current.message,
-    });
-
-    return prev;
-  }, {});
-  return formattedErrors as ValidationError<T>;
-}
-
-async function validate<S extends z.ZodRawShape>(
-  schema: z.ZodObject<S>,
-  data: unknown,
-): Promise<
-  | { success: true; data: z.infer<typeof schema> }
-  | { success: false; errors: ValidationError<z.infer<typeof schema>> }
-> {
-  const result = await schema.safeParseAsync(data);
-  if (result.success) {
-    return { success: true, data: result.data };
-  }
-
-  const error = formatError<z.infer<typeof schema>>(result.error);
-  return { success: false, errors: error };
-}
-
-export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
+async function validateFormData(formData: FormData) {
   const data = {
-    username: formData.get("username") as string,
+    email: formData.get("email") as string,
     password: formData.get("password") as string,
   };
   const result = await validate(SigninSchema, data);
-  if (result.success) {
-    return redirect("/");
-  }
+  return result;
+}
 
-  return { errors: result.errors };
+export async function action({ request, context }: Route.ActionArgs) {
+  const validation = await validateFormData(await request.formData());
+  if (!validation.success) {
+    return { errors: { fieldErrors: validation.errors } };
+  }
+  const supabase = context.get(SupabaseClientContext);
+  const { success, data, error } = await userSignIn(supabase, validation.data);
+  if (!success) {
+    return { errors: { formErrors: error ? [error] : null } };
+  }
+  return redirect("/");
 }
 
 export async function clientAction({
@@ -88,27 +65,37 @@ export async function clientAction({
   serverAction,
 }: Route.ClientActionArgs) {
   const clientRequest = request.clone();
-  const formData = await clientRequest.formData();
-  const data = {
-    username: formData.get("username") as string,
-    password: formData.get("password") as string,
-  };
-  const result = await validate(SigninSchema, data);
-  if (result.success) {
+  const validation = await validateFormData(await clientRequest.formData());
+  if (validation.success) {
     return serverAction();
   }
 
-  return { errors: result.errors };
+  return { errors: { fieldErrors: validation.errors } };
 }
 
 export default function Signin({ actionData }: Route.ComponentProps) {
-  const [fieldErrors, setFieldErrors] = useState(actionData?.errors);
+  const formErrors = actionData?.errors.formErrors || null;
+  const initialFieldErrors = actionData?.errors.fieldErrors || null;
+  const [fieldErrors, setFieldErrors] = useState(initialFieldErrors);
+
   useEffect(() => {
-    setFieldErrors(actionData?.errors);
-  }, [actionData?.errors]);
+    setFieldErrors(initialFieldErrors);
+  }, [initialFieldErrors]);
+
+  useEffect(() => {
+    formErrors?.map((error) => {
+      toast.error(error.message);
+    });
+  }, [formErrors]);
+
   return (
     <main className="flex h-svh items-center justify-center">
       <div className="mx-auto max-w-sm grow">
+        <div className="mb-6 text-center">
+          <Link to="/" className="text-lg font-bold">
+            <Logo />
+          </Link>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Welcome back!</CardTitle>
@@ -119,15 +106,15 @@ export default function Signin({ actionData }: Route.ComponentProps) {
           <CardContent>
             <Form method="post">
               <FieldGroup>
-                <Field data-invalid={!!fieldErrors?.username}>
-                  <FieldLabel htmlFor="username">Username</FieldLabel>
+                <Field data-invalid={!!fieldErrors?.email}>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
                   <Input
-                    id="username"
-                    name="username"
-                    type="text"
-                    aria-invalid={!!fieldErrors?.username}
+                    id="email"
+                    name="email"
+                    type="email"
+                    aria-invalid={!!fieldErrors?.email}
                   />
-                  <FieldError errors={fieldErrors?.username} />
+                  <FieldError errors={fieldErrors?.email} />
                 </Field>
                 <Field data-invalid={!!fieldErrors?.password}>
                   <div className="flex items-center">

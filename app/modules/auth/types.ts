@@ -8,10 +8,9 @@ export type Token = {
 export type User = {
     id: string;
     name: string;
-    last_name: string;
-    username: string;
+    lastName?: string;
     email: string;
-    verifiedAt: string;
+    verifiedAt?: string;
 }
 
 export type Session = {

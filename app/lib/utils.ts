@@ -40,3 +40,32 @@ export async function validate<S extends z.ZodRawShape>(
   const error = formatError<z.infer<typeof schema>>(result.error);
   return { success: false, errors: error };
 }
+
+
+export function getEmailClientUrl(email?: string): string {
+  if (!email) return "https://mail.google.com";
+  const domain = email.split("@")[1]?.toLowerCase();
+  if (!domain) return "https://mail.google.com";
+
+  switch (domain) {
+    case "gmail.com":
+      return "https://mail.google.com";
+    case "yahoo.com":
+    case "ymail.com":
+      return "https://mail.yahoo.com";
+    case "outlook.com":
+    case "hotmail.com":
+    case "live.com":
+    case "msn.com":
+      return "https://outlook.live.com";
+    case "proton.me":
+    case "protonmail.com":
+      return "https://mail.proton.me";
+    case "icloud.com":
+      return "https://www.icloud.com/mail";
+    case "zoho.com":
+      return "https://mail.zoho.com";
+    default:
+      return `https://${domain}`;
+  }
+}

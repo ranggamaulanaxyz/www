@@ -1,5 +1,5 @@
 import type { RouterContextProvider } from "react-router";
-import { supabaseClientContext } from "./supabase.context";
+import { SupabaseClientContext } from "./supabase.context";
 import { getSupabaseBrowserClient } from "./supabase.client";
 
 export async function supabaseClientMiddleware({
@@ -10,5 +10,5 @@ export async function supabaseClientMiddleware({
   context: Readonly<RouterContextProvider>;
 }) {
   const supabase = getSupabaseBrowserClient();
-  context.set(supabaseClientContext, supabase);
+  context.set(SupabaseClientContext, supabase);
 }
