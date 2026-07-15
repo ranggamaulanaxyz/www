@@ -1,10 +1,17 @@
-import { isAuthSessionMissingError, type SupabaseClient } from "@supabase/supabase-js";
-import type { SignupSchema, SigninSchema, ForgotPasswordSchema } from "./schemas";
+import {
+  isAuthSessionMissingError,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
+import type {
+  SignupSchema,
+  SigninSchema,
+  ForgotPasswordSchema,
+} from "./schemas";
 import type { User } from "./types";
 import { getPartnerById } from "../partner/repositories";
 
 export async function userSignUp(supabase: SupabaseClient, data: SignupSchema) {
-    const response = await supabase.auth.signUp({
+  const response = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
     options: {
@@ -16,59 +23,65 @@ export async function userSignUp(supabase: SupabaseClient, data: SignupSchema) {
       },
     },
   });
-  
+
   if (response.error && response.error.status === 422) {
-    return {success: false, data: null, error: response.error}
+    return { success: false, data: null, error: response.error };
   } else if (response.error) {
-    throw response.error
+    throw response.error;
   }
 
-  return {success: true, data, error: null}
+  return { success: true, data, error: null };
 }
 
-export async function userActivation(supabase: SupabaseClient, tokenHash: string) {
-  const {data, error} = await supabase.auth.verifyOtp({token_hash: tokenHash, type: 'email'})
+export async function userActivation(
+  supabase: SupabaseClient,
+  tokenHash: string,
+) {
+  const { data, error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: "email",
+  });
   if (error) {
-    if (error.code === 'otp_expired') {
-      return {success: false, error}
+    if (error.code === "otp_expired") {
+      return { success: false, error };
     }
-    throw error
+    throw error;
   }
 
-  return {success: true}
+  return { success: true };
 }
 
 export async function userSignIn(supabase: SupabaseClient, data: SigninSchema) {
   const response = await supabase.auth.signInWithPassword({
     email: data.email,
-    password: data.password
-  })
+    password: data.password,
+  });
 
   if (response.error) {
-    if(response.error.code === "invalid_credentials") {
-      return {success: false, data: null, error: response.error}
+    if (response.error.code === "invalid_credentials") {
+      return { success: false, data: null, error: response.error };
     }
 
-    throw response.error
+    throw response.error;
   }
 
-  return {success: true, data: response.data, error: null}
+  return { success: true, data: response.data, error: null };
 }
 
 export async function getUser(supabase: SupabaseClient): Promise<User | null> {
-  const {data, error} = await supabase.auth.getUser()
+  const { data, error } = await supabase.auth.getUser();
 
-  if(error) {
-    if(isAuthSessionMissingError(error)) {
-      return null
+  if (error) {
+    if (isAuthSessionMissingError(error)) {
+      return null;
     }
-    throw error
+    throw error;
   }
 
-  const partner = await getPartnerById(supabase, data.user.id)
+  const partner = await getPartnerById(supabase, data.user.id);
 
   if (!partner) {
-    return null
+    return null;
   }
 
   return {
@@ -76,25 +89,28 @@ export async function getUser(supabase: SupabaseClient): Promise<User | null> {
     name: partner.name,
     lastName: partner.last_name,
     email: partner.email,
-    verifiedAt: data.user.email_confirmed_at
-  }
+    verifiedAt: data.user.email_confirmed_at,
+  };
 }
 
 export async function userSignOut(supabase: SupabaseClient) {
-  const { error } = await supabase.auth.signOut()
+  const { error } = await supabase.auth.signOut();
 
   if (error) {
-    throw error
+    throw error;
   }
 
-  return {success: true}
+  return { success: true };
 }
 
-export async function sendEmailResetPassword(supabase: SupabaseClient, data: ForgotPasswordSchema) {
-  const response = await supabase.auth.resetPasswordForEmail(data.email)
-  if(response.error) {
-    throw response.error
+export async function sendEmailResetPassword(
+  supabase: SupabaseClient,
+  data: ForgotPasswordSchema,
+) {
+  const response = await supabase.auth.resetPasswordForEmail(data.email);
+  if (response.error) {
+    throw response.error;
   }
 
-  return {success: true}
+  return { success: true };
 }

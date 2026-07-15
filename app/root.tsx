@@ -33,6 +33,7 @@ import {
 } from "./components/ui/empty";
 import { Copy, FolderX, OctagonX } from "lucide-react";
 import { toast } from "sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
@@ -83,7 +84,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <TooltipProvider>
+      <Outlet />
+    </TooltipProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
