@@ -1,60 +1,40 @@
-import {
-  LexicalComposer,
-  type InitialConfigType,
-} from "@lexical/react/LexicalComposer";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { EditorContent } from "~/components/editor/composer";
+import { useExtensionComponent } from "@lexical/react/useExtensionComponent";
+import { ToolbarExtension } from "~/components/editor/extensions/toolbar";
 
-import { toast } from "sonner";
-
-const theme = {};
-
-function onError(error: Error) {
-  console.error(error);
-  toast.error(error.message);
-}
-
-interface BlogEditorProps {
-  placeholder?: string;
-}
-
-export default function BlogEditor({
-  placeholder = "Enter some text",
-}: BlogEditorProps) {
-  const initialConfig: InitialConfigType = {
-    namespace: "BlogEditor",
-    theme: theme,
-    onError: onError,
-  };
-
-  const placeHolder = () => {
-    return (
-      <p className="text-muted-foreground pointer-events-none absolute top-0 left-0 z-10 select-none">
-        {placeholder}
-      </p>
-    );
-  };
-
-  const contentEditable = () => {
-    return (
-      <ContentEditable
-        className="outline-none"
-        aria-placeholder={placeholder}
-        placeholder={placeHolder()}
-      />
-    );
-  };
-
+export default function BlogEditor() {
+  const ToolbarComponent = useExtensionComponent(ToolbarExtension);
   return (
-    <div className="relative overflow-hidden">
-      <LexicalComposer initialConfig={initialConfig}>
-        <RichTextPlugin
-          contentEditable={contentEditable()}
-          ErrorBoundary={LexicalErrorBoundary}
-        />
-      </LexicalComposer>
+    <div className="container mx-auto">
+      <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-4">
+        <div></div>
+        <div className="col-span-2">
+          <div className="mx-auto max-w-2xl p-4">
+            <div className="typeset typeset-docs mb-4">
+              <h1
+                className="before:text-muted-foreground/50 outline-none empty:before:content-[attr(data-placeholder)]"
+                contentEditable="plaintext-only"
+                suppressContentEditableWarning={true}
+                data-placeholder="Title"
+                onInput={(e) => {
+                  if (e.currentTarget.textContent === "") {
+                    e.currentTarget.innerHTML = "";
+                  }
+                }}
+              ></h1>
+            </div>
+            <EditorContent
+              className="typeset typeset-docs"
+              placeholder="Write your article here..."
+            />
+          </div>
+        </div>
+        <div className="">
+          <div className="sticky top-4">
+            <ToolbarComponent />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

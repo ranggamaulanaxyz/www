@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
+    "@lexical/code-shiki": "^0.47.0",
     "@lexical/react": "^0.47.0",
+    "@lexical/tailwind": "^0.47.0",
     "@react-router/node": "8.0.0",
     "@react-router/serve": "8.0.0",
     "@supabase/ssr": "^0.12.1",
