@@ -1,13 +1,16 @@
 import { EditorContent } from "~/components/editor/composer";
 import { useExtensionComponent } from "@lexical/react/useExtensionComponent";
 import { ToolbarExtension } from "~/components/editor/extensions/toolbar";
+import CoverUploader from "./cover-drop-zone";
 
 export default function BlogEditor() {
   const Toolbar = useExtensionComponent(ToolbarExtension);
   return (
     <div className="container mx-auto">
       <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-4">
-        <div></div>
+        <div>
+          <CoverUploader />
+        </div>
         <div className="col-span-2">
           <div className="mx-auto max-w-2xl p-4">
             <div className="typeset typeset-docs mb-4">
