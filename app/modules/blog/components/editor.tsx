@@ -3,7 +3,7 @@ import { useExtensionComponent } from "@lexical/react/useExtensionComponent";
 import { ToolbarExtension } from "~/components/editor/extensions/toolbar";
 
 export default function BlogEditor() {
-  const ToolbarComponent = useExtensionComponent(ToolbarExtension);
+  const Toolbar = useExtensionComponent(ToolbarExtension);
   return (
     <div className="container mx-auto">
       <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-4">
@@ -31,7 +31,7 @@ export default function BlogEditor() {
         </div>
         <div className="">
           <div className="sticky top-4">
-            <ToolbarComponent />
+            <Toolbar />
           </div>
         </div>
       </div>

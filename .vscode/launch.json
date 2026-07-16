@@ -15,7 +15,9 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run",
-        "dev"
+        "dev",
+        "--",
+        "--host"
       ],
       "console": "integratedTerminal"
     }

@@ -1,11 +1,12 @@
 import { configExtension, defineExtension } from "lexical";
 
-import { RichTextExtension } from "@lexical/rich-text";
+import { RichTextExtension, HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { HistoryExtension } from "@lexical/history";
 import {
   CodeExtension,
   CodeIndentExtension,
   CodeHighlightNode,
+  CodeNode,
 } from "@lexical/code-core";
 import { CodeShikiExtension } from "@lexical/code-shiki";
 import { TableExtension } from "@lexical/table";
@@ -17,7 +18,7 @@ import {
 } from "@lexical/extension";
 
 import { ReactExtension } from "@lexical/react/ReactExtension";
-import { TailwindExtension } from "@lexical/tailwind";
+// import { TailwindExtension } from "@lexical/tailwind";
 
 import theme from "./theme";
 import { ToolbarExtension } from "./extensions/toolbar";
@@ -37,10 +38,16 @@ export const blogExtension = defineExtension({
     CodeIndentExtension,
     CodeShikiExtension,
     TableExtension,
-    TailwindExtension,
     configExtension(ReactExtension, { contentEditable: null }),
     ToolbarExtension,
   ],
-  nodes: [CodeHighlightNode, ListNode, LinkNode],
+  nodes: [
+    CodeHighlightNode,
+    CodeNode,
+    ListNode,
+    LinkNode,
+    HeadingNode,
+    QuoteNode,
+  ],
   theme: theme,
 });
