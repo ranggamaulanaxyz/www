@@ -9,7 +9,7 @@ export default [
   index("routes/home.tsx"),
   route("/signin", "routes/signin.tsx"),
   route("/signup", "routes/signup.tsx"),
-  route("/signup/activation", "routes/signup-activation.tsx"),
+  route("/signup/confirmation", "routes/signup-confirmation.tsx"),
   route("/signout", "routes/signout.tsx"),
   route("/password/forgot", "routes/password/forgot.tsx"),
 

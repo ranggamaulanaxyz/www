@@ -1,4 +1,6 @@
 export interface ValidationErrorDetail {
+  code?: string;
+  title?: string;
   message: string;
 }
 

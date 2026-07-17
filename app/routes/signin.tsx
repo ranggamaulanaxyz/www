@@ -53,7 +53,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     return { errors: { fieldErrors: validation.errors } };
   }
   const supabase = context.get(SupabaseClientContext);
-  const { success, data, error } = await userSignIn(supabase, validation.data);
+  const { success, error } = await userSignIn(supabase, validation.data);
   if (!success) {
     return { errors: { formErrors: error ? [error] : null } };
   }
@@ -75,6 +75,7 @@ export async function clientAction({
 
 export default function Signin({ actionData }: Route.ComponentProps) {
   const formErrors = actionData?.errors.formErrors || null;
+  const invalidForm = !!formErrors;
   const initialFieldErrors = actionData?.errors.fieldErrors || null;
   const [fieldErrors, setFieldErrors] = useState(initialFieldErrors);
 
@@ -106,17 +107,17 @@ export default function Signin({ actionData }: Route.ComponentProps) {
           <CardContent>
             <Form method="post">
               <FieldGroup>
-                <Field data-invalid={!!fieldErrors?.email}>
+                <Field data-invalid={!!fieldErrors?.email || invalidForm}>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    aria-invalid={!!fieldErrors?.email}
+                    aria-invalid={!!fieldErrors?.email || invalidForm}
                   />
                   <FieldError errors={fieldErrors?.email} />
                 </Field>
-                <Field data-invalid={!!fieldErrors?.password}>
+                <Field data-invalid={!!fieldErrors?.password || invalidForm}>
                   <div className="flex items-center">
                     <FieldLabel htmlFor="password">Password</FieldLabel>
                     <Link
@@ -131,7 +132,7 @@ export default function Signin({ actionData }: Route.ComponentProps) {
                     id="password"
                     name="password"
                     type="password"
-                    aria-invalid={!!fieldErrors?.password}
+                    aria-invalid={!!fieldErrors?.password || invalidForm}
                   />
                   <FieldError errors={fieldErrors?.password} />
                 </Field>

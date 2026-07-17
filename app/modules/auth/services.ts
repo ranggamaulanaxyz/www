@@ -9,6 +9,7 @@ import type {
 } from "./schemas";
 import type { User } from "./types";
 import { getPartnerById } from "../partner/repositories";
+import type { ValidationErrorDetail } from "~/types";
 
 export async function userSignUp(supabase: SupabaseClient, data: SignupSchema) {
   const response = await supabase.auth.signUp({
@@ -33,22 +34,55 @@ export async function userSignUp(supabase: SupabaseClient, data: SignupSchema) {
   return { success: true, data, error: null };
 }
 
-export async function userActivation(
-  supabase: SupabaseClient,
-  tokenHash: string,
-) {
-  const { data, error } = await supabase.auth.verifyOtp({
+export async function userVerify(supabase: SupabaseClient, tokenHash: string) {
+  const response = await supabase.auth.verifyOtp({
     token_hash: tokenHash,
     type: "email",
   });
-  if (error) {
-    if (error.code === "otp_expired") {
-      return { success: false, error };
+
+  if (response.error) {
+    let error: ValidationErrorDetail;
+    switch (response.error.code) {
+      case "otp_expired":
+        error = {
+          code: response.error.code,
+          title: "Link is expired or invalid",
+          message:
+            "This link has expired or invalid. Please request a new verification email and try again.",
+        };
+        break;
+      case "over_request_rate_limit":
+        error = {
+          code: response.error.code,
+          title: "Too Many Requests",
+          message:
+            "You've made too many attempts. Please wait a few minutes before trying again.",
+        };
+        break;
+      default:
+        throw response.error;
     }
-    throw error;
+    return { success: false, data: null, error };
   }
 
-  return { success: true };
+  return {
+    success: true,
+    data: response.data,
+    error: null,
+  };
+}
+
+export async function resendUserSignupVerification(
+  supabase: SupabaseClient,
+  email: string,
+) {
+  const response = await supabase.auth.resend({
+    type: "signup",
+    email: email,
+    options: {
+      emailRedirectTo: `${import.meta.env.PUBLIC_APP_URL}/signup/activation`,
+    },
+  });
 }
 
 export async function userSignIn(supabase: SupabaseClient, data: SigninSchema) {
@@ -58,11 +92,28 @@ export async function userSignIn(supabase: SupabaseClient, data: SigninSchema) {
   });
 
   if (response.error) {
-    if (response.error.code === "invalid_credentials") {
-      return { success: false, data: null, error: response.error };
+    let error: ValidationErrorDetail;
+    switch (response.error.code) {
+      case "invalid_credentials":
+        error = {
+          message: "The credentials you provided aren't correct",
+        };
+        break;
+      case "email_not_confirmed":
+        error = {
+          message:
+            "Your email address hasn't been confirmed. Please check your email to confirm your account.",
+        };
+        break;
+      default:
+        throw response.error;
     }
 
-    throw response.error;
+    return {
+      success: false,
+      data: null,
+      error: error,
+    };
   }
 
   return { success: true, data: response.data, error: null };

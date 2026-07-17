@@ -1,4 +1,4 @@
-import { Form, Link, redirect } from "react-router";
+import { data, Form, Link, redirect } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -25,6 +25,16 @@ import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 import { userSignUp } from "~/modules/auth/services";
 import { toast } from "sonner";
 import { Logo } from "~/components/brand/logo";
+import {
+  getSettingByKey,
+  loadSettingsByKeys,
+} from "~/modules/setting/services";
+import { authMiddleware, onlyGuestMiddleware } from "~/modules/auth/middleware";
+
+export const middleware: Route.MiddlewareFunction[] = [
+  authMiddleware,
+  onlyGuestMiddleware,
+];
 
 export function meta() {
   return [
@@ -34,6 +44,15 @@ export function meta() {
       content: "Create new account to join my community.",
     },
   ];
+}
+
+export async function loader({ context }: Route.LoaderArgs) {
+  const supabase = context.get(SupabaseClientContext);
+  const settings = await loadSettingsByKeys(supabase, ["auth.signup"]);
+  const signupEnabled = getSettingByKey(settings, "auth.signup");
+  if (signupEnabled !== "true") {
+    throw data({ message: "Signup is closed" }, { status: 403 });
+  }
 }
 
 async function validateFormData(formData: FormData) {
@@ -117,10 +136,10 @@ export default function Signin({ actionData }: Route.ComponentProps) {
           <Card>
             <CardHeader>
               <CardTitle>
-                <h1>Registration successful</h1>
+                <h1>Hooray! Your account was created</h1>
               </CardTitle>
               <CardDescription>
-                Please check your email to activate your account.
+                Please check your email to complete the signup process.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">

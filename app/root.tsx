@@ -19,6 +19,7 @@ import {
   CardAction,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "./components/ui/card";
@@ -102,13 +103,13 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     message =
       error.status === 404
         ? "The requested page could not be found."
-        : error.statusText || message;
+        : error.data.message || error.statusText || message;
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     message = error.message;
     stack = error.stack;
   }
 
-  if (import.meta.env.DEV && status !== 404) {
+  if (import.meta.env.DEV && status < 400 && status >= 500) {
     const formatStackTrace = (stackStr?: string) => {
       if (!stackStr) return null;
       return stackStr.split("\n").map((line, i) => {
@@ -156,27 +157,31 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     return (
       <main>
         <div className="p-4">
-          <Card className="pb-0">
+          <Card>
             <CardHeader>
               <CardTitle>{status}</CardTitle>
               <CardDescription>Message: {message}</CardDescription>
-              <CardAction>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    navigator.clipboard.writeText(stack || message);
-                    toast.success("Copied to clipboard");
-                  }}
-                >
-                  <Copy /> Copy error
-                </Button>
-              </CardAction>
+              {stack && (
+                <CardAction>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(stack || message);
+                      toast.success("Copied to clipboard");
+                    }}
+                  >
+                    <Copy /> Copy error
+                  </Button>
+                </CardAction>
+              )}
             </CardHeader>
-            <CardContent>
-              <pre className="bg-muted/50 m-0 -mx-(--card-spacing) overflow-y-scroll border-t px-(--card-spacing) py-4 text-sm leading-relaxed">
-                {formatStackTrace(stack)}
-              </pre>
-            </CardContent>
+            {stack && (
+              <CardContent>
+                <pre className="bg-muted/50 m-0 -mx-(--card-spacing) overflow-y-scroll border-t border-b px-(--card-spacing) py-4 text-sm leading-relaxed">
+                  {formatStackTrace(stack)}
+                </pre>
+              </CardContent>
+            )}
           </Card>
         </div>
       </main>
