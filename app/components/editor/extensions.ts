@@ -22,6 +22,7 @@ import { ReactExtension } from "@lexical/react/ReactExtension";
 
 import theme from "./theme";
 import { ToolbarExtension } from "./extensions/toolbar";
+import { FigureNode, FigcaptionNode } from "./node/figure";
 
 export const blogExtension = defineExtension({
   name: "[root]",
@@ -48,6 +49,8 @@ export const blogExtension = defineExtension({
     LinkNode,
     HeadingNode,
     QuoteNode,
+    FigureNode,
+    FigcaptionNode,
   ],
   theme: theme,
 });

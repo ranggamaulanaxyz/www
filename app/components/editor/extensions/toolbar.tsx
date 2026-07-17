@@ -14,8 +14,9 @@ import {
   UNDO_COMMAND,
   REDO_COMMAND,
   $createParagraphNode,
+  $createTextNode,
 } from "lexical";
-import type { TextFormatType, ElementFormatType } from "lexical";
+import type { TextFormatType, ElementFormatType, LexicalNode } from "lexical";
 
 import {
   $createHeadingNode,
@@ -25,6 +26,12 @@ import {
 } from "@lexical/rich-text";
 import type { HeadingTagType } from "@lexical/rich-text";
 import { $createCodeNode, $isCodeNode } from "@lexical/code-core";
+import {
+  $createFigureNode,
+  $isFigureNode,
+  $createFigcaptionNode,
+  $isFigcaptionNode,
+} from "../node/figure";
 import { $setBlocksType } from "@lexical/selection";
 
 import { Card, CardContent } from "~/components/ui/card";
@@ -115,6 +122,27 @@ export function useToolbar() {
             $setBlocksType(selection, () => $createQuoteNode());
           } else if (type === "code") {
             $setBlocksType(selection, () => $createCodeNode());
+          } else if (type === "figure") {
+            $setBlocksType(selection, () => $createFigureNode());
+            const nodes = selection.getNodes();
+            nodes.forEach((node) => {
+              const element =
+                node.getKey() === "root"
+                  ? node
+                  : node.getTopLevelElement();
+              if ($isFigureNode(element)) {
+                const children = element.getChildren();
+                const hasCaption = children.some((child) =>
+                  $isFigcaptionNode(child),
+                );
+                if (!hasCaption) {
+                  const caption = $createFigcaptionNode();
+                  const textNode = $createTextNode("Caption...");
+                  caption.append(textNode);
+                  element.append(caption);
+                }
+              }
+            });
           } else if (/^h[1-6]$/.test(type)) {
             $setBlocksType(selection, () =>
               $createHeadingNode(type as HeadingTagType),
@@ -154,9 +182,19 @@ export function useToolbar() {
       const element =
         anchorNode.getKey() === "root"
           ? anchorNode
-          : anchorNode.getTopLevelElementOrThrow();
+          : anchorNode.getTopLevelElement();
       if ($isElementNode(element)) {
         setElementFormat(element.getFormatType() || "left");
+
+        let isFigure = false;
+        let parent: LexicalNode | null = anchorNode;
+        while (parent !== null) {
+          if ($isFigureNode(parent) || $isFigcaptionNode(parent)) {
+            isFigure = true;
+            break;
+          }
+          parent = parent.getParent();
+        }
 
         if ($isHeadingNode(element)) {
           setBlockType(element.getTag());
@@ -164,6 +202,8 @@ export function useToolbar() {
           setBlockType("quote");
         } else if ($isCodeNode(element)) {
           setBlockType("code");
+        } else if (isFigure) {
+          setBlockType("figure");
         } else {
           setBlockType("paragraph");
         }
@@ -276,6 +316,7 @@ export function ToolbarComponent() {
                   <SelectItem value="paragraph">Paragraph</SelectItem>
                   <SelectItem value="quote">Quote</SelectItem>
                   <SelectItem value="code">Code Block</SelectItem>
+                  <SelectItem value="figure">Figure</SelectItem>
                 </SelectGroup>
                 <SelectGroup>
                   <SelectLabel>Heading</SelectLabel>
