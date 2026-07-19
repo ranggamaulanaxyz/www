@@ -1,7 +1,12 @@
 import { useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Points, PointMaterial, Stars } from "@react-three/drei";
-import * as THREE from "three";
+import {
+  MathUtils,
+  Color,
+  type Points as TPoints,
+  type Mesh as TMesh,
+} from "three";
 import { Button } from "~/components/ui/button";
 import { Link } from "react-router";
 
@@ -39,12 +44,12 @@ function useIsDarkMode() {
 // Camera rig to create smooth mouse/touch parallax interaction
 function CameraRig() {
   useFrame((state) => {
-    state.camera.position.x = THREE.MathUtils.lerp(
+    state.camera.position.x = MathUtils.lerp(
       state.camera.position.x,
       state.pointer.x * 1.2,
       0.05,
     );
-    state.camera.position.y = THREE.MathUtils.lerp(
+    state.camera.position.y = MathUtils.lerp(
       state.camera.position.y,
       state.pointer.y * 1.2,
       0.05,
@@ -55,12 +60,12 @@ function CameraRig() {
 }
 
 function Particles({ isDark }: { isDark: boolean }) {
-  const ref = useRef<THREE.Points>(null);
+  const ref = useRef<TPoints>(null);
   const [positions, colors] = useMemo(() => {
     const count = 3000;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
-    const color = new THREE.Color();
+    const color = new Color();
 
     // Monochrome palette: whites/grays for dark mode, blacks/grays for light mode
     const themeColors = isDark
@@ -107,7 +112,7 @@ function Particles({ isDark }: { isDark: boolean }) {
 }
 
 function CodeGeometry({ isDark }: { isDark: boolean }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<TMesh>(null);
   const rotationX = useRef(0);
   const rotationY = useRef(0);
 
@@ -116,12 +121,12 @@ function CodeGeometry({ isDark }: { isDark: boolean }) {
       rotationX.current += delta * 0.12;
       rotationY.current += delta * 0.16;
       // Add interactive rotation drift based on mouse/touch pointer
-      meshRef.current.rotation.x = THREE.MathUtils.lerp(
+      meshRef.current.rotation.x = MathUtils.lerp(
         meshRef.current.rotation.x,
         rotationX.current + state.pointer.y * 0.4,
         0.05,
       );
-      meshRef.current.rotation.y = THREE.MathUtils.lerp(
+      meshRef.current.rotation.y = MathUtils.lerp(
         meshRef.current.rotation.y,
         rotationY.current + state.pointer.x * 0.4,
         0.05,
