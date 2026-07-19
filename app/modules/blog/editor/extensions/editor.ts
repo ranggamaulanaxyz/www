@@ -18,16 +18,12 @@ import {
 } from "@lexical/extension";
 
 import { ReactExtension } from "@lexical/react/ReactExtension";
-// import { TailwindExtension } from "@lexical/tailwind";
 
-import theme from "./theme";
-import { ToolbarExtension } from "./extensions/toolbar";
-import { BlockDndExtension } from "./extensions/block-dnd";
-import { FigureNode, FigcaptionNode } from "./nodes/figure";
+import theme from "../theme";
 import { toast } from "sonner";
 
-export const blogExtension = defineExtension({
-  name: "[root]",
+export const BlogExtension = defineExtension({
+  name: "@desk/blog/editor",
   namespace: "Editor",
   dependencies: [
     RichTextExtension,
@@ -42,8 +38,6 @@ export const blogExtension = defineExtension({
     CodeShikiExtension,
     TableExtension,
     configExtension(ReactExtension, { contentEditable: null }),
-    ToolbarExtension,
-    BlockDndExtension,
   ],
   nodes: [
     CodeHighlightNode,
@@ -52,8 +46,6 @@ export const blogExtension = defineExtension({
     LinkNode,
     HeadingNode,
     QuoteNode,
-    FigureNode,
-    FigcaptionNode,
   ],
   theme: theme,
   onError: (error: Error) => {

@@ -13,6 +13,11 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { LogOutIcon, UserRoundCogIcon } from "lucide-react";
+import { lazy, Suspense } from "react";
+
+const Hero3D = lazy(() =>
+  import("~/components/hero-3d").then((module) => ({ default: module.Hero3D }))
+);
 
 export const clientMiddleware: Route.ClientMiddlewareFunction[] = [
   authMiddleware,
@@ -35,20 +40,20 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData;
   const authenticated = !!user;
   return (
-    <div>
-      <header className="fixed top-0 z-10 flex w-full items-center justify-between bg-transparent px-4 py-2">
+    <div className="min-h-screen bg-background">
+      <header className="fixed top-0 z-50 flex w-full items-center justify-between bg-transparent px-6 py-4 text-foreground backdrop-blur-xs transition-all duration-300">
         <div className="font-bold">
-          <Link to="/" title={import.meta.env.PUBLIC_APP_NAME}>
+          <Link to="/" title={import.meta.env.PUBLIC_APP_NAME} className="hover:opacity-80 transition-opacity">
             <Logo />
           </Link>
         </div>
         <div className="flex items-center gap-4">
           {!authenticated && (
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="px-4">
                 <Link to="/signin">Sign In</Link>
               </Button>
-              <Button size="sm" asChild>
+              <Button size="sm" className="px-5" asChild>
                 <Link to="/signup">Sign Up</Link>
               </Button>
             </div>
@@ -65,7 +70,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   >
                     <Avatar>
                       <AvatarImage
-                        src="https://github.com/shadcn.png"
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
                         alt={user.name}
                       />
                       <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
@@ -76,13 +81,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   <DropdownMenuGroup>
                     <DropdownMenuItem asChild>
                       <Link to="/account" title={user.name}>
-                        <UserRoundCogIcon /> Account
+                        <UserRoundCogIcon className="mr-2 h-4 w-4" /> Account
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem variant="destructive" asChild>
                       <Link to="/signout">
-                        <LogOutIcon /> Sign Out
+                        <LogOutIcon className="mr-2 h-4 w-4" /> Sign Out
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
@@ -93,7 +98,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </div>
       </header>
       <main>
-        <section className="relative"></section>
+        <Suspense fallback={<div className="min-h-screen bg-background" />}>
+          <Hero3D />
+        </Suspense>
       </main>
     </div>
   );

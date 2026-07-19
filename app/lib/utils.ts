@@ -41,7 +41,6 @@ export async function validate<S extends z.ZodRawShape>(
   return { success: false, errors: error };
 }
 
-
 export function getEmailClientUrl(email?: string): string {
   if (!email) return "https://mail.google.com";
   const domain = email.split("@")[1]?.toLowerCase();
@@ -68,4 +67,8 @@ export function getEmailClientUrl(email?: string): string {
     default:
       return `https://${domain}`;
   }
+}
+
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

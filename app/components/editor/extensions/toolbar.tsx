@@ -14,10 +14,8 @@ import {
   UNDO_COMMAND,
   REDO_COMMAND,
   $createParagraphNode,
-  $createTextNode,
 } from "lexical";
 import type { TextFormatType, ElementFormatType, LexicalNode } from "lexical";
-
 import {
   $createHeadingNode,
   $isHeadingNode,
@@ -26,12 +24,7 @@ import {
 } from "@lexical/rich-text";
 import type { HeadingTagType } from "@lexical/rich-text";
 import { $createCodeNode, $isCodeNode } from "@lexical/code-core";
-import {
-  $createFigureNode,
-  $isFigureNode,
-  $createFigcaptionNode,
-  $isFigcaptionNode,
-} from "../node/figure";
+import { $createFigureNode, $isFigureNode } from "../nodes/figure";
 import { $setBlocksType } from "@lexical/selection";
 
 import { Card, CardContent } from "~/components/ui/card";
@@ -56,8 +49,10 @@ import {
   CaseLowerIcon,
   SuperscriptIcon,
   SubscriptIcon,
+  Code2Icon,
+  SquareCodeIcon,
 } from "lucide-react";
-import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
+import { Field, FieldGroup } from "~/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -70,7 +65,7 @@ import {
 
 export function useToolbar() {
   const [editor] = useLexicalComposerContext();
-
+  const [isRangeSelection, setIsRangeSelection] = useState(false);
   const [textFormat, setTextFormat] = useState<Record<TextFormatType, boolean>>(
     {
       bold: false,
@@ -88,6 +83,7 @@ export function useToolbar() {
   );
   const [elementFormat, setElementFormat] = useState<ElementFormatType>("left");
   const [blockType, setBlockType] = useState<string>("paragraph");
+  const [isInsideFigure, setIsInsideFigure] = useState(false);
 
   const isTextFormatActive = (type: TextFormatType) => textFormat[type];
 
@@ -124,25 +120,6 @@ export function useToolbar() {
             $setBlocksType(selection, () => $createCodeNode());
           } else if (type === "figure") {
             $setBlocksType(selection, () => $createFigureNode());
-            const nodes = selection.getNodes();
-            nodes.forEach((node) => {
-              const element =
-                node.getKey() === "root"
-                  ? node
-                  : node.getTopLevelElement();
-              if ($isFigureNode(element)) {
-                const children = element.getChildren();
-                const hasCaption = children.some((child) =>
-                  $isFigcaptionNode(child),
-                );
-                if (!hasCaption) {
-                  const caption = $createFigcaptionNode();
-                  const textNode = $createTextNode("Caption...");
-                  caption.append(textNode);
-                  element.append(caption);
-                }
-              }
-            });
           } else if (/^h[1-6]$/.test(type)) {
             $setBlocksType(selection, () =>
               $createHeadingNode(type as HeadingTagType),
@@ -150,8 +127,38 @@ export function useToolbar() {
           }
         }
       });
-      editor.focus();
     }
+  };
+
+  const insertCodeBlockInFigure = () => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const anchorNode = selection.anchor.getNode();
+        let figureNode: LexicalNode | null = null;
+        let parent: LexicalNode | null = anchorNode;
+        while (parent !== null && parent.getKey() !== "root") {
+          if ($isFigureNode(parent)) {
+            figureNode = parent;
+            break;
+          }
+          parent = parent.getParent();
+        }
+        if (figureNode !== null && $isElementNode(figureNode)) {
+          const codeNode = $createCodeNode();
+          let child: LexicalNode | null = anchorNode;
+          while (child !== null && child.getParent() !== figureNode) {
+            child = child.getParent();
+          }
+          if (child !== null) {
+            child.insertAfter(codeNode);
+          } else {
+            figureNode.append(codeNode);
+          }
+          codeNode.select();
+        }
+      }
+    });
   };
 
   const [history, setHistory] = useState({
@@ -163,6 +170,7 @@ export function useToolbar() {
 
   const toolbarCallback = useCallback(() => {
     const selection = $getSelection();
+    setIsRangeSelection($isRangeSelection(selection));
     if ($isRangeSelection(selection)) {
       setTextFormat({
         bold: selection.hasFormat("bold"),
@@ -179,6 +187,20 @@ export function useToolbar() {
       });
 
       const anchorNode = selection.anchor.getNode();
+      let parent: LexicalNode | null = anchorNode;
+      let isCode = false;
+      let insideFigure = false;
+      while (parent !== null && parent.getKey() !== "root") {
+        if ($isCodeNode(parent)) {
+          isCode = true;
+        }
+        if ($isFigureNode(parent)) {
+          insideFigure = true;
+        }
+        parent = parent.getParent();
+      }
+      setIsInsideFigure(insideFigure);
+
       const element =
         anchorNode.getKey() === "root"
           ? anchorNode
@@ -186,23 +208,15 @@ export function useToolbar() {
       if ($isElementNode(element)) {
         setElementFormat(element.getFormatType() || "left");
 
-        let isFigure = false;
-        let parent: LexicalNode | null = anchorNode;
-        while (parent !== null) {
-          if ($isFigureNode(parent) || $isFigcaptionNode(parent)) {
-            isFigure = true;
-            break;
-          }
-          parent = parent.getParent();
-        }
-
-        if ($isHeadingNode(element)) {
+        if (isCode) {
+          setBlockType("code");
+        } else if ($isHeadingNode(element)) {
           setBlockType(element.getTag());
         } else if ($isQuoteNode(element)) {
           setBlockType("quote");
         } else if ($isCodeNode(element)) {
           setBlockType("code");
-        } else if (isFigure) {
+        } else if ($isFigureNode(element)) {
           setBlockType("figure");
         } else {
           setBlockType("paragraph");
@@ -212,6 +226,9 @@ export function useToolbar() {
   }, []);
 
   useEffect(() => {
+    editor.getEditorState().read(() => {
+      toolbarCallback();
+    });
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
         toolbarCallback();
@@ -257,6 +274,7 @@ export function useToolbar() {
 
   return {
     editor,
+    isRangeSelection,
     isTextFormatActive,
     toggleTextFormat,
     elementFormat,
@@ -264,11 +282,15 @@ export function useToolbar() {
     history,
     blockType,
     formatBlockType,
+    isInsideFigure,
+    insertCodeBlockInFigure,
   };
 }
 
 export function ToolbarComponent() {
   const {
+    editor,
+    isRangeSelection,
     isTextFormatActive,
     toggleTextFormat,
     elementFormat,
@@ -276,6 +298,8 @@ export function ToolbarComponent() {
     history,
     blockType,
     formatBlockType,
+    isInsideFigure,
+    insertCodeBlockInFigure,
   } = useToolbar();
   return (
     <Card>
@@ -306,16 +330,25 @@ export function ToolbarComponent() {
             </Button>
           </Field>
           <Field>
-            <Select value={blockType} onValueChange={formatBlockType}>
-              <SelectTrigger className="w-[150px]">
+            <Select
+              value={blockType}
+              onValueChange={formatBlockType}
+              disabled={!isRangeSelection}
+            >
+              <SelectTrigger className="w-37.5">
                 <SelectValue placeholder="Paragraph" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                onCloseAutoFocus={(e) => {
+                  e.preventDefault();
+                  editor.focus();
+                }}
+              >
                 <SelectGroup>
-                  <SelectLabel>Text</SelectLabel>
+                  <SelectLabel>BLOCK</SelectLabel>
                   <SelectItem value="paragraph">Paragraph</SelectItem>
                   <SelectItem value="quote">Quote</SelectItem>
-                  <SelectItem value="code">Code Block</SelectItem>
+                  <SelectItem value="code">Code</SelectItem>
                   <SelectItem value="figure">Figure</SelectItem>
                 </SelectGroup>
                 <SelectGroup>
@@ -334,6 +367,7 @@ export function ToolbarComponent() {
             <Button
               variant={isTextFormatActive("bold") ? "default" : "outline"}
               onClick={() => toggleTextFormat("bold")}
+              disabled={!isRangeSelection}
               title="Bold"
             >
               <BoldIcon />
@@ -341,6 +375,7 @@ export function ToolbarComponent() {
             <Button
               variant={isTextFormatActive("italic") ? "default" : "outline"}
               onClick={() => toggleTextFormat("italic")}
+              disabled={!isRangeSelection}
               title="Italic"
             >
               <ItalicIcon />
@@ -348,6 +383,7 @@ export function ToolbarComponent() {
             <Button
               variant={isTextFormatActive("underline") ? "default" : "outline"}
               onClick={() => toggleTextFormat("underline")}
+              disabled={!isRangeSelection}
               title="Underline"
             >
               <UnderlineIcon />
@@ -355,6 +391,7 @@ export function ToolbarComponent() {
             <Button
               variant={isTextFormatActive("code") ? "default" : "outline"}
               onClick={() => toggleTextFormat("code")}
+              disabled={!isRangeSelection}
               title="Code"
             >
               <CodeIcon />
@@ -364,6 +401,7 @@ export function ToolbarComponent() {
                 isTextFormatActive("strikethrough") ? "default" : "outline"
               }
               onClick={() => toggleTextFormat("strikethrough")}
+              disabled={!isRangeSelection}
               title="Strikethrough"
             >
               <StrikethroughIcon />
@@ -371,6 +409,7 @@ export function ToolbarComponent() {
             <Button
               variant={isTextFormatActive("subscript") ? "default" : "outline"}
               onClick={() => toggleTextFormat("subscript")}
+              disabled={!isRangeSelection}
               title="Subscript"
             >
               <SubscriptIcon />
@@ -380,6 +419,7 @@ export function ToolbarComponent() {
                 isTextFormatActive("superscript") ? "default" : "outline"
               }
               onClick={() => toggleTextFormat("superscript")}
+              disabled={!isRangeSelection}
               title="Superscript"
             >
               <SuperscriptIcon />
@@ -387,6 +427,7 @@ export function ToolbarComponent() {
             <Button
               variant={isTextFormatActive("lowercase") ? "default" : "outline"}
               onClick={() => toggleTextFormat("lowercase")}
+              disabled={!isRangeSelection}
               title="Lowercase"
             >
               <CaseLowerIcon />
@@ -394,6 +435,7 @@ export function ToolbarComponent() {
             <Button
               variant={isTextFormatActive("uppercase") ? "default" : "outline"}
               onClick={() => toggleTextFormat("uppercase")}
+              disabled={!isRangeSelection}
               title="Uppercase"
             >
               <CaseUpperIcon />
@@ -401,6 +443,7 @@ export function ToolbarComponent() {
             <Button
               variant={isTextFormatActive("capitalize") ? "default" : "outline"}
               onClick={() => toggleTextFormat("capitalize")}
+              disabled={!isRangeSelection}
               title="Capitalize"
             >
               <CaseSensitive className="size-4" />
@@ -408,6 +451,7 @@ export function ToolbarComponent() {
             <Button
               variant={isTextFormatActive("highlight") ? "default" : "outline"}
               onClick={() => toggleTextFormat("highlight")}
+              disabled={!isRangeSelection}
               title="Highlight"
             >
               <HighlighterIcon />
@@ -417,6 +461,7 @@ export function ToolbarComponent() {
             <Button
               variant={elementFormat === "left" ? "default" : "outline"}
               onClick={() => alignElement("left")}
+              disabled={!isRangeSelection}
               title="Align Left"
             >
               <AlignLeftIcon />
@@ -424,6 +469,7 @@ export function ToolbarComponent() {
             <Button
               variant={elementFormat === "center" ? "default" : "outline"}
               onClick={() => alignElement("center")}
+              disabled={!isRangeSelection}
               title="Align Center"
             >
               <AlignCenterIcon />
@@ -431,6 +477,7 @@ export function ToolbarComponent() {
             <Button
               variant={elementFormat === "right" ? "default" : "outline"}
               onClick={() => alignElement("right")}
+              disabled={!isRangeSelection}
               title="Align Right"
             >
               <AlignRightIcon />
@@ -438,10 +485,23 @@ export function ToolbarComponent() {
             <Button
               variant={elementFormat === "justify" ? "default" : "outline"}
               onClick={() => alignElement("justify")}
+              disabled={!isRangeSelection}
               title="Align Justify"
             >
               <AlignJustifyIcon />
             </Button>
+          </Field>
+          <Field orientation="horizontal">
+            {isInsideFigure && (
+              <Button
+                variant="outline"
+                onClick={insertCodeBlockInFigure}
+                disabled={!isRangeSelection}
+                title="Insert Code Block"
+              >
+                <SquareCodeIcon />
+              </Button>
+            )}
           </Field>
         </FieldGroup>
       </CardContent>

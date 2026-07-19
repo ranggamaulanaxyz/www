@@ -21,12 +21,5 @@ export function getSettingByKey(
   settings: Record<string, string> | undefined | null,
   key: string,
 ) {
-  if (!settings) {
-    throw new Error("Settings record is not defined");
-  }
-  const value = settings[key];
-  if (value === undefined) {
-    throw new Error(`Setting key "${key}" not found`);
-  }
-  return value;
+  return settings?.[key];
 }

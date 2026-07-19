@@ -109,7 +109,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     stack = error.stack;
   }
 
-  if (import.meta.env.DEV && status < 400 && status >= 500) {
+  if (import.meta.env.DEV && (status < 400 || status >= 500)) {
     const formatStackTrace = (stackStr?: string) => {
       if (!stackStr) return null;
       return stackStr.split("\n").map((line, i) => {

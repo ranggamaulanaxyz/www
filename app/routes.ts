@@ -23,8 +23,9 @@ export default [
     index("routes/desk/dashboard.tsx"),
     route("blog/", "routes/desk/blog.tsx", [
       index("routes/desk/blog-list.tsx"),
-      route("new", "routes/desk/blog-create.tsx"),
-      route(":id", "routes/desk/blog-edit.tsx"),
     ]),
   ]),
+
+  route("/desk/blog/new", "routes/desk/blog-create.tsx"),
+  route("/desk/blog/:id", "routes/desk/blog-edit.tsx"),
 ] satisfies RouteConfig;
