@@ -9,33 +9,14 @@ import { sleep, validate } from "~/lib/utils";
 import { createPost } from "~/modules/blog/services";
 import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 import { redirect } from "react-router";
-import { useEffect } from "react";
-import { toast } from "sonner";
-
-async function validateFormData(formData: FormData) {
-  const data: PostSchema = {
-    title: formData.get("title") as string,
-    slug: formData.get("slug") as string,
-    content: formData.get("content") as string,
-    contentHtml: formData.get("contentHtml") as string,
-    status: formData.get("status") as string,
-    visibility: formData.get("visibility") as string,
-    publishedAt: formData.get("publishedAt") as string,
-    excerpt: formData.get("excerpt") as string,
-    coverImageUrl: formData.get("coverImageUrl") as string,
-  };
-
-  const result = validate(PostSchema, data);
-  return result;
-}
 
 export async function clientAction({
   request,
   context,
 }: Route.ClientActionArgs) {
-  const validation = await validateFormData(await request.formData());
+  const data = await request.json();
+  const validation = await validate(PostSchema, data);
   if (!validation.success) {
-    console.log(validation.errors);
     return { success: false, errors: { fieldErrors: validation.errors } };
   }
 

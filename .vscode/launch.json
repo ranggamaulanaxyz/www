@@ -6,20 +6,19 @@
       "request": "launch",
       "name": "Launch Chrome (Client)",
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}"
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ]
     },
     {
-      "type": "node",
+      "type": "node-terminal",
       "request": "launch",
       "name": "Debug Server",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "dev",
-        "--",
-        "--host"
-      ],
-      "console": "integratedTerminal"
+      "command": "npm run dev -- --host",
+      "cwd": "${workspaceFolder}"
     }
   ],
   "compounds": [

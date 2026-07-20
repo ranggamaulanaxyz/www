@@ -91,6 +91,8 @@ export async function userSignIn(supabase: SupabaseClient, data: SigninSchema) {
     password: data.password,
   });
 
+  console.log(response);
+
   if (response.error) {
     let error: ValidationErrorDetail;
     switch (response.error.code) {

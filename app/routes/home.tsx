@@ -13,11 +13,6 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { LogOutIcon, UserRoundCogIcon } from "lucide-react";
-import { lazy, Suspense } from "react";
-
-const Hero3D = lazy(() =>
-  import("~/components/hero-3d").then((module) => ({ default: module.Hero3D }))
-);
 
 export const clientMiddleware: Route.ClientMiddlewareFunction[] = [
   authMiddleware,
@@ -40,10 +35,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData;
   const authenticated = !!user;
   return (
-    <div className="min-h-screen bg-background">
-      <header className="fixed top-0 z-50 flex w-full items-center justify-between bg-transparent px-6 py-4 text-foreground backdrop-blur-xs transition-all duration-300">
+    <div className="bg-background min-h-screen">
+      <header className="text-foreground fixed top-0 z-50 flex w-full items-center justify-between bg-transparent px-6 py-4 backdrop-blur-xs transition-all duration-300">
         <div className="font-bold">
-          <Link to="/" title={import.meta.env.PUBLIC_APP_NAME} className="hover:opacity-80 transition-opacity">
+          <Link
+            to="/"
+            title={import.meta.env.PUBLIC_APP_NAME}
+            className="transition-opacity hover:opacity-80"
+          >
             <Logo />
           </Link>
         </div>
@@ -97,11 +96,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           )}
         </div>
       </header>
-      <main>
-        <Suspense fallback={<div className="min-h-screen bg-background" />}>
-          <Hero3D />
-        </Suspense>
-      </main>
+      <main></main>
     </div>
   );
 }
