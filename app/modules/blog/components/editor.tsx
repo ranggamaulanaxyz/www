@@ -206,7 +206,13 @@ export function Editor({ initialPost }: { initialPost?: PostSchema }) {
                   <FieldGroup className="gap-3 ps-4">
                     <Field className="gap-0.5">
                       <FieldLabel className="text-xs">Cover Image</FieldLabel>
-                      <Cover />
+                      <Cover
+                        postId={post.id ?? undefined}
+                        initialValue={post.coverImageUrl ?? undefined}
+                        onUploadSuccess={(url) =>
+                          setPost((prev) => ({ ...prev, coverImageUrl: url }))
+                        }
+                      />
                     </Field>
                     <Field
                       className="gap-0.5"

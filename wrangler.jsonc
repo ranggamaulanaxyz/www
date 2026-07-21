@@ -15,5 +15,11 @@
         "PUBLIC_APP_URL": "https://www.ranggamaulana.xyz",
         "PUBLIC_SUPABASE_URL": "https://xwzewesvhmamlfnhemem.supabase.co",
         "PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_dE3O5VUTz6NVcyJnlr47fw_Qt4LBJz0"
-    }
+    },
+    "r2_buckets": [
+        {
+            "binding": "PUBLIC_BUCKET",
+            "bucket_name": "public"
+        }
+    ]
 }

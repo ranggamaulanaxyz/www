@@ -28,4 +28,7 @@ export default [
 
   route("/desk/blog/new", "routes/desk/blog-create.tsx"),
   route("/desk/blog/:id", "routes/desk/blog-edit.tsx"),
+
+  route("/drive/upload", "routes/drive/upload.tsx"),
+  route("/drive/*", "routes/drive/show.tsx"),
 ] satisfies RouteConfig;
