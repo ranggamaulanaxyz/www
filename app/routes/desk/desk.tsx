@@ -1,4 +1,12 @@
-import { Outlet } from "react-router";
+import {
+  CirclePlusIcon,
+  HardDriveIcon,
+  LayoutIcon,
+  PlusIcon,
+} from "lucide-react";
+import { Link, Outlet } from "react-router";
+import { Logo } from "~/components/brand/logo";
+import { Button } from "~/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -20,16 +28,42 @@ export default function Layout() {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader />
+        <SidebarHeader>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/desk/account"
+              className="flex shrink-0 items-center gap-1"
+            >
+              <Logo square={true} />
+              <span className="font-semibold">Desk</span>
+            </Link>
+          </div>
+        </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Label</SidebarGroupLabel>
-            <SidebarGroupAction>Action</SidebarGroupAction>
-            <SidebarGroupContent>Group Content</SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton>Button</SidebarMenuButton>
-                <SidebarMenuBadge>Badge</SidebarMenuBadge>
+                <SidebarMenuButton
+                  asChild
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                >
+                  <Link to="/desk">
+                    <LayoutIcon /> Dashboard
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/desk/drive">
+                    <HardDriveIcon /> Drives
+                  </Link>
+                </SidebarMenuButton>
+                <SidebarMenuAction asChild>
+                  <Link to="/desk/drive/new">
+                    <PlusIcon />
+                    <span className="sr-only">New drive</span>
+                  </Link>
+                </SidebarMenuAction>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroup>

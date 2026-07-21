@@ -1,12 +1,16 @@
 import { Fragment } from "react/jsx-runtime";
 
-export function Logo() {
+interface LogoProps {
+  square?: boolean;
+}
+
+export function Logo({ square }: LogoProps) {
   return (
     <Fragment>
       <span className="bg-primary text-primary-foreground inline-block rounded p-1">
         RM
       </span>
-      <span className="inline-block rounded">XYZ</span>
+      {!square && <span className="inline-block rounded">XYZ</span>}
     </Fragment>
   );
 }

@@ -21,6 +21,12 @@ export default [
 
   route("/desk", "routes/desk/desk.tsx", [
     index("routes/desk/dashboard.tsx"),
+
+    route("drive/", "routes/desk/drive.tsx", [
+      index("routes/desk/drive-list.tsx"),
+      route("new", "routes/desk/drive-create.tsx"),
+    ]),
+
     route("blog/", "routes/desk/blog.tsx", [
       index("routes/desk/blog-list.tsx"),
     ]),
