@@ -35,6 +35,7 @@ import {
 import { Copy, FolderX, OctagonX } from "lucide-react";
 import { toast } from "sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
+import { AppError } from "./exceptions";
 
 export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
@@ -104,6 +105,9 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       error.status === 404
         ? "The requested page could not be found."
         : error.data.message || error.statusText || message;
+  } else if (error instanceof AppError) {
+    status = error.status;
+    message = error.message;
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     message = error.message;
     stack = error.stack;

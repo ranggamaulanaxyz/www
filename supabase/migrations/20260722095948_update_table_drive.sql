@@ -1,0 +1,16 @@
+CREATE TYPE public.drive_provider AS ENUM ('r2');
+CREATE TABLE public.drive_items (id uuid DEFAULT gen_random_uuid() NOT NULL, name character varying NOT NULL, drive_id uuid, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone);
+ALTER TABLE public.drive_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.drive_items ADD CONSTRAINT drive_items_pkey PRIMARY KEY (id);
+GRANT ALL ON public.drive_items TO anon;
+GRANT ALL ON public.drive_items TO authenticated;
+GRANT ALL ON public.drive_items TO service_role;
+CREATE TABLE public.drives (id uuid DEFAULT gen_random_uuid() NOT NULL, name text NOT NULL, provider public.drive_provider DEFAULT 'r2'::public.drive_provider NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone NOT NULL, description text);
+ALTER TABLE public.drives ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.drives ADD CONSTRAINT drives_pkey PRIMARY KEY (id);
+ALTER TABLE public.drive_items ADD CONSTRAINT drive_items_drive_id_fkey FOREIGN KEY (drive_id) REFERENCES public.drives(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+GRANT MAINTAIN, REFERENCES, TRIGGER, TRUNCATE ON public.drives TO anon;
+GRANT ALL ON public.drives TO authenticated;
+GRANT MAINTAIN, REFERENCES, TRIGGER, TRUNCATE ON public.drives TO service_role;
+CREATE POLICY "Enable read access for all authenticated users only" ON public.drives FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Enable update for authenticated users only" ON public.drives FOR UPDATE TO authenticated USING (true);

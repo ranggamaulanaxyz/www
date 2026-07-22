@@ -4,7 +4,7 @@ import {
   LayoutIcon,
   PlusIcon,
 } from "lucide-react";
-import { Link, Outlet } from "react-router";
+import { Link, Outlet, type UIMatch } from "react-router";
 import { Logo } from "~/components/brand/logo";
 import { Button } from "~/components/ui/button";
 import {
@@ -23,6 +23,10 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "~/components/ui/sidebar";
+
+export interface DeskHandle {
+  breadcrumb?: (match: UIMatch<unknown, unknown>) => React.ReactNode;
+}
 
 export default function Layout() {
   return (
