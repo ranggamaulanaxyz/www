@@ -5,7 +5,7 @@ import camelcaseKeys from "camelcase-keys";
 
 export async function findAll(supabase: SupabaseClient) {
   const { data, error } = await supabase.from("drives").select("*");
-  return { data, error };
+  return { data: data ? (camelcaseKeys(data) as DriveSchema[]) : [], error };
 }
 
 export async function findById(supabase: SupabaseClient, id: string) {
@@ -15,7 +15,7 @@ export async function findById(supabase: SupabaseClient, id: string) {
     .eq("id", id)
     .single();
 
-  return { data, error };
+  return { data: data ? (camelcaseKeys(data) as DriveSchema) : null, error };
 }
 
 export async function update(
@@ -30,5 +30,15 @@ export async function update(
     .select()
     .single();
 
-  return { data: camelcaseKeys(data) as DriveSchema, error };
+  return { data: data ? (camelcaseKeys(data) as DriveSchema) : null, error };
+}
+
+export async function create(supabase: SupabaseClient, payload: DriveSchema) {
+  const { data, error } = await supabase
+    .from("drives")
+    .insert(snakecaseKeys(payload))
+    .select()
+    .single();
+
+  return { data: data ? (camelcaseKeys(data) as DriveSchema) : null, error };
 }

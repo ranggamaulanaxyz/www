@@ -1,4 +1,5 @@
-import { FolderIcon } from "lucide-react";
+import { FolderIcon, HardDriveIcon } from "lucide-react";
+import { Link } from "react-router";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -15,17 +16,18 @@ export function DriveEmptyVIew() {
     <Empty>
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <FolderIcon />
+          <HardDriveIcon />
         </EmptyMedia>
-        <EmptyTitle>No Projects Yet</EmptyTitle>
+        <EmptyTitle>No Drives Yet</EmptyTitle>
         <EmptyDescription>
-          You haven&apos;t created any projects yet. Get started by creating
-          your first project.
+          You haven&apos;t created any drives yet. Get started by creating your
+          first drive.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex-row justify-center gap-2">
-        <Button>Create Project</Button>
-        <Button variant="outline">Import Project</Button>
+        <Button asChild>
+          <Link to="/desk/drive/new">Create Drive</Link>
+        </Button>
       </EmptyContent>
     </Empty>
   );

@@ -24,8 +24,8 @@ import {
   SidebarProvider,
 } from "~/components/ui/sidebar";
 
-export interface DeskHandle {
-  breadcrumb?: (match: UIMatch<unknown, unknown>) => React.ReactNode;
+export interface DeskHandle<Data = any> {
+  breadcrumb?: (match: UIMatch<Data, unknown>) => React.ReactNode;
 }
 
 export default function Layout() {

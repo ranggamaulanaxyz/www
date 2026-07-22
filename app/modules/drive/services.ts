@@ -25,6 +25,8 @@ export async function findById(supabase: SupabaseClient, id: string) {
   if (error) {
     handleDriveError(error);
   }
+
+  console.log(data);
   return data;
 }
 
@@ -34,6 +36,14 @@ export async function update(
   payload: DriveSchema,
 ) {
   const { data, error } = await driveRepository.update(supabase, id, payload);
+  if (error) {
+    handleDriveError(error);
+  }
+  return data;
+}
+
+export async function create(supabase: SupabaseClient, payload: DriveSchema) {
+  const { data, error } = await driveRepository.create(supabase, payload);
   if (error) {
     handleDriveError(error);
   }

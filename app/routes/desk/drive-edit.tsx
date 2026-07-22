@@ -1,6 +1,11 @@
 import { Form } from "react-router";
 import { Card, CardContent } from "~/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import type { Route } from "./+types/drive-edit";
 import { DriveNotFound } from "~/modules/drive/exceptions";
@@ -15,8 +20,10 @@ import { Button } from "~/components/ui/button";
 import { SaveIcon } from "lucide-react";
 import { validate } from "~/lib/utils";
 
-export const handle: DeskHandle = {
-  breadcrumb: () => "Edit Drive",
+export const handle: DeskHandle<Route.ComponentProps["loaderData"]> = {
+  breadcrumb: (match) => {
+    return match.loaderData?.drive?.name;
+  },
 };
 
 export async function clientLoader({
@@ -58,8 +65,9 @@ export default function DriveEdit({
 }: Route.ComponentProps) {
   const { drive } = loaderData;
   const defaultValues: DriveSchema = {
-    name: drive.name,
-    description: drive.description,
+    name: drive?.name || "",
+    description: drive?.description || "",
+    createdAt: drive?.createdAt,
   };
   const [field, setFieldValue] = useState<DriveSchema>(defaultValues);
 
@@ -83,19 +91,40 @@ export default function DriveEdit({
       <div className="p-4">
         <Card>
           <CardContent>
-            <FieldGroup>
-              <Field>
-                <FieldLabel>Name</FieldLabel>
-                <Input type="text" name="name" defaultValue={field.name} />
-              </Field>
-              <Field>
-                <FieldLabel>Description</FieldLabel>
-                <Textarea
-                  name="description"
-                  defaultValue={field.description || ""}
-                />
-              </Field>
-            </FieldGroup>
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <FieldGroup>
+                <Field data-invalid={!!fieldErrors?.name}>
+                  <FieldLabel>Name</FieldLabel>
+                  <Input
+                    type="text"
+                    name="name"
+                    defaultValue={field.name}
+                    aria-invalid={!!fieldErrors?.name}
+                  />
+                  <FieldError errors={fieldErrors?.name} />
+                </Field>
+                <Field data-invalid={!!fieldErrors?.description}>
+                  <FieldLabel>Description</FieldLabel>
+                  <Textarea
+                    name="description"
+                    defaultValue={field.description || ""}
+                    aria-invalid={!!fieldErrors?.description}
+                  />
+                  <FieldError errors={fieldErrors?.description} />
+                </Field>
+                <Field data-invalid={!!fieldErrors?.createdAt}>
+                  <FieldLabel>Created At</FieldLabel>
+                  <Input
+                    type="text"
+                    name="createdAt"
+                    defaultValue={field.createdAt || ""}
+                    aria-invalid={!!fieldErrors?.name}
+                    readOnly={true}
+                  />
+                  <FieldError errors={fieldErrors?.name} />
+                </Field>
+              </FieldGroup>
+            </div>
           </CardContent>
         </Card>
       </div>
