@@ -23,10 +23,17 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "~/components/ui/sidebar";
+import type { Route } from "./+types/desk";
+import { authMiddleware, onlyUserMiddleware } from "~/modules/auth/middleware";
 
 export interface DeskHandle<Data = any> {
   breadcrumb?: (match: UIMatch<Data, unknown>) => React.ReactNode;
 }
+
+export const middleware: Route.MiddlewareFunction[] = [
+  authMiddleware,
+  onlyUserMiddleware,
+];
 
 export default function Layout() {
   return (

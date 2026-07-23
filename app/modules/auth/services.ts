@@ -143,6 +143,7 @@ export async function getUser(supabase: SupabaseClient): Promise<User | null> {
     lastName: partner.last_name,
     email: partner.email,
     verifiedAt: data.user.email_confirmed_at,
+    timeZone: partner.timezone,
   };
 }
 

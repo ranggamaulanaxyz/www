@@ -18,7 +18,9 @@ import { Textarea } from "~/components/ui/textarea";
 import { Button } from "~/components/ui/button";
 import { SaveIcon } from "lucide-react";
 import { validate } from "~/lib/utils";
-import DateTimeInput from "~/components/ui/datetime";
+import InputDateTime from "~/components/ui/input-datetime";
+import { Separator } from "~/components/ui/separator";
+import { AuthContext } from "~/modules/auth/middleware";
 
 export const handle: DeskHandle<Route.ComponentProps["loaderData"]> = {
   breadcrumb: (match) => {
@@ -56,7 +58,16 @@ export async function clientAction({
     return { errors: { fieldErrors: validation.errors, formErrors: null } };
   }
   const supabase = context.get(SupabaseClientContext);
-  const drive = await update(supabase, params.id, validation.data);
+
+  const auth = context.get(AuthContext);
+  const user = auth?.user;
+  console.log(auth);
+  const drive = await update(
+    supabase,
+    params.id,
+    validation.data,
+    user?.timeZone,
+  );
   return { drive };
 }
 
@@ -69,6 +80,7 @@ export default function DriveEdit({
     name: drive?.name || "",
     description: drive?.description || "",
     createdAt: drive?.createdAt,
+    updatedAt: drive?.updatedAt,
   };
   const [field, setFieldValue] = useState<DriveSchema>(defaultValues);
 
@@ -113,14 +125,23 @@ export default function DriveEdit({
                   />
                   <FieldError errors={fieldErrors?.description} />
                 </Field>
+                <Separator />
                 <Field data-invalid={!!fieldErrors?.createdAt}>
                   <FieldLabel>Created At</FieldLabel>
-                  <DateTimeInput
+                  <InputDateTime
                     name="created_at"
                     defaultValue={field.createdAt || ""}
-                    readOnly
                   />
                   <FieldError errors={fieldErrors?.createdAt} />
+                </Field>
+                <Field data-invalid={!!fieldErrors?.updatedAt}>
+                  <FieldLabel>Updated At</FieldLabel>
+                  <InputDateTime
+                    name="updated_at"
+                    defaultValue={field.updatedAt || ""}
+                    readOnly
+                  />
+                  <FieldError errors={fieldErrors?.updatedAt} />
                 </Field>
               </FieldGroup>
             </div>
