@@ -25,7 +25,9 @@ export default [
     route("drive/", "routes/desk/drive.tsx", [
       index("routes/desk/drive-list.tsx"),
       route("new", "routes/desk/drive-create.tsx"),
-      route(":id", "routes/desk/drive-edit.tsx"),
+      route(":id", "routes/desk/drive-edit.tsx", [
+        route("items", "routes/desk/drive-item.tsx"),
+      ]),
     ]),
 
     route("blog/", "routes/desk/blog.tsx", [

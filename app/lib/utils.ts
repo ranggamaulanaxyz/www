@@ -112,6 +112,9 @@ export function formatDateTime(d?: Date): string {
 }
 
 export function setDateTimeZone(d: Date | string, timeZone: string = "UTC") {
-  const dutc = fromZonedTime(d, timeZone);
-  return formatDateTime(dutc);
+  const dateObj = typeof d === "string" ? parseDateTime(d) : d;
+  if (!dateObj || !isValid(dateObj)) return "";
+
+  const dutc = fromZonedTime(dateObj, timeZone);
+  return dutc.toISOString(); // ISO 8601 string for PostgreSQL (e.g. "2026-07-23T20:35:07.000Z")
 }

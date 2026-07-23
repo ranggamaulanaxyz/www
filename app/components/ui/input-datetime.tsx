@@ -34,12 +34,10 @@ export default function InputDateTime({
   );
 
   const [textValue, setTextValue] = useState<string>(() => {
-    if (isControlled) {
-      return valueProp !== undefined ? String(valueProp) : "";
-    }
-    if (defaultValue !== undefined) {
-      const parsed = parseDateTime(defaultValue);
-      return parsed ? formatDateTime(parsed) : String(defaultValue);
+    const raw = isControlled ? valueProp : defaultValue;
+    if (raw !== undefined && raw !== null && raw !== "") {
+      const parsed = parseDateTime(raw);
+      return parsed ? formatDateTime(parsed) : String(raw);
     }
     return "";
   });
@@ -48,7 +46,11 @@ export default function InputDateTime({
     if (isControlled) {
       const parsed = parseDateTime(valueProp);
       setInternalDate(parsed);
-      setTextValue(valueProp !== undefined ? String(valueProp) : "");
+      if (valueProp !== undefined && valueProp !== null && valueProp !== "") {
+        setTextValue(parsed ? formatDateTime(parsed) : String(valueProp));
+      } else {
+        setTextValue("");
+      }
     }
   }, [valueProp, isControlled]);
 
