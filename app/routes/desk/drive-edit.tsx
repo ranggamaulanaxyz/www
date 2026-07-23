@@ -8,7 +8,6 @@ import {
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import type { Route } from "./+types/drive-edit";
-import { DriveNotFound } from "~/modules/drive/exceptions";
 import DeskHeader from "~/components/desk/header";
 import type { DeskHandle } from "./desk";
 import { DriveSchema } from "~/modules/drive/schemas";
@@ -19,6 +18,7 @@ import { Textarea } from "~/components/ui/textarea";
 import { Button } from "~/components/ui/button";
 import { SaveIcon } from "lucide-react";
 import { validate } from "~/lib/utils";
+import DateTimeInput from "~/components/ui/datetime";
 
 export const handle: DeskHandle<Route.ComponentProps["loaderData"]> = {
   breadcrumb: (match) => {
@@ -39,6 +39,7 @@ async function validateFormData(formData: FormData) {
   const data = {
     name: formData.get("name") as string,
     description: formData.get("description") as string,
+    createdAt: formData.get("created_at") as string,
   };
   const result = await validate(DriveSchema, data);
   return result;
@@ -91,7 +92,7 @@ export default function DriveEdit({
       <div className="p-4">
         <Card>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2">
               <FieldGroup>
                 <Field data-invalid={!!fieldErrors?.name}>
                   <FieldLabel>Name</FieldLabel>
@@ -114,14 +115,12 @@ export default function DriveEdit({
                 </Field>
                 <Field data-invalid={!!fieldErrors?.createdAt}>
                   <FieldLabel>Created At</FieldLabel>
-                  <Input
-                    type="text"
-                    name="createdAt"
+                  <DateTimeInput
+                    name="created_at"
                     defaultValue={field.createdAt || ""}
-                    aria-invalid={!!fieldErrors?.name}
-                    readOnly={true}
+                    readOnly
                   />
-                  <FieldError errors={fieldErrors?.name} />
+                  <FieldError errors={fieldErrors?.createdAt} />
                 </Field>
               </FieldGroup>
             </div>
