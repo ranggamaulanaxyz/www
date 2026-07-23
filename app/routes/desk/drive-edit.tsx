@@ -31,6 +31,7 @@ export const handle: DeskHandle<Route.ComponentProps["loaderData"]> = {
 export async function clientLoader({
   context,
   params,
+  serverLoader,
 }: Route.ClientLoaderArgs) {
   const supabase = context.get(SupabaseClientContext);
   const drive = await findById(supabase, params.id);
@@ -58,15 +59,16 @@ export async function clientAction({
     return { errors: { fieldErrors: validation.errors, formErrors: null } };
   }
   const supabase = context.get(SupabaseClientContext);
-
   const auth = context.get(AuthContext);
-  const user = auth?.user;
-  console.log(auth);
+  const userTimeZone = auth?.user?.timeZone;
+
+  console.log(userTimeZone);
+
   const drive = await update(
     supabase,
     params.id,
     validation.data,
-    user?.timeZone,
+    userTimeZone,
   );
   return { drive };
 }

@@ -35,6 +35,10 @@ export const middleware: Route.MiddlewareFunction[] = [
   onlyUserMiddleware,
 ];
 
+export const clientMiddleware: Route.ClientMiddlewareFunction[] = [
+  authMiddleware,
+];
+
 export default function Layout() {
   return (
     <SidebarProvider>
