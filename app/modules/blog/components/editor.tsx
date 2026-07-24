@@ -209,9 +209,10 @@ export function Editor({ initialPost }: { initialPost?: PostSchema }) {
                       <Cover
                         postId={post.id ?? undefined}
                         initialValue={post.coverImageUrl ?? undefined}
-                        onUploadSuccess={(url) =>
-                          setPost((prev) => ({ ...prev, coverImageUrl: url }))
-                        }
+                        onUploadSuccess={(url) => {
+                          console.log(url);
+                          setPost((prev) => ({ ...prev, coverImageUrl: url }));
+                        }}
                       />
                     </Field>
                     <Field

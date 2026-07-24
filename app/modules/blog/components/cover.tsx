@@ -21,7 +21,11 @@ interface CoverProps {
   onUploadSuccess?: (url: string) => void;
 }
 
-export default function Cover({ postId, initialValue, onUploadSuccess }: CoverProps) {
+export default function Cover({
+  postId,
+  initialValue,
+  onUploadSuccess,
+}: CoverProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("upload");
   const [isUploading, setIsUploading] = useState(false);
@@ -100,11 +104,8 @@ export default function Cover({ postId, initialValue, onUploadSuccess }: CoverPr
       setIsUploading(true);
       const formData = new FormData();
       formData.append("file", finalFileToUpload);
-      if (postId) {
-        formData.append("postId", postId);
-      }
 
-      const res = await fetch("/drive/upload", {
+      const res = await fetch("/api/drive/upload", {
         method: "POST",
         body: formData,
         headers: {
@@ -126,21 +127,23 @@ export default function Cover({ postId, initialValue, onUploadSuccess }: CoverPr
         }
       }
 
-      const actionResult = data.actionData || data;
-
-      if (res.ok && actionResult.success) {
-        setUploadedKey(actionResult.key);
-        if (actionResult.url && onUploadSuccess) {
-          onUploadSuccess(actionResult.url);
+      if (res.ok && data.success) {
+        setUploadedKey(data.key);
+        if (data.public_url && onUploadSuccess) {
+          onUploadSuccess(data.public_url);
         }
         setOpen(false);
       } else {
-        console.error("Server upload error data:", actionResult);
-        alert(actionResult.error || `Upload failed with status ${res.status}`);
+        console.error("Server upload error data:", data);
+        alert(data.error || `Upload failed with status ${res.status}`);
       }
     } catch (err) {
       console.error("Upload error details:", err);
-      alert(err instanceof Error ? err.message : "An error occurred while uploading.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while uploading.",
+      );
     } finally {
       setIsUploading(false);
     }

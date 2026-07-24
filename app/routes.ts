@@ -19,6 +19,10 @@ export default [
     ]),
   ]),
 
+  // Drive
+  route("/drive/item/:id/:name", "routes/drive/show.ts"),
+
+  // Desk
   route("/desk", "routes/desk/desk.tsx", [
     index("routes/desk/dashboard.tsx"),
 
@@ -38,6 +42,6 @@ export default [
   route("/desk/blog/new", "routes/desk/blog-create.tsx"),
   route("/desk/blog/:id", "routes/desk/blog-edit.tsx"),
 
-  route("/drive/upload", "routes/drive/upload.tsx"),
-  route("/drive/*", "routes/drive/show.tsx"),
+  // APIs
+  route("/api/drive/upload", "routes/api/drive/upload.ts"),
 ] satisfies RouteConfig;

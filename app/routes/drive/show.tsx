@@ -3,11 +3,9 @@ import type { Route } from "./+types/show";
 
 export async function loader({ params, context }: Route.LoaderArgs) {
   const cloudflare = context.get(CloudflareContext);
-  const env =
-    cloudflare?.env || (context as any).cloudflare?.env || (context as any).env;
-  const bucket = env?.PUBLIC_BUCKET;
+  const bucket = cloudflare?.env.PUBLIC_BUCKET;
 
-  const key = params["*"];
+  const key = `${params.id}`;
 
   if (!bucket || !key) {
     return new Response("Not Found", { status: 404 });

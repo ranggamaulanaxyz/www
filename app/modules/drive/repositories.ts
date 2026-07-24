@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { DriveSchema } from "./schemas";
+import type { DriveItemSchema, DriveSchema } from "./schemas";
 import snakecaseKeys from "snakecase-keys";
 import camelcaseKeys from "camelcase-keys";
 
@@ -41,4 +41,20 @@ export async function create(supabase: SupabaseClient, payload: DriveSchema) {
     .single();
 
   return { data: data ? (camelcaseKeys(data) as DriveSchema) : null, error };
+}
+
+export async function createItem(
+  supabase: SupabaseClient,
+  payload: DriveItemSchema,
+) {
+  const { data, error } = await supabase
+    .from("drive_items")
+    .insert(snakecaseKeys(payload))
+    .select()
+    .single();
+
+  return {
+    data: data ? (camelcaseKeys(data) as DriveItemSchema) : null,
+    error,
+  };
 }

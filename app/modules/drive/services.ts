@@ -1,7 +1,7 @@
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import * as driveRepository from "./repositories";
 import { DriveNotFound, DrivePermissionDenied } from "./exceptions";
-import type { DriveSchema } from "./schemas";
+import type { DriveItemSchema, DriveSchema } from "./schemas";
 import { setDateTimeZone } from "~/lib/utils";
 
 function handleDriveError(error: PostgrestError) {
@@ -45,6 +45,17 @@ export async function update(
 
 export async function create(supabase: SupabaseClient, payload: DriveSchema) {
   const { data, error } = await driveRepository.create(supabase, payload);
+  if (error) {
+    handleDriveError(error);
+  }
+  return data;
+}
+
+export async function createItem(
+  supabase: SupabaseClient,
+  payload: DriveItemSchema,
+) {
+  const { data, error } = await driveRepository.createItem(supabase, payload);
   if (error) {
     handleDriveError(error);
   }
