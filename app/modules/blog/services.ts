@@ -6,6 +6,7 @@ import {
   PostNotFound,
   PostPermissionDenied,
 } from "./exceptions";
+import type { PostFilterOptions } from "./types";
 
 function handlePostError(error: PostgrestError) {
   switch (error.code) {
@@ -49,12 +50,34 @@ export async function updatePost(
   return post;
 }
 
-export async function findAll(supabase: SupabaseClient) {
-  const { posts, error } = await postRepository.findAll(supabase);
+export async function findPosts(
+  supabase: SupabaseClient,
+  options?: PostFilterOptions,
+) {
+  const page = options?.page ?? 1;
+  const pageSize = options?.pageSize ?? 10;
+
+  const { posts, count, error } = await postRepository.findPosts(
+    supabase,
+    options,
+  );
   if (error) {
     handlePostError(error);
   }
-  return posts;
+
+  const total = count ?? 0;
+
+  return {
+    posts,
+    meta: {
+      page,
+      pageSize,
+      total: total,
+      totalPages: Math.ceil(total / pageSize),
+      hasNext: page * pageSize < total,
+      hasPrevious: page > 1,
+    },
+  };
 }
 
 export async function deletePost(supabase: SupabaseClient, id: string) {
