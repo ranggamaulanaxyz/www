@@ -58,3 +58,17 @@ export async function createItem(
     error,
   };
 }
+
+export async function findItemById(supabase: SupabaseClient, id: string) {
+  const { data, error } = await supabase
+    .from("drive_items")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  return {
+    data: data ? (camelcaseKeys(data) as DriveItemSchema) : null,
+    error,
+  };
+}
+

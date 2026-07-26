@@ -1,4 +1,7 @@
+import { useCallback, useEffect, useState } from "react";
 import type { Area } from "react-easy-crop";
+import Cropper from "react-easy-crop";
+import { AspectRatio } from "~/components/ui/aspect-ratio";
 
 function getRadianAngle(degreeValue: number) {
   return (degreeValue * Math.PI) / 180;
@@ -76,17 +79,63 @@ export async function cropImage(
     area.height,
   );
 
-  return new Promise<(File & { preview: string }) | null>((resolve) => {
+  return new Promise<File | null>((resolve) => {
     croppedCanvas.toBlob((blob) => {
-      if (!blob) {
-        resolve(null);
-        return;
-      }
-      const file = new File([blob], "cropped-image.jpg", {
-        type: "image/jpeg",
-      });
-      const preview = URL.createObjectURL(file);
-      resolve(Object.assign(file, { preview }));
+      if (!blob) return resolve(null);
+      const file = new File([blob], "cover.jpg", { type: "image/jpeg" });
+      resolve(file);
     }, "image/jpeg");
   });
+}
+
+interface ImageEditorProps {
+  src: string;
+  onComplete: (data: {
+    area: Area | null;
+    areaPixels: Area | null;
+    rotation: number;
+  }) => void;
+}
+
+export default function ImageEditor({ src, onComplete }: ImageEditorProps) {
+  const [ready, setReady] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+
+  useEffect(() => {
+    const timer = requestAnimationFrame(() => {
+      setReady(true);
+    });
+    return () => cancelAnimationFrame(timer);
+  }, []);
+
+  const handleCropComplete = useCallback(
+    (croppedArea: Area, croppedAreaPixels: Area) => {
+      onComplete({
+        area: croppedArea,
+        areaPixels: croppedAreaPixels,
+        rotation,
+      });
+    },
+    [onComplete, rotation],
+  );
+
+  return (
+    <AspectRatio ratio={16 / 9} className="relative overflow-hidden">
+      {ready && (
+        <Cropper
+          image={src}
+          aspect={16 / 9}
+          crop={crop}
+          onCropChange={setCrop}
+          zoom={zoom}
+          onZoomChange={setZoom}
+          rotation={rotation}
+          onRotationChange={setRotation}
+          onCropComplete={handleCropComplete}
+        />
+      )}
+    </AspectRatio>
+  );
 }

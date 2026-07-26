@@ -13,160 +13,107 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { cropImage } from "./image/cropper";
+import ImageEditor, { cropImage } from "./image/editor";
+import ImageUploader from "./image/uploader";
+import { toast } from "sonner";
 
 interface CoverProps {
-  postId?: string;
-  initialValue?: string;
-  onUploadSuccess?: (url: string) => void;
+  initialSrc?: string | null;
+  onChange?: (src: string) => void;
 }
 
-export default function Cover({
-  postId,
-  initialValue,
-  onUploadSuccess,
-}: CoverProps) {
-  const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("upload");
-  const [isUploading, setIsUploading] = useState(false);
-  const [originalImage, setOriginalImage] = useState<
-    (File & { preview: string }) | null
-  >(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [croppedImage, setCroppedImage] = useState<
-    (File & { preview: string }) | null
-  >(null);
-  const [uploadedKey, setUploadedKey] = useState<string | null>(null);
-
-  const { getRootProps, getInputProps } = useDropzone({
-    accept: {
-      "image/*": [".jpg", ".jpeg", ".png", ".gif", ".webp"],
-    },
-    onDrop: (acceptedFiles) => {
-      const acceptedFile = acceptedFiles?.[0];
-      if (acceptedFile) {
-        setOriginalImage(
-          Object.assign(acceptedFile, {
-            preview: URL.createObjectURL(acceptedFile),
-          }),
-        );
-        setCroppedImage(null);
-        setCrop({ x: 0, y: 0 });
-        setZoom(1);
-        setRotation(0);
-        setCroppedAreaPixels(null);
-        setActiveTab("edit");
-      }
-    },
-  });
-
+export default function Cover({ initialSrc, onChange }: CoverProps) {
+  // Cover
+  const [src, setSrc] = useState(initialSrc);
+  const [previewSrc, setPreviewSrc] = useState(initialSrc);
+  const [tmpSrc, setTmpSrc] = useState(initialSrc);
   useEffect(() => {
-    return () => {
-      if (originalImage) {
-        URL.revokeObjectURL(originalImage.preview);
-      }
-    };
-  }, [originalImage]);
+    setSrc(initialSrc);
+    setPreviewSrc(initialSrc);
+  }, [initialSrc]);
 
-  const onCropComplete = (_: Area, croppedPixels: Area) => {
-    setCroppedAreaPixels(croppedPixels);
+  // Dialog
+  const [openDialog, setOpenDialog] = useState(false);
+  const handleOpenDialogChange = (isOpen: boolean) => {
+    setOpenDialog(isOpen);
   };
 
-  const handleSave = async () => {
-    let finalFileToUpload: File | null = null;
+  // Tabs
+  const [activeTab, setActiveTab] = useState("upload");
+  const handleTabValueChange = (value: string) => {
+    setActiveTab(value);
+  };
 
-    if (originalImage && croppedAreaPixels) {
-      const image = await cropImage(
-        originalImage.preview,
-        croppedAreaPixels,
-        rotation,
-      );
-      if (image) {
-        finalFileToUpload = image;
-        setCroppedImage((prev) => {
-          if (prev && prev.preview !== originalImage.preview) {
-            URL.revokeObjectURL(prev.preview);
-          }
-          return image;
-        });
-      }
-    } else if (originalImage) {
-      finalFileToUpload = originalImage;
-      setCroppedImage(originalImage);
+  // Image
+  const handleImageSelect = (file: File) => {
+    if (tmpSrc) {
+      URL.revokeObjectURL(tmpSrc);
+    }
+    setTmpSrc(URL.createObjectURL(file));
+  };
+
+  useEffect(() => {
+    setActiveTab("editor");
+  }, [tmpSrc]);
+
+  // Image Editor
+  const [saving, setSaving] = useState(false);
+  const [croppedData, setCroppedData] = useState<{
+    area: Area | null;
+    areaPixels: Area | null;
+    rotation: number;
+  }>();
+
+  const handleApply = async () => {
+    if (!tmpSrc || !croppedData?.areaPixels) {
+      return;
+    }
+    const image = await cropImage(
+      tmpSrc,
+      croppedData.areaPixels,
+      croppedData.rotation,
+    );
+
+    if (!image) {
+      return;
     }
 
-    if (!finalFileToUpload) return;
-
+    setSaving(true);
     try {
-      setIsUploading(true);
       const formData = new FormData();
-      formData.append("file", finalFileToUpload);
+      formData.append("file", image);
 
       const res = await fetch("/api/drive/upload", {
         method: "POST",
         body: formData,
-        headers: {
-          Accept: "application/json",
-        },
       });
 
-      const contentType = res.headers.get("content-type") || "";
-      let data: any = {};
+      const data: { success?: boolean; public_url?: string } = await res.json();
 
-      if (contentType.includes("application/json")) {
-        data = await res.json();
-      } else {
-        const text = await res.text();
-        try {
-          data = JSON.parse(text);
-        } catch {
-          console.log("Raw response text:", text);
-        }
+      if (data?.success && data.public_url) {
+        const publicUrl = data.public_url;
+        setSrc(publicUrl);
+        setPreviewSrc(publicUrl);
+        setOpenDialog(false);
+        onChange?.(publicUrl);
       }
-
-      if (res.ok && data.success) {
-        setUploadedKey(data.key);
-        if (data.public_url && onUploadSuccess) {
-          onUploadSuccess(data.public_url);
-        }
-        setOpen(false);
-      } else {
-        console.error("Server upload error data:", data);
-        alert(data.error || `Upload failed with status ${res.status}`);
-      }
-    } catch (err) {
-      console.error("Upload error details:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "An error occurred while uploading.",
-      );
+    } catch (error) {
+      console.error("Failed to upload cover image:", error);
+      toast.error("Failed to upload cover image");
     } finally {
-      setIsUploading(false);
+      setSaving(false);
     }
   };
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-
-  const previewSrc = croppedImage?.preview || initialValue;
-
   return (
     <Dialog
-      open={open}
-      onOpenChange={(isOpen) => {
-        setOpen(isOpen);
-        if (isOpen && originalImage) {
-          setActiveTab("edit");
-        }
-      }}
+      open={openDialog}
+      onOpenChange={handleOpenDialogChange}
+      modal={true}
     >
       <DialogTrigger asChild>
         <AspectRatio
+          id="cover"
           ratio={16 / 9}
           className="flex cursor-pointer items-center justify-center overflow-hidden rounded bg-gray-200"
         >
@@ -181,67 +128,25 @@ export default function Cover({
           )}
         </AspectRatio>
       </DialogTrigger>
-      <DialogContent className="top-24 -translate-y-0 sm:max-w-6xl">
-        <DialogHeader>
-          <DialogTitle>Select an Image</DialogTitle>
-          <DialogDescription>
-            Choose an image to use as the post cover.
-          </DialogDescription>
-        </DialogHeader>
-        <Tabs value={activeTab} onValueChange={handleTabChange}>
+      <DialogContent className="top-24 translate-y-0 sm:max-w-6xl">
+        <Tabs value={activeTab} onValueChange={handleTabValueChange}>
           <TabsList variant="line">
             <TabsTrigger value="upload">UPLOAD</TabsTrigger>
-            <TabsTrigger value="url">URL</TabsTrigger>
-            <TabsTrigger value="drive">DRIVES</TabsTrigger>
-            <TabsTrigger value="edit" disabled={!originalImage}>
+            <TabsTrigger value="editor" disabled={!tmpSrc}>
               EDITOR
             </TabsTrigger>
           </TabsList>
           <TabsContent value="upload">
-            <AspectRatio
-              ratio={16 / 9}
-              className="relative flex items-center justify-center rounded bg-gray-200"
-              {...getRootProps()}
-            >
-              <p className="text-gray-500">
-                Drag & Drop your image here, or click to select.
-              </p>
-              <input {...getInputProps()} />
-            </AspectRatio>
+            <ImageUploader onSelect={handleImageSelect} />
           </TabsContent>
-          <TabsContent value="edit">
-            {originalImage ? (
-              <AspectRatio ratio={16 / 9} className="relative overflow-hidden">
-                <Cropper
-                  image={originalImage.preview}
-                  crop={crop}
-                  zoom={zoom}
-                  rotation={rotation}
-                  aspect={16 / 9}
-                  onCropChange={setCrop}
-                  onCropComplete={onCropComplete}
-                  onRotationChange={setRotation}
-                  onZoomChange={setZoom}
-                />
-              </AspectRatio>
-            ) : (
-              <AspectRatio
-                ratio={16 / 9}
-                className="relative flex items-center justify-center rounded bg-gray-200"
-                {...getRootProps()}
-              >
-                <p className="text-gray-500">
-                  Drag & Drop your image here, or click to select.
-                </p>
-                <input {...getInputProps()} />
-              </AspectRatio>
-            )}
+          <TabsContent value="editor">
+            {tmpSrc && <ImageEditor src={tmpSrc} onComplete={setCroppedData} />}
           </TabsContent>
         </Tabs>
-
         <DialogFooter>
-          <Button onClick={handleSave} disabled={!originalImage || isUploading}>
-            {isUploading ? "Uploading..." : "Save"}
+          {src && <Button variant="destructive">Remove</Button>}
+          <Button onClick={handleApply} disabled={saving}>
+            {saving ? "Saving..." : "Apply"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -25,7 +25,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   const supabase = context.get(SupabaseClientContext);
   const driveItem = await createItem(supabase, {
     name: file.name,
-    driveId: "ac7f644d-952f-4fb6-99d9-56d03f43767d",
+    driveId: "8b12a006-ec4d-42df-882b-3d7c6bfda3bc",
   });
 
   if (!driveItem?.id) {
@@ -35,8 +35,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     );
   }
 
-  const ext = file.name.includes(".") ? `.${file.name.split(".").pop()}` : "";
-  const objectKey = `${driveItem.id}${ext}`;
+  const objectKey = `${driveItem.id}`;
   const arrayBuffer = await file.arrayBuffer();
 
   await bucket.put(objectKey, arrayBuffer, {
@@ -46,8 +45,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   });
 
   const publicUrl = cloudflare?.env?.PUBLIC_APP_URL
-    ? `${cloudflare.env.PUBLIC_APP_URL}/drive/${objectKey}`
-    : objectKey;
+    ? `${cloudflare.env.PUBLIC_APP_URL}/drive/item/${driveItem.id}/${driveItem.name}`
+    : `/drive/item/${driveItem.id}/${driveItem.name}`;
 
   return Response.json({
     success: true,

@@ -1,5 +1,7 @@
+import { findById, getItemObjectById } from "~/modules/drive/services";
 import { CloudflareContext } from "../../../workers/app";
 import type { Route } from "./+types/show";
+import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 
 export async function loader({ params, context }: Route.LoaderArgs) {
   const cloudflare = context.get(CloudflareContext);
@@ -11,11 +13,8 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     return new Response("Not Found", { status: 404 });
   }
 
-  const object = await bucket.get(key);
-
-  if (!object) {
-    return new Response("File Not Found", { status: 404 });
-  }
+  const supabase = context.get(SupabaseClientContext);
+  const object = await getItemObjectById(supabase, params.id, bucket);
 
   const headers = new Headers();
   object.writeHttpMetadata(headers);

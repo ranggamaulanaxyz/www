@@ -180,6 +180,10 @@ export function Editor({ initialPost }: { initialPost?: PostSchema }) {
     });
   };
 
+  const handleCoverChange = (src: string) => {
+    setPost((prev) => ({ ...prev, coverImageUrl: src }));
+  };
+
   return (
     <SidebarProvider
       style={
@@ -197,7 +201,7 @@ export function Editor({ initialPost }: { initialPost?: PostSchema }) {
                 asChild
               >
                 <CollapsibleTrigger>
-                  METADATA{" "}
+                  METADATA
                   <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
@@ -205,22 +209,24 @@ export function Editor({ initialPost }: { initialPost?: PostSchema }) {
                 <SidebarGroupContent>
                   <FieldGroup className="gap-3 ps-4">
                     <Field className="gap-0.5">
-                      <FieldLabel className="text-xs">Cover Image</FieldLabel>
+                      <FieldLabel htmlFor="cover" className="text-xs">
+                        Cover
+                      </FieldLabel>
                       <Cover
-                        postId={post.id ?? undefined}
-                        initialValue={post.coverImageUrl ?? undefined}
-                        onUploadSuccess={(url) => {
-                          console.log(url);
-                          setPost((prev) => ({ ...prev, coverImageUrl: url }));
-                        }}
+                        initialSrc={post.coverImageUrl}
+                        onChange={handleCoverChange}
                       />
                     </Field>
                     <Field
                       className="gap-0.5"
                       data-invalid={!!fieldErrors?.excerpt}
                     >
-                      <FieldLabel className="text-xs">Excerpt</FieldLabel>
+                      <FieldLabel htmlFor="excerpt" className="text-xs">
+                        Excerpt
+                      </FieldLabel>
                       <Textarea
+                        id="excerpt"
+                        name="excerpt"
                         placeholder="Input some description here..."
                         value={post.excerpt ?? ""}
                         onChange={(e) =>
@@ -237,8 +243,12 @@ export function Editor({ initialPost }: { initialPost?: PostSchema }) {
                       className="gap-0.5"
                       data-invalid={!!fieldErrors?.slug}
                     >
-                      <FieldLabel className="text-xs">Slug</FieldLabel>
+                      <FieldLabel htmlFor="slug" className="text-xs">
+                        Slug
+                      </FieldLabel>
                       <Input
+                        id="slug"
+                        name="slug"
                         type="text"
                         placeholder={
                           post.title
@@ -257,7 +267,9 @@ export function Editor({ initialPost }: { initialPost?: PostSchema }) {
                       className="gap-0.5"
                       data-invalid={!!fieldErrors?.visibility}
                     >
-                      <FieldLabel className="text-xs">Visibility</FieldLabel>
+                      <FieldLabel htmlFor="visibility" className="text-xs">
+                        Visibility
+                      </FieldLabel>
                       <Select
                         defaultValue={post.visibility}
                         onValueChange={(value) => {
@@ -266,6 +278,8 @@ export function Editor({ initialPost }: { initialPost?: PostSchema }) {
                         }}
                       >
                         <SelectTrigger
+                          id="visibility"
+                          name="visibility"
                           className="w-full"
                           aria-invalid={!!fieldErrors?.visibility}
                         >

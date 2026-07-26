@@ -5,6 +5,11 @@ import devToolsJson from "vite-plugin-devtools-json";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  server: {
+    watch: {
+      ignored: ["**/.wrangler/**"],
+    },
+  },
   plugins: [
     cloudflare({
       viteEnvironment: { name: "ssr" },
