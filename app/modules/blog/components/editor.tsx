@@ -209,8 +209,8 @@ export function Editor({ initialPost }: { initialPost?: PostSchema }) {
                 <SidebarGroupContent>
                   <FieldGroup className="gap-3 ps-4">
                     <Field className="gap-0.5">
-                      <FieldLabel htmlFor="cover" className="text-xs">
-                        Cover
+                      <FieldLabel className="text-xs" asChild>
+                        <span>Cover</span>
                       </FieldLabel>
                       <Cover
                         initialSrc={post.coverImageUrl}

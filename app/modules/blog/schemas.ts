@@ -6,7 +6,7 @@ export const POST_STATUS = ["draft", "published", "archived"];
 export const POST_VISIBILITY = ["public", "private", "unlisted"];
 
 export const PostSchema = z.object({
-  id: z.string().optional().nullable(),
+  id: z.string().optional(),
   title: z.string().nonempty("Title is required."),
   slug: z
     .string()

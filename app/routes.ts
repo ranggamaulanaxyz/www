@@ -34,11 +34,13 @@ export default [
       ]),
     ]),
 
+    // Desk Blog
     route("blog/", "routes/desk/blog.tsx", [
       index("routes/desk/blog-list.tsx"),
     ]),
   ]),
 
+  // Blog Editor
   route("/desk/blog/new", "routes/desk/blog-create.tsx"),
   route("/desk/blog/:id", "routes/desk/blog-edit.tsx"),
 

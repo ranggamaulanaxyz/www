@@ -1,41 +1,48 @@
-import { AspectRatio } from "~/components/ui/aspect-ratio";
-import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import DeskHeader from "~/components/desk/header";
+import Loading from "~/components/ui/loading";
+import { useIsMounted } from "~/hooks/use-mounted";
+import BlogListView from "~/modules/blog/components/desk/list";
+import type { Route } from "./+types/blog-list";
+import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
+import { deletePost, findAll } from "~/modules/blog/services";
+import { useCallback } from "react";
+import { useFetcher } from "react-router";
 
-export default function BlogList() {
+export async function clientAction({
+  context,
+  request,
+}: Route.ClientActionArgs) {
+  switch (request.method) {
+    case "DELETE":
+      const supabase = context.get(SupabaseClientContext);
+      const formData = await request.formData();
+      const id = formData.get("id") as string;
+      const { success } = await deletePost(supabase, id);
+      return { success, message: "Post deleted successfully!" };
+  }
+}
+
+export async function clientLoader({ context }: Route.ClientActionArgs) {
+  const supabase = context.get(SupabaseClientContext);
+  const posts = await findAll(supabase);
+
+  return { posts };
+}
+
+clientLoader.hydrate = true as const;
+
+export function HydrateFallback() {
+  return <Loading />;
+}
+
+export default function BlogList({ loaderData }: Route.ComponentProps) {
+  const { posts } = loaderData;
+  const isMounted = useIsMounted();
+
   return (
-    <main>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button>Open</Button>
-        </DialogTrigger>
-        <DialogContent className="top-24 -translate-y-0 sm:max-w-7xl">
-          <DialogHeader>
-            <DialogTitle>Dialog Title</DialogTitle>
-            <DialogDescription>Example dialog description</DialogDescription>
-          </DialogHeader>
-          <Tabs>
-            <TabsList variant="line">
-              <TabsTrigger value="upload">Upload</TabsTrigger>
-              <TabsTrigger value="url">URL</TabsTrigger>
-              <TabsTrigger value="drive">Drives</TabsTrigger>
-            </TabsList>
-            <TabsContent value="upload">
-              <AspectRatio ratio={16 / 9} className="bg-muted rounded" />
-            </TabsContent>
-          </Tabs>
-          <DialogFooter>THis is footer</DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </main>
+    <Loading loaded={isMounted}>
+      <DeskHeader></DeskHeader>
+      <BlogListView posts={posts} />
+    </Loading>
   );
 }

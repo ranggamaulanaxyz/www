@@ -38,7 +38,6 @@ export async function updatePost(
   id: string,
   post: Partial<PostSchema>,
 ) {
-  console.log(snakeCaseKeys(post, { deep: false }));
   const { data, error } = await supabase
     .from("posts")
     .update(snakeCaseKeys(post, { deep: false }))
@@ -48,8 +47,31 @@ export async function updatePost(
 
   return {
     post: data
-      ? PostSchema.parseAsync(camelCaseKeys(data, { deep: true }))
+      ? await PostSchema.parseAsync(camelCaseKeys(data, { deep: true }))
       : null,
+    error: error,
+  };
+}
+
+export async function findAll(supabase: SupabaseClient) {
+  const { data, error } = await supabase.from("posts").select();
+
+  return {
+    posts: data
+      ? await Promise.all(
+          data.map((item) =>
+            PostSchema.parseAsync(camelCaseKeys(item, { deep: true })),
+          ),
+        )
+      : [],
+    error: error,
+  };
+}
+
+export async function deletePost(supabase: SupabaseClient, id: string) {
+  const { error } = await supabase.from("posts").delete().eq("id", id);
+
+  return {
     error: error,
   };
 }

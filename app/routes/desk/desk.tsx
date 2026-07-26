@@ -2,6 +2,7 @@ import {
   CirclePlusIcon,
   HardDriveIcon,
   LayoutIcon,
+  NewspaperIcon,
   PlusIcon,
 } from "lucide-react";
 import { Link, Outlet, type UIMatch } from "react-router";
@@ -58,10 +59,7 @@ export default function Layout() {
           <SidebarGroup>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                >
+                <SidebarMenuButton asChild>
                   <Link to="/desk">
                     <LayoutIcon /> Dashboard
                   </Link>
@@ -77,6 +75,19 @@ export default function Layout() {
                   <Link to="/desk/drive/new">
                     <PlusIcon />
                     <span className="sr-only">New drive</span>
+                  </Link>
+                </SidebarMenuAction>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/desk/blog">
+                    <NewspaperIcon /> Posts
+                  </Link>
+                </SidebarMenuButton>
+                <SidebarMenuAction asChild>
+                  <Link to="/desk/blog/new">
+                    <PlusIcon />
+                    <span className="sr-only">New post</span>
                   </Link>
                 </SidebarMenuAction>
               </SidebarMenuItem>
