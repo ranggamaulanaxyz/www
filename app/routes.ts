@@ -38,6 +38,13 @@ export default [
     route("blog/", "routes/desk/blog.tsx", [
       index("routes/desk/blog-list.tsx"),
     ]),
+
+    // Desk Setting
+    layout("routes/desk/setting.tsx", [
+      route("settings", "routes/desk/setting-list.tsx", [
+        route(":id", "routes/desk/setting-edit.tsx"),
+      ]),
+    ]),
   ]),
 
   // Blog Editor

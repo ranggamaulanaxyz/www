@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SettingSchema } from "./schemas";
 import * as settingRepository from "./repositories";
 
 export async function loadSettingsByKeys(
@@ -23,3 +24,24 @@ export function getSettingByKey(
 ) {
   return settings?.[key];
 }
+
+export async function findSettings(
+  supabase: SupabaseClient,
+  options?: settingRepository.SettingFilterOptions,
+) {
+  return await settingRepository.findSettings(supabase, options);
+}
+
+export async function findSettingById(supabase: SupabaseClient, id: string) {
+  return await settingRepository.findSettingById(supabase, id);
+}
+
+export async function updateSetting(
+  supabase: SupabaseClient,
+  id: string,
+  setting: Partial<SettingSchema>,
+) {
+  return await settingRepository.updateSetting(supabase, id, setting);
+}
+
+export const update = updateSetting;

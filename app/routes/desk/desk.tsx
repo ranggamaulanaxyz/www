@@ -1,5 +1,6 @@
 import {
   CirclePlusIcon,
+  CogIcon,
   HardDriveIcon,
   LayoutIcon,
   NewspaperIcon,
@@ -90,6 +91,13 @@ export default function Layout() {
                     <span className="sr-only">New post</span>
                   </Link>
                 </SidebarMenuAction>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to={"/desk/settings"}>
+                    <CogIcon /> Settings
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroup>
