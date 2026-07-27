@@ -4,17 +4,25 @@ import {
   Field as ValidatedField,
   type FieldPropsWithName,
   type FieldPropsWithScope,
-} from "@rvf/react";
+  type FieldValues,
+} from "@rvf/react-router";
 
 export function Form<
-  SchemaInput extends Record<string, any> = any,
-  SchemaOutput = any,
-  SubmitResponseData = unknown,
->({
-  children,
-  ...props
-}: ValidatedFormProps<SchemaInput, SchemaOutput, SubmitResponseData>) {
-  return <ValidatedForm {...(props as any)}>{children}</ValidatedForm>;
+  SchemaInput extends FieldValues = any,
+  SchemaOutput = unknown,
+  DefaultValues extends FieldValues = SchemaInput,
+  FormInputData extends FieldValues = SchemaInput & DefaultValues,
+>(
+  props: React.ComponentProps<
+    typeof ValidatedForm<
+      SchemaInput,
+      SchemaOutput,
+      DefaultValues,
+      FormInputData
+    >
+  >,
+) {
+  return <ValidatedForm {...props} />;
 }
 
 export function FieldProvider<FormInputData = unknown>({

@@ -42,18 +42,24 @@ export default function SettingEdit({ loaderData }: Route.ComponentProps) {
           <FieldGroup>
             <FieldProvider scope={form.scope("key")}>
               {(field) => (
-                <Field>
+                <Field data-invalid={!!field.error()}>
                   <FieldLabel htmlFor={field.name()}>Key</FieldLabel>
-                  <Input {...field.getInputProps()} />
+                  <Input
+                    aria-invalid={!!field.error()}
+                    {...field.getInputProps()}
+                  />
                   <FieldError>{field.error()}</FieldError>
                 </Field>
               )}
             </FieldProvider>
             <FieldProvider scope={form.scope("value")}>
               {(field) => (
-                <Field>
+                <Field data-invalid={!!field.error()}>
                   <FieldLabel htmlFor={field.name()}>Value</FieldLabel>
-                  <Input {...field.getInputProps()} />
+                  <Input
+                    aria-invalid={!!field.error()}
+                    {...field.getInputProps()}
+                  />
                   <FieldError>{field.error()}</FieldError>
                 </Field>
               )}
