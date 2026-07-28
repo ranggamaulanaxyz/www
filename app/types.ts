@@ -9,3 +9,18 @@ export type ValidationError<T> = {
 } & {
   unrecognizedKey?: ValidationErrorDetail[];
 };
+
+// Loader & Action
+export interface LoaderResponse<TData = any, TError = any> {
+  success: boolean;
+  message: string;
+  error?: TError;
+  data?: TData;
+}
+
+export interface ActionResponse<TData = any, TError = any> {
+  success: boolean;
+  message: string;
+  error?: TError;
+  data?: TData;
+}

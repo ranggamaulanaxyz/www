@@ -3,7 +3,13 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format, parse, isValid } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
-import type { ValidationError, ValidationErrorDetail } from "~/types";
+import type {
+  ActionResponse,
+  LoaderResponse,
+  ValidationError,
+  ValidationErrorDetail,
+} from "~/types";
+import { data as dataReponse } from "react-router";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -117,4 +123,24 @@ export function setDateTimeZone(d: Date | string, timeZone: string = "UTC") {
 
   const dutc = fromZonedTime(dateObj, timeZone);
   return dutc.toISOString(); // ISO 8601 string for PostgreSQL (e.g. "2026-07-23T20:35:07.000Z")
+}
+
+export function loaderResponse<TData = any, TError = any>({
+  data,
+  init,
+}: {
+  data: ActionResponse<TData, TError>;
+  init?: ResponseInit;
+}) {
+  return dataReponse(data, init);
+}
+
+export function actionResponse<TData = any, TError = any>({
+  data,
+  init,
+}: {
+  data: LoaderResponse<TData, TError>;
+  init?: ResponseInit;
+}) {
+  return dataReponse(data, init);
 }

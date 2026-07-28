@@ -43,5 +43,3 @@ export async function updateSetting(
 ) {
   return await settingRepository.updateSetting(supabase, id, setting);
 }
-
-export const update = updateSetting;

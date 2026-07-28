@@ -95,5 +95,3 @@ export async function updateSetting(
     value: string;
   };
 }
-
-export const update = updateSetting;
