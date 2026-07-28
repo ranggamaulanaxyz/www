@@ -42,6 +42,7 @@ export default [
     // Desk Setting
     layout("routes/desk/setting.tsx", [
       route("settings", "routes/desk/setting-list.tsx", [
+        route("new", "routes/desk/setting-create.tsx"),
         route(":id", "routes/desk/setting-edit.tsx"),
       ]),
     ]),

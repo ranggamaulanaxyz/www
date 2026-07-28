@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge";
 import { format, parse, isValid } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
 import type { ValidationError, ValidationErrorDetail } from "~/types";
+import { preprocessFormData } from "@rvf/react-router";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -31,16 +32,56 @@ export async function validate<S extends z.ZodRawShape>(
   schema: z.ZodObject<S>,
   data: unknown,
 ): Promise<
-  | { success: true; data: z.infer<typeof schema> }
-  | { success: false; errors: ValidationError<z.infer<typeof schema>> }
+  | { success: true; data: z.infer<typeof schema>; error: null }
+  | {
+      success: false;
+      data: null;
+      error: ValidationError<z.infer<typeof schema>>;
+    }
 > {
   const result = await schema.safeParseAsync(data);
   if (result.success) {
-    return { success: true, data: result.data };
+    return { success: true, data: result.data, error: null };
   }
 
   const error = formatError<z.infer<typeof schema>>(result.error);
-  return { success: false, errors: error };
+  return { success: false, data: null, error };
+}
+
+export async function validateData<S extends z.ZodRawShape>(
+  data: unknown,
+  schema: z.ZodObject<S>,
+): Promise<
+  | { success: true; data: z.infer<typeof schema>; error: null }
+  | {
+      success: false;
+      data: null;
+      error: ValidationError<z.infer<typeof schema>>;
+    }
+> {
+  const result = await schema.safeParseAsync(data);
+  if (result.success) {
+    return { success: true, data: result.data, error: null };
+  }
+
+  const error = formatError<z.infer<typeof schema>>(result.error);
+  return { success: false, data: null, error };
+}
+
+export async function parseFormData<S extends z.ZodRawShape>(
+  formDataOrRequest: FormData | { formData: () => Promise<FormData> },
+  schema: z.ZodObject<S>,
+) {
+  const formData =
+    "formData" in formDataOrRequest &&
+    typeof formDataOrRequest.formData === "function"
+      ? await formDataOrRequest.formData()
+      : formDataOrRequest;
+
+  const rawData = preprocessFormData(formData);
+
+  const result = await validateData(rawData, schema);
+  return result;
 }
 
 export function getEmailClientUrl(email?: string): string {

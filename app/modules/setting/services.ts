@@ -88,3 +88,18 @@ export async function updateSetting(
   }
   return data;
 }
+
+export async function createSetting(
+  supabase: SupabaseClient,
+  setting: Omit<SettingSchema, "id" | "createdAt" | "updatedAt">,
+) {
+  const { data, error } = await settingRepository.createSetting(
+    supabase,
+    setting,
+  );
+  if (error) {
+    handleSettingError(error);
+  }
+  return data;
+}
+

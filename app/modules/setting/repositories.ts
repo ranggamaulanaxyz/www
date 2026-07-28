@@ -93,3 +93,22 @@ export async function updateSetting(
 
   return { data: setting, error };
 }
+
+export async function createSetting(
+  supabase: SupabaseClient,
+  payload: Omit<SettingSchema, "id" | "createdAt" | "updatedAt">,
+) {
+  const { data, error } = await supabase
+    .from("settings")
+    .insert(snakecaseKeys(payload))
+    .select()
+    .single();
+
+  if (!data || error) {
+    return { data, error };
+  }
+
+  const setting = await SettingSchema.parseAsync(camelcaseKeys(data));
+
+  return { data: setting, error };
+}

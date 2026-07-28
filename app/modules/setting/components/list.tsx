@@ -76,10 +76,10 @@ interface SettingListViewProps {
 export default function SettingListView({ settings }: SettingListViewProps) {
   return (
     <div className="grid grid-cols-1 gap-2 p-4">
-      <div className="flex justify-between gap-4">
+      <div className="flex justify-between gap-2">
         <ButtonGroup>
           <Button asChild>
-            <Link to="/desk/setting/new">New</Link>
+            <Link to="/desk/settings/new">New</Link>
           </Button>
         </ButtonGroup>
         <div className="grow">

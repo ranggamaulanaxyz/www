@@ -54,7 +54,7 @@ interface SettingTableViewProps {
 export default function SettingTableView({ settings }: SettingTableViewProps) {
   return (
     <Fragment>
-      <div className="overflow-hidden rounded border">
+      <div className="overflow-hidden rounded-md border">
         <DeskTableView columns={columns} data={settings} />
       </div>
     </Fragment>

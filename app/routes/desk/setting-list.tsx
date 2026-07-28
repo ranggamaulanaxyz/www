@@ -45,7 +45,6 @@ export default function SettingList({ loaderData }: Route.ComponentProps) {
     <Loading loaded={true}>
       <DeskHeader />
       <SettingListView settings={settings} />
-
       <Dialog open={!!outlet} onOpenChange={handleOpenChange}>
         <DialogContent>{activeOutlet}</DialogContent>
       </Dialog>
