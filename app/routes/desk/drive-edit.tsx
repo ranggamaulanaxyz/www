@@ -67,7 +67,7 @@ export default function DriveEdit({
   const outlet = useOutlet();
   if (outlet) return outlet;
 
-  const drive = actionData?.drive || loaderData.drive || null;
+  const drive = actionData?.drive || loaderData?.drive || null;
   const initialFieldErrors = actionData?.errors?.fieldErrors;
 
   return (

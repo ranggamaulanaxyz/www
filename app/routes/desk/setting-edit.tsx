@@ -18,8 +18,10 @@ import { findSettingById, updateSetting } from "~/modules/setting/services";
 
 import { SettingSchema } from "~/modules/setting/schemas";
 import { Form, FieldProvider } from "~/components/desk/views/form";
-import { parseFormData, validationError } from "@rvf/react-router";
-import { actionResponse } from "~/lib/utils";
+import { parseFormData } from "@rvf/react-router";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { useNavigation } from "react-router";
 
 export async function clientAction({
   context,
@@ -28,12 +30,17 @@ export async function clientAction({
 }: Route.ClientActionArgs) {
   const result = await parseFormData(request, SettingSchema);
 
-  if (result) {
-    return {};
+  if (result.error) {
+    return {
+      success: false,
+      setting: null,
+      fieldErrors: result.error.fieldErrors,
+    };
   }
 
   const supabase = context.get(SupabaseClientContext);
-  await updateSetting(supabase, params.id, result.data);
+  const setting = await updateSetting(supabase, params.id, result.data);
+  return { success: true, setting: setting, fieldErrors: null };
 }
 
 export async function clientLoader({
@@ -43,22 +50,36 @@ export async function clientLoader({
   const supabase = context.get(SupabaseClientContext);
   const setting = await findSettingById(supabase, params.id);
 
-  return { id: params.id, setting };
+  return { setting };
 }
 
 export default function SettingEdit({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const id = loaderData?.id || "new";
-  const setting = loaderData?.setting;
-  const x = actionData.return(
+  const setting = actionData?.setting || loaderData?.setting;
+  const formId = setting?.id || "new";
+  const fieldErrors = actionData?.fieldErrors;
+
+  const navigation = useNavigation();
+  const isIdle = navigation.state === "idle";
+  const isSubmitting = navigation.state === "submitting";
+
+  useEffect(() => {
+    if (actionData?.success) {
+      toast.success("Setting was saved!");
+    } else if (actionData) {
+      toast.error("Failed to save setting");
+    }
+  }, [actionData?.success]);
+
+  return (
     <Fragment>
       <DialogHeader>
         <DialogTitle>Edit Setting</DialogTitle>
       </DialogHeader>
       <Form
-        id={id}
+        id={formId}
         schema={SettingSchema}
         defaultValues={setting}
         method="post"
@@ -67,25 +88,29 @@ export default function SettingEdit({
           <FieldGroup>
             <FieldProvider scope={form.scope("key")}>
               {(field) => (
-                <Field data-invalid={!!field.error()}>
+                <Field data-invalid={!!field.error() || !!fieldErrors?.key}>
                   <FieldLabel htmlFor={field.name()}>Key</FieldLabel>
                   <Input
-                    aria-invalid={!!field.error()}
-                    {...field.getInputProps()}
+                    {...field.getInputProps({
+                      disabled: !isIdle,
+                      "aria-invalid": !!field.error() || !!fieldErrors?.key,
+                    })}
                   />
-                  <FieldError>{field.error()}</FieldError>
+                  <FieldError>{field.error() || fieldErrors?.key}</FieldError>
                 </Field>
               )}
             </FieldProvider>
             <FieldProvider scope={form.scope("value")}>
               {(field) => (
-                <Field data-invalid={!!field.error()}>
+                <Field data-invalid={!!field.error() || !!fieldErrors?.value}>
                   <FieldLabel htmlFor={field.name()}>Value</FieldLabel>
                   <Input
-                    aria-invalid={!!field.error()}
-                    {...field.getInputProps()}
+                    {...field.getInputProps({
+                      disabled: !isIdle,
+                      "aria-invalid": !!field.error() || !!fieldErrors?.value,
+                    })}
                   />
-                  <FieldError>{field.error()}</FieldError>
+                  <FieldError>{field.error() || fieldErrors?.value}</FieldError>
                 </Field>
               )}
             </FieldProvider>
@@ -94,10 +119,10 @@ export default function SettingEdit({
       </Form>
 
       <DialogFooter>
-        <Button type="submit" form={id}>
-          Save
+        <Button type="submit" form={formId} disabled={!isIdle}>
+          {isSubmitting ? "Saving..." : "Save"}
         </Button>
       </DialogFooter>
-    </Fragment>,
+    </Fragment>
   );
 }

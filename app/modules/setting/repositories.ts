@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { SettingSchema } from "./schemas";
+import { SettingSchema } from "./schemas";
+import camelcaseKeys from "camelcase-keys";
+import snakecaseKeys from "snakecase-keys";
 
 export interface SettingFilterOptions {
   query?: string;
@@ -62,36 +64,32 @@ export async function findSettingById(supabase: SupabaseClient, id: string) {
     .eq("id", id)
     .single();
 
-  if (error) {
-    throw error;
+  if (!data || error) {
+    return { data, error };
   }
 
-  return data as {
-    id: string;
-    key: string;
-    value: string;
-  };
+  const setting = await SettingSchema.parseAsync(camelcaseKeys(data));
+
+  return { data: setting, error };
 }
 
 export async function updateSetting(
   supabase: SupabaseClient,
   id: string,
-  setting: Partial<SettingSchema>,
+  payload: Partial<SettingSchema>,
 ) {
   const { data, error } = await supabase
     .from("settings")
-    .update(setting)
+    .update(snakecaseKeys(payload))
     .eq("id", id)
     .select()
     .single();
 
-  if (error) {
-    throw error;
+  if (!data || error) {
+    return { data, error };
   }
 
-  return data as {
-    id: string;
-    key: string;
-    value: string;
-  };
+  const setting = await SettingSchema.parseAsync(camelcaseKeys(data));
+
+  return { data: setting, error };
 }
