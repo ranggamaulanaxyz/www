@@ -12,7 +12,7 @@ import { Button } from "~/components/ui/button";
 import { useEffect, useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
-import { Link, useNavigate, useOutlet } from "react-router";
+import { Link, useNavigate, useOutlet, useSearchParams } from "react-router";
 import { Badge } from "~/components/ui/badge";
 
 export const columns: ColumnDef<SettingSchema>[] = [
@@ -37,6 +37,7 @@ export const columns: ColumnDef<SettingSchema>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
+      const [searchParams] = useSearchParams();
       const setting = row.original;
       return (
         <DropdownMenu>
@@ -48,7 +49,11 @@ export const columns: ColumnDef<SettingSchema>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link to={`/desk/settings/${setting.id}`}>Edit</Link>
+              <Link
+                to={`/desk/settings/${setting.id}?${searchParams.toString()}`}
+              >
+                Edit
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
           </DropdownMenuContent>

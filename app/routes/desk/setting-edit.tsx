@@ -1,6 +1,7 @@
 import { Fragment } from "react/jsx-runtime";
 import { Button } from "~/components/ui/button";
 import {
+  DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -54,7 +55,7 @@ export default function SettingEdit({
   const isSubmitting = navigation.state === "submitting";
 
   return (
-    <Fragment>
+    <DialogContent>
       <DialogHeader>
         <DialogTitle>Edit Setting</DialogTitle>
       </DialogHeader>
@@ -68,6 +69,6 @@ export default function SettingEdit({
           {isSubmitting ? "Saving..." : "Save"}
         </Button>
       </DialogFooter>
-    </Fragment>
+    </DialogContent>
   );
 }

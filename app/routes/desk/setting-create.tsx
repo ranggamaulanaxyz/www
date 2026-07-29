@@ -1,6 +1,7 @@
 import { Fragment } from "react/jsx-runtime";
 import { Button } from "~/components/ui/button";
 import {
+  DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -29,15 +30,17 @@ export async function clientAction({
 
   const supabase = context.get(SupabaseClientContext);
   const setting = await createSetting(supabase, result.data);
-  const searchParams = new URLSearchParams(url.searchParams);
-  return redirect(`/desk/settings/${setting.id}?${searchParams.toString()}`);
+  console.log(url.searchParams.toString());
+  return redirect(
+    `/desk/settings/${setting.id}?${url.searchParams.toString()}`,
+  );
 }
 
 export default function SettingCreate({ actionData }: Route.ComponentProps) {
   const id = "new";
   const initialFieldErrors = actionData?.fieldErrors;
   return (
-    <Fragment>
+    <DialogContent>
       <DialogHeader>
         <DialogTitle>New Setting</DialogTitle>
       </DialogHeader>
@@ -47,6 +50,6 @@ export default function SettingCreate({ actionData }: Route.ComponentProps) {
           Save
         </Button>
       </DialogFooter>
-    </Fragment>
+    </DialogContent>
   );
 }

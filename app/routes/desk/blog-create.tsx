@@ -29,7 +29,7 @@ export async function clientAction({
       errors: { formErrors: [{ message: "Unable to save the post" }] },
     };
   }
-  return redirect(`/desk/blog/${post.id}`);
+  return redirect(`/desk/blog/${post.id}}`);
 }
 
 export default function BlogCreate({ actionData }: Route.ComponentProps) {

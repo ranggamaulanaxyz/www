@@ -30,7 +30,10 @@ export async function findSettings(
   supabase: SupabaseClient,
   options?: SettingFilterOptions,
 ) {
-  let query = supabase.from("settings").select("*", { count: "exact" });
+  let query = supabase
+    .from("settings")
+    .select("*", { count: "exact" })
+    .order("key", { ascending: true });
 
   if (options?.query) {
     const q = options.query;
@@ -44,13 +47,11 @@ export async function findSettings(
   }
 
   const { data, count, error } = await query;
-  if (error) {
-    throw error;
-  }
 
   return {
     settings: (data ? camelcaseKeys(data) : []) as SettingSchema[],
     count: count ?? 0,
+    error,
   };
 }
 
@@ -109,3 +110,12 @@ export async function createSetting(
 
   return { data: setting, error };
 }
+
+export async function deleteSetting(supabase: SupabaseClient, id: string) {
+  const { error } = await supabase.from("settings").delete().eq("id", id);
+
+  return {
+    error,
+  };
+}
+

@@ -5,6 +5,7 @@ import BlogListView from "~/modules/blog/components/desk/list";
 import type { Route } from "./+types/blog-list";
 import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 import { deletePost, findPosts } from "~/modules/blog/services";
+import { parseFilter } from "~/lib/utils";
 
 export async function clientAction({
   context,
@@ -22,9 +23,7 @@ export async function clientAction({
 
 export async function clientLoader({ context, url }: Route.ClientActionArgs) {
   const searchParams = url.searchParams;
-  const query = searchParams.get("query");
-  const page = parseInt(searchParams.get("page") || "1");
-  const pageSize = parseInt(searchParams.get("page_size") || "10");
+  const { query, page, pageSize } = parseFilter(searchParams);
 
   const supabase = context.get(SupabaseClientContext);
   const { posts, meta } = await findPosts(supabase, {

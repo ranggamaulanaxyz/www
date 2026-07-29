@@ -2,17 +2,25 @@ import DeskHeader from "~/components/desk/header";
 import Loading from "~/components/ui/loading";
 import type { Route } from "./+types/setting-list";
 import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
-import { findSettings } from "~/modules/setting/repositories";
+import { findSettings } from "~/modules/setting/services";
 import SettingListView from "~/modules/setting/components/list";
-import { useNavigate, useOutlet } from "react-router";
+import { useNavigate, useOutlet, useSearchParams } from "react-router";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { parseFilter } from "~/lib/utils";
 
-export async function clientLoader({ context }: Route.ClientActionArgs) {
+export async function clientLoader({ context, url }: Route.ClientActionArgs) {
+  const { query, page, pageSize } = parseFilter(url.searchParams, {
+    defaultPageSize: 1,
+  });
   const supabase = context.get(SupabaseClientContext);
-  const { settings } = await findSettings(supabase);
+  const { settings, meta } = await findSettings(supabase, {
+    query: query || undefined,
+    page: page,
+    pageSize: pageSize,
+  });
 
-  return { settings };
+  return { settings, meta };
 }
 
 clientLoader.hydrate = true as const;
@@ -22,32 +30,31 @@ export function HydrateFallback() {
 }
 
 export default function SettingList({ loaderData }: Route.ComponentProps) {
-  const { settings } = loaderData;
+  const [searchParams] = useSearchParams();
+  const { settings, meta } = loaderData;
 
   const outlet = useOutlet();
   const navigate = useNavigate();
 
-  const [activeOutlet, setActiveOutlet] = useState<React.ReactNode>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (outlet) {
-      setActiveOutlet(outlet);
+      setOpen(true);
     }
   }, [outlet]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      navigate("/desk/settings");
+      navigate(`/desk/settings?${searchParams.toString()}`);
     }
   };
 
   return (
     <Loading loaded={true}>
       <DeskHeader />
-      <SettingListView settings={settings} />
-      <Dialog open={!!outlet} onOpenChange={handleOpenChange}>
-        <DialogContent>{activeOutlet}</DialogContent>
-      </Dialog>
+      <SettingListView settings={settings} meta={meta} />
+      <Dialog open={open}>{outlet}</Dialog>
     </Loading>
   );
 }

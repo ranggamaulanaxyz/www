@@ -12,7 +12,6 @@ import { useIsMounted } from "./use-mounted";
 
 type FormOptions<S extends ZodRawShape> = {
   id?: string;
-  action?: string;
   method?: FormMethod;
   schema: ZodObject<S>;
   defaultValues?: Partial<z.infer<ZodObject<S>>>;
@@ -26,7 +25,6 @@ type FormOptions<S extends ZodRawShape> = {
 
 export function useForm<S extends ZodRawShape>({
   id,
-  action,
   method,
   schema,
   defaultValues,
@@ -37,7 +35,6 @@ export function useForm<S extends ZodRawShape>({
 
   const formId = id ?? crypto.randomUUID();
   const submit = useSubmit();
-  const location = useLocation();
   const [fieldErrors, setFieldErrors] = useState<ValidationError<
     z.infer<ZodObject<S>>
   > | null>(initialErrors ?? null);
@@ -78,7 +75,6 @@ export function useForm<S extends ZodRawShape>({
       setFieldErrors(null);
       submit(e.currentTarget, {
         method: (method || "post") as FormMethod,
-        action: action ?? location.pathname,
       });
     } else {
       e.preventDefault();
@@ -95,7 +91,6 @@ export function useForm<S extends ZodRawShape>({
     return {
       id: formId,
       method: method || "post",
-      action: action ?? location.pathname,
       onSubmit: handleSubmit,
       noValidate: isMounted,
     };

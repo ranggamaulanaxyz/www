@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { string } from "zod";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format, parse, isValid } from "date-fns";
@@ -158,4 +158,17 @@ export function setDateTimeZone(d: Date | string, timeZone: string = "UTC") {
 
   const dutc = fromZonedTime(dateObj, timeZone);
   return dutc.toISOString(); // ISO 8601 string for PostgreSQL (e.g. "2026-07-23T20:35:07.000Z")
+}
+
+export function parseFilter(
+  searchParams: URLSearchParams,
+  options?: { defaultPageSize?: number },
+) {
+  const query = searchParams.get("query");
+  const page = parseInt(searchParams.get("page") || "1");
+  const pageSize = parseInt(
+    searchParams.get("page_size") || String(options?.defaultPageSize || 10),
+  );
+
+  return { query, page, pageSize };
 }

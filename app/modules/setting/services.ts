@@ -6,6 +6,7 @@ import {
   SettingNotFound,
   SettingPermissionDenied,
 } from "./exceptions";
+import type { SettingMeta } from "./types";
 
 function handleSettingError(error: PostgrestError) {
   switch (error.code) {
@@ -54,15 +55,31 @@ export function getSettingByKey(
 export async function findSettings(
   supabase: SupabaseClient,
   options?: settingRepository.SettingFilterOptions,
-) {
-  try {
-    return await settingRepository.findSettings(supabase, options);
-  } catch (error) {
-    if (error && typeof error === "object" && "code" in error) {
-      handleSettingError(error as PostgrestError);
-    }
-    throw error;
+): Promise<{ settings: SettingSchema[]; meta: SettingMeta }> {
+  const page = options?.page ?? 1;
+  const pageSize = options?.pageSize ?? 10;
+
+  const { settings, count, error } = await settingRepository.findSettings(
+    supabase,
+    options,
+  );
+  if (error) {
+    handleSettingError(error);
   }
+
+  const total = count ?? 0;
+
+  return {
+    settings,
+    meta: {
+      page,
+      pageSize,
+      total: total,
+      totalPages: Math.ceil(total / pageSize),
+      hasNext: page * pageSize < total,
+      hasPrevious: page > 1,
+    },
+  };
 }
 
 export async function findSettingById(supabase: SupabaseClient, id: string) {
@@ -101,5 +118,14 @@ export async function createSetting(
     handleSettingError(error);
   }
   return data;
+}
+
+export async function deleteSetting(supabase: SupabaseClient, id: string) {
+  const { error } = await settingRepository.deleteSetting(supabase, id);
+  if (error) {
+    handleSettingError(error);
+  }
+
+  return { success: true };
 }
 
