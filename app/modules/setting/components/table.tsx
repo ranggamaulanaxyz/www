@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Link, useNavigate, useOutlet } from "react-router";
+import { Badge } from "~/components/ui/badge";
 
 export const columns: ColumnDef<SettingSchema>[] = [
   {
@@ -22,6 +23,16 @@ export const columns: ColumnDef<SettingSchema>[] = [
   {
     accessorKey: "value",
     header: "Value",
+  },
+  {
+    accessorKey: "isPublic",
+    header: "Public",
+    cell: ({ row }) =>
+      row.original.isPublic ? (
+        <Badge variant="outline">Yes</Badge>
+      ) : (
+        <Badge variant="destructive">No</Badge>
+      ),
   },
   {
     id: "actions",

@@ -142,6 +142,7 @@ export function useForm<S extends ZodRawShape>({
 
   return {
     id: formId,
+    fields: defaultValues,
     getProps,
     getFieldProps,
     getFieldErrors,

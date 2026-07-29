@@ -49,10 +49,7 @@ export async function findSettings(
   }
 
   return {
-    settings: (data || []) as {
-      key: string;
-      value: string;
-    }[],
+    settings: (data ? camelcaseKeys(data) : []) as SettingSchema[],
     count: count ?? 0,
   };
 }

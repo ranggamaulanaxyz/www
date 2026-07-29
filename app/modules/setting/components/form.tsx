@@ -1,6 +1,8 @@
 import { Form } from "react-router";
+import { Checkbox } from "~/components/ui/checkbox";
 import {
   Field,
+  FieldContent,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -27,6 +29,7 @@ export default function SettingFormView({
     defaultValues: {
       key: setting?.key ?? "",
       value: setting?.value ?? "",
+      isPublic: setting?.isPublic,
     },
     initialErrors: initialErrors,
   });
@@ -42,6 +45,16 @@ export default function SettingFormView({
           <FieldLabel htmlFor="value">Value</FieldLabel>
           <Input {...form.getInputProps("value")} />
           <FieldError errors={form.getFieldErrors("value")} />
+        </Field>
+        <Field orientation="horizontal" {...form.getFieldProps("isPublic")}>
+          <Checkbox
+            id="isPublic"
+            name="isPublic"
+            defaultChecked={form.fields?.isPublic}
+          />
+          <FieldContent>
+            <FieldLabel htmlFor="isPublic">Public Setting</FieldLabel>
+          </FieldContent>
         </Field>
       </FieldGroup>
     </Form>
