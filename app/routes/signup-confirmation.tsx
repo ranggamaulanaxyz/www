@@ -80,15 +80,14 @@ export default function SignupConfirmation({
             <CardContent className="grid gap-4">
               <Form method="post" className="grid gap-4 md:grid-cols-2">
                 {success ? (
-                  <Button asChild>
-                    <Link to="/signin">Signin Now</Link>
-                  </Button>
+                  <Button render={<Link to="/signin">Signin Now</Link>} />
                 ) : (
                   <Button type="submit">Resend</Button>
                 )}
-                <Button variant="outline" asChild>
-                  <Link to="/">Back to Home</Link>
-                </Button>
+                <Button
+                  variant="outline"
+                  render={<Link to="/">Back to Home</Link>}
+                />
               </Form>
             </CardContent>
           </Card>

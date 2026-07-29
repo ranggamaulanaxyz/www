@@ -4,14 +4,18 @@ import type { Route } from "./+types/setting-list";
 import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 import { findSettings } from "~/modules/setting/services";
 import SettingListView from "~/modules/setting/components/list";
-import { useNavigate, useOutlet, useSearchParams } from "react-router";
+import {
+  useNavigate,
+  useNavigation,
+  useOutlet,
+  useSearchParams,
+} from "react-router";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { parseFilter } from "~/lib/utils";
-
 export async function clientLoader({ context, url }: Route.ClientActionArgs) {
   const { query, page, pageSize } = parseFilter(url.searchParams, {
-    defaultPageSize: 1,
+    defaultPageSize: 100,
   });
   const supabase = context.get(SupabaseClientContext);
   const { settings, meta } = await findSettings(supabase, {
@@ -36,11 +40,10 @@ export default function SettingList({ loaderData }: Route.ComponentProps) {
   const outlet = useOutlet();
   const navigate = useNavigate();
 
-  const [open, setOpen] = useState(false);
-
+  const [activeOutlet, setActiveOutlet] = useState<React.ReactNode>(null);
   useEffect(() => {
     if (outlet) {
-      setOpen(true);
+      setActiveOutlet(outlet);
     }
   }, [outlet]);
 
@@ -54,7 +57,9 @@ export default function SettingList({ loaderData }: Route.ComponentProps) {
     <Loading loaded={true}>
       <DeskHeader />
       <SettingListView settings={settings} meta={meta} />
-      <Dialog open={open}>{outlet}</Dialog>
+      <Dialog open={!!outlet} onOpenChange={handleOpenChange}>
+        <DialogContent>{activeOutlet}</DialogContent>
+      </Dialog>
     </Loading>
   );
 }

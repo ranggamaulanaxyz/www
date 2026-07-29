@@ -41,9 +41,7 @@ export function SettingEmptyView() {
             Clear Search
           </Button>
         ) : (
-          <Button asChild>
-            <Link to="/desk/blog/new">Create New Post</Link>
-          </Button>
+          <Button render={<Link to="/desk/blog/new">Create New Post</Link>} />
         )}
       </EmptyContent>
     </Empty>

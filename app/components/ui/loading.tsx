@@ -1,12 +1,18 @@
 import { Loader } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { cn } from "~/lib/utils";
 
 interface LoadingProps {
+  className?: string;
   loaded?: boolean;
   children?: ReactNode;
 }
 
-export default function Loading({ loaded = false, children }: LoadingProps) {
+export default function Loading({
+  className,
+  loaded = false,
+  children,
+}: LoadingProps) {
   const [showSpinner, setShowSpinner] = useState(!loaded);
   const [spinnerOpacity, setSpinnerOpacity] = useState(loaded ? 0 : 1);
   const [showChildren, setShowChildren] = useState(loaded);
@@ -16,7 +22,7 @@ export default function Loading({ loaded = false, children }: LoadingProps) {
     if (loaded) {
       setSpinnerOpacity(0);
       setShowChildren(true);
-      
+
       const childrenTimer = setTimeout(() => {
         setChildrenOpacity(1);
       }, 50);
@@ -39,8 +45,10 @@ export default function Loading({ loaded = false, children }: LoadingProps) {
 
   if (!children) {
     return (
-      <div className="flex min-h-dvh items-center justify-center">
-        <Loader className="animate-spin text-muted-foreground" size={24} />
+      <div
+        className={cn("flex min-h-dvh items-center justify-center", className)}
+      >
+        <Loader className="text-muted-foreground animate-spin" size={24} />
       </div>
     );
   }
@@ -50,9 +58,12 @@ export default function Loading({ loaded = false, children }: LoadingProps) {
       {showSpinner && (
         <div
           style={{ opacity: spinnerOpacity }}
-          className="absolute inset-0 flex min-h-dvh items-center justify-center bg-background transition-opacity duration-300 ease-in-out pointer-events-none z-50"
+          className={cn(
+            "bg-background pointer-events-none absolute inset-0 z-50 flex min-h-dvh items-center justify-center transition-opacity duration-300 ease-in-out",
+            className,
+          )}
         >
-          <Loader className="animate-spin text-muted-foreground" size={24} />
+          <Loader className="text-muted-foreground animate-spin" size={24} />
         </div>
       )}
       {showChildren && (
@@ -66,4 +77,3 @@ export default function Loading({ loaded = false, children }: LoadingProps) {
     </div>
   );
 }
-

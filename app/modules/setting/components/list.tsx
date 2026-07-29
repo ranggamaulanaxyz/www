@@ -1,4 +1,4 @@
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import type { SettingSchema } from "../schemas";
 import SettingTableView from "./table";
 import { ButtonGroup } from "~/components/ui/button-group";
@@ -135,11 +135,12 @@ export default function SettingListView({
     <div className="grid grid-cols-1 gap-2 p-4">
       <div className="flex justify-between gap-2">
         <ButtonGroup>
-          <Button asChild>
-            <Link to={`/desk/settings/new?${searchParams.toString()}`}>
-              New
-            </Link>
-          </Button>
+          <Link
+            className={buttonVariants({ variant: "default" })}
+            to={`/desk/settings/new?${searchParams.toString()}`}
+          >
+            New
+          </Link>
         </ButtonGroup>
         <div className="grow">
           <SettingFilterView />

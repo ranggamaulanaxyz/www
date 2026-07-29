@@ -11,8 +11,9 @@ import { SettingSchema } from "~/modules/setting/schemas";
 import type { Route } from "./+types/setting-edit";
 import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 import { findSettingById, updateSetting } from "~/modules/setting/services";
-import { parseFormData } from "~/lib/utils";
+import { parseFormData, sleep } from "~/lib/utils";
 import { useNavigation } from "react-router";
+import Loading from "~/components/ui/loading";
 
 export async function clientAction({
   context,
@@ -43,6 +44,12 @@ export async function clientLoader({
   return { setting };
 }
 
+clientLoader.hydrate = true as const;
+
+export function HydrateFallback() {
+  return <Loading />;
+}
+
 export default function SettingEdit({
   loaderData,
   actionData,
@@ -55,7 +62,7 @@ export default function SettingEdit({
   const isSubmitting = navigation.state === "submitting";
 
   return (
-    <DialogContent>
+    <Fragment>
       <DialogHeader>
         <DialogTitle>Edit Setting</DialogTitle>
       </DialogHeader>
@@ -69,6 +76,6 @@ export default function SettingEdit({
           {isSubmitting ? "Saving..." : "Save"}
         </Button>
       </DialogFooter>
-    </DialogContent>
+    </Fragment>
   );
 }

@@ -40,7 +40,7 @@ export default function SettingCreate({ actionData }: Route.ComponentProps) {
   const id = "new";
   const initialFieldErrors = actionData?.fieldErrors;
   return (
-    <DialogContent>
+    <Fragment>
       <DialogHeader>
         <DialogTitle>New Setting</DialogTitle>
       </DialogHeader>
@@ -50,6 +50,6 @@ export default function SettingCreate({ actionData }: Route.ComponentProps) {
           Save
         </Button>
       </DialogFooter>
-    </DialogContent>
+    </Fragment>
   );
 }

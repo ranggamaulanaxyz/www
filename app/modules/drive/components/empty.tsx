@@ -25,9 +25,7 @@ export function DriveEmptyVIew() {
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex-row justify-center gap-2">
-        <Button asChild>
-          <Link to="/desk/drive/new">Create Drive</Link>
-        </Button>
+        <Button render={<Link to="/desk/drive/new">Create Drive</Link>} />
       </EmptyContent>
     </Empty>
   );

@@ -148,18 +148,21 @@ export default function Signin({ actionData }: Route.ComponentProps) {
                 your spam folder.
               </p>
               <div className="grid gap-4 md:grid-cols-2">
-                <Button asChild>
-                  <a
-                    href={getEmailClientUrl(email)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Open Inbox
-                  </a>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/signin">Signin Now</Link>
-                </Button>
+                <Button
+                  render={
+                    <a
+                      href={getEmailClientUrl(email)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Open Inbox
+                    </a>
+                  }
+                />
+                <Button
+                  variant="outline"
+                  render={<Link to="/signin">Signin Now</Link>}
+                />
               </div>
             </CardContent>
           </Card>

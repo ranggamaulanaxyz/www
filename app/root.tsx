@@ -203,9 +203,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
           <EmptyDescription>{message}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent className="flex-row justify-center">
-          <Button asChild>
-            <Link to="/">Back to Home</Link>
-          </Button>
+          <Button render={<Link to="/">Back to Home</Link>}></Button>
           {status === 404 ? (
             <Button variant="outline" onClick={() => window.history.back()}>
               Go back
