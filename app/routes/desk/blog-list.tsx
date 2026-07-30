@@ -47,7 +47,7 @@ export default function BlogList({ loaderData }: Route.ComponentProps) {
 
   return (
     <Loading loaded={isMounted}>
-      <DeskHeader></DeskHeader>
+      <DeskHeader />
       <BlogListView posts={posts} meta={meta} />
     </Loading>
   );

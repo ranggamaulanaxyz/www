@@ -9,7 +9,7 @@ import {
 } from "~/components/ui/input-group";
 import { SearchIcon, XIcon } from "lucide-react";
 import { handle } from "~/routes/desk/blog";
-import { Form, useSearchParams } from "react-router";
+import { Form, Link, useSearchParams } from "react-router";
 import { useEffect, useState } from "react";
 import { BlogEmptyView } from "./empty";
 import {
@@ -19,8 +19,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "~/components/ui/pagination";
+import { ButtonGroup } from "~/components/ui/button-group";
+import { buttonVariants } from "~/components/ui/button";
+import type { SettingMeta } from "~/modules/setting/types";
 
-function BlogFilter() {
+function BlogFilterView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [value, setValue] = useState<string>("");
 
@@ -75,24 +78,43 @@ function BlogFilter() {
   );
 }
 
-interface BlogPaginationProps {
-  page: number;
-  hasNext: boolean;
-  hasPrevious: boolean;
+interface BlogPaginationViewProps {
+  meta?: SettingMeta;
 }
+export function BlogPaginationView({ meta }: BlogPaginationViewProps) {
+  const [searchParams] = useSearchParams();
 
-function BlogPagination({ page }): BlogPaginationProps {
+  const getPageUrl = (pageNumber: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", pageNumber.toString());
+    return `?${params.toString()}`;
+  };
+
+  const hasPrevious = meta?.hasPrevious ?? false;
+  const hasNext = meta?.hasNext ?? false;
+  const page = meta?.page ?? 1;
+
   return (
-    <Pagination>
-      <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious to={"?"} />
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationNext to={"?"} />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
+    <div className="flex items-center justify-between gap-4">
+      <Pagination className="mx-0 w-auto">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              to={hasPrevious ? getPageUrl(page - 1) : "#"}
+              tabIndex={!hasPrevious ? -1 : undefined}
+              className={!hasPrevious ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationNext
+              to={hasNext ? getPageUrl(page + 1) : "#"}
+              tabIndex={!hasNext ? -1 : undefined}
+              className={!hasNext ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    </div>
   );
 }
 
@@ -109,10 +131,24 @@ interface BlogListProps {
 }
 
 export default function BlogListView({ posts, meta }: BlogListProps) {
+  const [searchParams] = useSearchParams();
   return (
-    <div className="grid grid-cols-1 gap-4 p-4">
-      <div className="flex">
-        <BlogFilter />
+    <div className="grid grid-cols-1 gap-2 p-4">
+      <div className="flex justify-between gap-2">
+        <ButtonGroup>
+          <Link
+            className={buttonVariants({ variant: "default" })}
+            to={`/desk/blog/new?${searchParams.toString()}`}
+          >
+            New
+          </Link>
+        </ButtonGroup>
+        <div className="grow">
+          <BlogFilterView />
+        </div>
+        <div className="shrink">
+          <BlogPaginationView meta={meta} />
+        </div>
       </div>
       {posts.length ? <BlogItemView posts={posts} /> : <BlogEmptyView />}
     </div>
