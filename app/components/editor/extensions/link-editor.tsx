@@ -13,7 +13,7 @@ import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
   Popover,
   PopoverContent,
-  PopoverAnchor,
+  PopoverTrigger,
 } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -149,18 +149,20 @@ function FloatingLinkEditor() {
         if (!open) setIsEditMode(false);
       }}
     >
-      <PopoverAnchor asChild>
-        <div
-          style={{
-            position: "fixed",
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height,
-            pointerEvents: "none",
-          }}
-        />
-      </PopoverAnchor>
+      <PopoverTrigger
+        render={
+          <div
+            style={{
+              position: "fixed",
+              top: rect.top,
+              left: rect.left,
+              width: rect.width,
+              height: rect.height,
+              pointerEvents: "none",
+            }}
+          />
+        }
+      />
       <PopoverContent
         className="flex w-80 flex-col gap-3 p-3"
         align="center"

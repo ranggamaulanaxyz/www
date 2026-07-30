@@ -175,17 +175,19 @@ export default function InputDateTime({
       />
       <InputGroupAddon align="inline-end">
         <Popover open={open && isInteractive} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              type="button"
-              size="icon-sm"
-              disabled={!isInteractive}
-              aria-label="Pick date and time"
-            >
-              <CalendarIcon />
-            </Button>
-          </PopoverTrigger>
+          <PopoverTrigger
+            render={
+              <Button
+                variant="ghost"
+                type="button"
+                size="icon-sm"
+                disabled={!isInteractive}
+                aria-label="Pick date and time"
+              >
+                <CalendarIcon />
+              </Button>
+            }
+          />
           <PopoverContent align="end" className="w-auto p-3">
             <Calendar
               mode="single"

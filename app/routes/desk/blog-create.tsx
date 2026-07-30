@@ -5,7 +5,7 @@ import { BlogExtension } from "~/modules/blog/editor/extensions/editor";
 import { Editor } from "~/modules/blog/components/editor";
 import type { Route } from "./+types/blog-create";
 import { PostSchema } from "~/modules/blog/schemas";
-import { sleep, validate } from "~/lib/utils";
+import { validate, validateData } from "~/lib/utils";
 import { createPost } from "~/modules/blog/services";
 import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 import { redirect } from "react-router";
@@ -15,9 +15,9 @@ export async function clientAction({
   context,
 }: Route.ClientActionArgs) {
   const data = await request.json();
-  const validation = await validate(PostSchema, data);
+  const validation = await validateData(data, PostSchema);
   if (!validation.success) {
-    return { success: false, errors: { fieldErrors: validation.errors } };
+    return { success: false, errors: { fieldErrors: validation.error } };
   }
 
   const supabase = context.get(SupabaseClientContext);

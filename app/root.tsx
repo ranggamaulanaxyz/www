@@ -23,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./components/ui/card";
-import { Button } from "./components/ui/button";
+import { Button, buttonVariants } from "./components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -203,7 +203,9 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
           <EmptyDescription>{message}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent className="flex-row justify-center">
-          <Button render={<Link to="/">Back to Home</Link>}></Button>
+          <Link className={buttonVariants({ variant: "default" })} to="/">
+            Back to Home
+          </Link>
           {status === 404 ? (
             <Button variant="outline" onClick={() => window.history.back()}>
               Go back

@@ -40,24 +40,30 @@ export const columns: ColumnDef<SettingSchema>[] = [
       const [searchParams] = useSearchParams();
       const setting = row.original;
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost">
-              <EllipsisVerticalIcon />
-              <span className="sr-only">Open Actions</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link
-                to={`/desk/settings/${setting.id}?${searchParams.toString()}`}
-              >
-                Edit
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="ghost">
+                  <EllipsisVerticalIcon />
+                  <span className="sr-only">Open Actions</span>
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                render={
+                  <Link
+                    to={`/desk/settings/${setting.id}?${searchParams.toString()}`}
+                  >
+                    Edit
+                  </Link>
+                }
+              />
+              <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       );
     },
   },

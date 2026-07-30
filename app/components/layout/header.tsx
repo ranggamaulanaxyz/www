@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import { Logo } from "~/components/brand/logo";
 import {
   DropdownMenu,
@@ -29,46 +29,56 @@ export function Header({ user }: HeaderProps) {
       <div className="flex items-center gap-4">
         {!authenticated && (
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm">
-              <Link to="/signin">Sign In</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link to="/signup">Sign Up</Link>
-            </Button>
+            <Link
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+              to="/signin"
+            >
+              Sign In
+            </Link>
+            <Link className={buttonVariants({ size: "sm" })} to="/signup">
+              Sign Up
+            </Link>
           </div>
         )}
         {authenticated && (
           <div className="flex items-center gap-4">
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full"
-                  title={user.name}
-                >
-                  <Avatar>
-                    <AvatarImage
-                      src="https://github.com/shadcn.png"
-                      alt={user.name}
-                    />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full"
+                    title={user.name}
+                  >
+                    <Avatar>
+                      <AvatarImage
+                        src="https://github.com/shadcn.png"
+                        alt={user.name}
+                      />
+                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                }
+              />
               <DropdownMenuContent align="end" className="min-w-56">
                 <DropdownMenuGroup>
-                  <DropdownMenuItem asChild>
-                    <Link to="/account" title={user.name}>
-                      <UserRoundCogIcon /> Account
-                    </Link>
-                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    render={
+                      <Link to="/account" title={user.name}>
+                        <UserRoundCogIcon /> Account
+                      </Link>
+                    }
+                  />
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem variant="destructive" asChild>
-                    <Link to="/signout">
-                      <LogOutIcon /> Sign Out
-                    </Link>
-                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    render={
+                      <Link to="/signout">
+                        <LogOutIcon /> Sign Out
+                      </Link>
+                    }
+                  />
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>

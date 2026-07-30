@@ -1,7 +1,7 @@
 import { NewspaperIcon } from "lucide-react";
 import { Link, useSearchParams } from "react-router";
 
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -41,7 +41,12 @@ export function BlogEmptyView() {
             Clear Search
           </Button>
         ) : (
-          <Button render={<Link to="/desk/blog/new">Create New Post</Link>} />
+          <Link
+            className={buttonVariants({ variant: "default" })}
+            to="/desk/blog/new"
+          >
+            Create New Post
+          </Link>
         )}
       </EmptyContent>
     </Empty>

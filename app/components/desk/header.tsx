@@ -50,9 +50,9 @@ export default function DeskHeader({ children }: DeskHeaderProps) {
                   {isLast ? (
                     <BreadcrumbPage>{item.content}</BreadcrumbPage>
                   ) : (
-                    <BreadcrumbLink asChild>
-                      <Link to={item.pathname}>{item.content}</Link>
-                    </BreadcrumbLink>
+                    <BreadcrumbLink
+                      render={<Link to={item.pathname}>{item.content}</Link>}
+                    />
                   )}
                 </BreadcrumbItem>
                 {!isLast && <BreadcrumbSeparator />}

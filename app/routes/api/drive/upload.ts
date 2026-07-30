@@ -2,6 +2,7 @@ import { SupabaseClientContext } from "~/lib/supabase/supabase.context";
 import { CloudflareContext } from "../../../../workers/app";
 import type { Route } from "./+types/upload";
 import { createItem } from "~/modules/drive/services";
+import { loadSettingsByKeys, getSettingByKey } from "~/modules/setting/services";
 
 export async function action({ request, context }: Route.ActionArgs) {
   const cloudflare = context.get(CloudflareContext);
@@ -23,9 +24,20 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   const supabase = context.get(SupabaseClientContext);
+
+  const driveSettings = await loadSettingsByKeys(supabase, ["app.drive"]);
+  const driveId = getSettingByKey(driveSettings, "app.drive");
+
+  if (!driveId) {
+    return Response.json(
+      { success: false, error: "Drive ID setting (app.drive) not found." },
+      { status: 500 },
+    );
+  }
+
   const driveItem = await createItem(supabase, {
     name: file.name,
-    driveId: "8b12a006-ec4d-42df-882b-3d7c6bfda3bc",
+    driveId,
   });
 
   if (!driveItem?.id) {

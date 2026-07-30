@@ -1,7 +1,7 @@
 import { FolderIcon, HardDriveIcon } from "lucide-react";
 import { Link } from "react-router";
 
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -25,7 +25,12 @@ export function DriveEmptyVIew() {
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex-row justify-center gap-2">
-        <Button render={<Link to="/desk/drive/new">Create Drive</Link>} />
+        <Link
+          className={buttonVariants({ variant: "default" })}
+          to="/desk/drive/new"
+        >
+          Create Drive
+        </Link>
       </EmptyContent>
     </Empty>
   );

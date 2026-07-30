@@ -53,7 +53,9 @@ export default function Cover({ initialSrc, onChange }: CoverProps) {
   };
 
   useEffect(() => {
-    setActiveTab("editor");
+    if (tmpSrc) {
+      setActiveTab("editor");
+    }
   }, [tmpSrc]);
 
   // Image Editor
@@ -111,23 +113,28 @@ export default function Cover({ initialSrc, onChange }: CoverProps) {
       onOpenChange={handleOpenDialogChange}
       modal={true}
     >
-      <DialogTrigger asChild>
-        <AspectRatio
-          id="cover"
-          ratio={16 / 9}
-          className="flex cursor-pointer items-center justify-center overflow-hidden rounded bg-gray-200"
-        >
-          {previewSrc ? (
-            <img
-              src={previewSrc}
-              alt="Cover"
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <p className="text-sm text-gray-500">Click here to add a cover.</p>
-          )}
-        </AspectRatio>
-      </DialogTrigger>
+      <DialogTrigger
+        nativeButton={false}
+        render={
+          <AspectRatio
+            id="cover"
+            ratio={16 / 9}
+            className="flex cursor-pointer items-center justify-center overflow-hidden rounded bg-gray-200"
+          >
+            {previewSrc ? (
+              <img
+                src={previewSrc}
+                alt="Cover"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <p className="text-sm text-gray-500">
+                Click here to add a cover.
+              </p>
+            )}
+          </AspectRatio>
+        }
+      />
       <DialogContent className="top-24 translate-y-0 sm:max-w-6xl">
         <Tabs value={activeTab} onValueChange={handleTabValueChange}>
           <TabsList variant="line">

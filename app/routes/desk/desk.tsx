@@ -60,43 +60,31 @@ export default function Layout() {
           <SidebarGroup>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/desk">
-                    <LayoutIcon /> Dashboard
-                  </Link>
+                <SidebarMenuButton render={<Link to="/desk" />}>
+                  <LayoutIcon /> Dashboard
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/desk/drive">
-                    <HardDriveIcon /> Drives
-                  </Link>
+                <SidebarMenuButton render={<Link to="/desk/drive" />}>
+                  <HardDriveIcon /> Drives
                 </SidebarMenuButton>
-                <SidebarMenuAction asChild>
-                  <Link to="/desk/drive/new">
-                    <PlusIcon />
-                    <span className="sr-only">New drive</span>
-                  </Link>
+                <SidebarMenuAction render={<Link to="/desk/drive/new" />}>
+                  <PlusIcon />
+                  <span className="sr-only">New drive</span>
                 </SidebarMenuAction>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/desk/blog">
-                    <NewspaperIcon /> Posts
-                  </Link>
+                <SidebarMenuButton render={<Link to="/desk/blog" />}>
+                  <NewspaperIcon /> Posts
                 </SidebarMenuButton>
-                <SidebarMenuAction asChild>
-                  <Link to="/desk/blog/new">
-                    <PlusIcon />
-                    <span className="sr-only">New post</span>
-                  </Link>
+                <SidebarMenuAction render={<Link to="/desk/blog/new" />}>
+                  <PlusIcon />
+                  <span className="sr-only">New post</span>
                 </SidebarMenuAction>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to={"/desk/settings"}>
-                    <CogIcon /> Settings
-                  </Link>
+                <SidebarMenuButton render={<Link to="/desk/settings" />}>
+                  <CogIcon /> Settings
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

@@ -198,20 +198,18 @@ export function Editor({ initialPost }: { initialPost?: PostSchema }) {
             <SidebarGroup>
               <SidebarGroupLabel
                 className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
-                asChild
-              >
-                <CollapsibleTrigger>
-                  METADATA
-                  <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
+                render={
+                  <CollapsibleTrigger>
+                    METADATA
+                    <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                  </CollapsibleTrigger>
+                }
+              />
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <FieldGroup className="gap-3 ps-4">
                     <Field className="gap-0.5">
-                      <FieldLabel className="text-xs" asChild>
-                        <span>Cover</span>
-                      </FieldLabel>
+                      <FieldLabel className="text-xs">Cover</FieldLabel>
                       <Cover
                         initialSrc={post.coverImageUrl}
                         onChange={handleCoverChange}
