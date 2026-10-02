@@ -1,6 +1,6 @@
 import { cn } from "cn";
 import { Link } from "react-router";
-import { buttonVariants } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import {
   ArrowRightIcon,
   BriefcaseBusinessIcon,
@@ -167,12 +167,36 @@ export default function Home() {
           </div>
         </section>
         <section className="bg-primary text-primary-foreground">
-          <div className="container flex flex-col md:flex-row">
-            <div>
-              <img src="/logo.png" alt="Logo" />
+          <div className="container mx-auto flex items-center gap-10">
+            <div className="p-4 md:max-w-sm">
+              <div className="relative">
+                <img
+                  src="/me.jpg"
+                  alt="Rangga"
+                  className="relative z-50 object-cover outline outline-offset-1"
+                />
+                <div className="absolute top-4 left-5 z-0 h-full w-full border border-gray-500"></div>
+                <div className="absolute top-1 left-3 z-0 h-full w-full border border-gray-300"></div>
+              </div>
             </div>
             <div>
-              <h2>Rangga Maulana</h2>
+              <h2 className="text-4xl">Rangga Maulana</h2>
+              <p>
+                Saya Rangga Maulana, developer software bisnis dengan pengalaman
+                6+ tahun. Saya fokus membantu menyederhanakan alur kerja bisnis
+                yang kompleks agar lebih simpel dan mudah dikelola.
+              </p>
+              <p>
+                Saya melayani pembuatan Website Landing Page & CMS untuk
+                branding, serta Kustomisasi ERP (Akuntansi, Invoicing, Sales,
+                Purchase, Inventory) yang disesuaikan presisi dengan alur bisnis
+                Anda.
+              </p>
+              <p>
+                Ingin operasional bisnis jadi lebih mudah? Yuk, diskusikan
+                kebutuhan sistem Anda!
+              </p>
+              <Button>Hubungi Saya</Button>
             </div>
           </div>
         </section>
