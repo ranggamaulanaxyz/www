@@ -166,10 +166,10 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section className="bg-primary text-primary-foreground">
-          <div className="container mx-auto flex items-center gap-10">
+        <section className="bg-primary text-primary-foreground py-8">
+          <div className="container mx-auto flex flex-col items-center gap-10 md:flex-row">
             <div className="p-4 md:max-w-sm">
-              <div className="relative">
+              <div className="relative z-0">
                 <img
                   src="/me.jpg"
                   alt="Rangga"
@@ -179,8 +179,8 @@ export default function Home() {
                 <div className="absolute top-1 left-3 z-0 h-full w-full border border-gray-300"></div>
               </div>
             </div>
-            <div>
-              <h2 className="text-4xl">Rangga Maulana</h2>
+            <div className="space-y-6 p-4 text-xl">
+              <h2 className="font-display text-4xl">Rangga Maulana</h2>
               <p>
                 Saya Rangga Maulana, developer software bisnis dengan pengalaman
                 6+ tahun. Saya fokus membantu menyederhanakan alur kerja bisnis
@@ -194,9 +194,18 @@ export default function Home() {
               </p>
               <p>
                 Ingin operasional bisnis jadi lebih mudah? Yuk, diskusikan
-                kebutuhan sistem Anda!
+                kebutuhan sistem Anda dengan Saya!
               </p>
-              <Button>Hubungi Saya</Button>
+              <Link
+                to="/contact/me"
+                title="Hubungi saya"
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "text-md h-12 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+                )}
+              >
+                Hubungi Saya
+              </Link>
             </div>
           </div>
         </section>
