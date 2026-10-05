@@ -209,7 +209,18 @@ export default function Home() {
             </div>
           </div>
         </section>
+        <section className="flex min-h-screen items-center justify-center bg-gray-200">
+          Konten daftar proyek masih di kembangkan!
+        </section>
+        <section className="flex min-h-screen items-center justify-center bg-gray-100">
+          Konten CTA masih di kembangkan!
+        </section>
       </main>
+      <footer>
+        <div className="p-8 text-center text-sm text-gray-600">
+          &copy; {new Date().getFullYear()} Rangga Maulana. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 }
