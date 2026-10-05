@@ -68,16 +68,16 @@ export default function Home() {
         </div>
       </header>
       <main className="flex flex-1 flex-col">
-        <section className="flex-1 overflow-visible py-8">
+        <section className="flex-1 overflow-visible pt-8">
           <div className="container mx-auto flex flex-col items-center justify-center gap-4 p-4 md:flex-row md:justify-between md:gap-8">
             <div className="text-center sm:max-w-2xl md:text-left lg:max-w-4xl">
               <h1 className="font-display text-3xl leading-tight md:mb-4 md:max-w-xl md:text-4xl lg:text-5xl">
-                Digitalisasi Bisnismu Sekarang!
+                Sederhanakan Proses Bisnismu
               </h1>
-              <p className="mb-6 text-lg font-light md:max-w-3xl md:text-xl">
-                Saya merancang dan membangun sistem perangkat lunak kustom yang
-                menyederhanakan proses rumit, mengotomatisasi efisiensi bisnis,
-                dan menghadirkan pengalaman pengguna tanpa hambatan.
+              <p className="mb-6 font-light md:max-w-3xl md:text-xl">
+                Dari pekerjaan manual hingga proses yang kompleks, saya membantu
+                mengubahnya menjadi sistem digital yang lebih terstruktur,
+                terintegrasi, dan mudah digunakan.
               </p>
               <div className="space-y-2 text-left">
                 <div className="mb-2 flex items-center justify-center gap-2 md:mb-4 md:justify-start">
@@ -118,15 +118,15 @@ export default function Home() {
               </div>
             </div>
             <div className="order-first md:order-last md:max-w-2xl">
-              <div className="relative">
+              <div className="relative max-w-xs md:max-w-none">
                 <div className="overflow-hidden rounded-full bg-slate-100">
                   <img src="/logo500x500.png" className="relative z-30" />
                 </div>
                 <div className="absolute top-0 z-10 aspect-square w-1/2 rounded-full bg-slate-200">
                   <div className="absolute right-0 bottom-full aspect-square w-1/2 rounded-full bg-slate-300"></div>
                 </div>
-                <div className="absolute right-0 bottom-5 z-40 w-1/2 md:top-1/2 md:-left-1/4">
-                  <div className="bg-primary text-primary-foreground relative rounded-2xl px-4 py-3 text-sm shadow-lg">
+                <div className="absolute right-0 bottom-4 z-40 w-1/2 md:top-1/2 md:-left-1/4">
+                  <div className="bg-primary text-primary-foreground relative rounded-2xl px-2 py-1.5 text-xs shadow-lg md:px-4 md:py-3 md:text-sm">
                     Saya Rangga, software engineer dengan 6 tahun pengalaman.
                     <div className="bg-primary absolute -top-1 size-3 rotate-40 md:top-auto md:-right-1 md:bottom-3 md:rotate-45" />
                   </div>
@@ -135,15 +135,15 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section className="container mx-auto rounded-t-4xl border-t py-15 pr-4 pl-8">
+        <section className="container mx-auto py-8 pr-4 pl-8 md:py-15">
           <div className="grid gap-12 md:grid-cols-3">
             <div className="group flex items-center gap-6 md:flex-col">
               <div className="flex aspect-square size-16 rotate-45 items-center justify-center bg-slate-100 text-slate-600 transition-all duration-300 group-hover:bg-slate-700 group-hover:text-white md:size-24">
                 <WorkflowIcon className="-rotate-45" />
               </div>
               <div className="text-slate-700 md:text-center md:text-lg">
-                Bisnismu berkembang, tetapi proses kerja masih bergantung pada
-                cara lama.
+                Ketika bisnis berkembang, pekerjaan yang awalnya sederhana bisa
+                menjadi semakin banyak, manual, dan sulit dikontrol.
               </div>
             </div>
             <div className="group flex items-center gap-6 md:flex-col">
@@ -151,7 +151,7 @@ export default function Home() {
                 <LightbulbIcon className="-rotate-45" />
               </div>
               <div className="text-slate-700 md:text-center md:text-lg">
-                Saya bisa membantu mengubah proses yang kompleks menjadi sistem
+                Saya membantu mengubah proses yang kompleks menjadi solusi
                 digital yang lebih sederhana, terstruktur, dan terintegrasi.
               </div>
             </div>
@@ -160,8 +160,9 @@ export default function Home() {
                 <TrendingUpIcon className="-rotate-45" />
               </div>
               <div className="text-slate-700 md:text-center md:text-lg">
-                Lebih sedikit pekerjaan manual, lebih banyak kontrol, dan bisnis
-                yang siap berkembang dengan fondasi digital yang kuat.
+                Dengan sistem yang tepat, pekerjaan menjadi lebih efisien,
+                kontrol semakin baik, dan bisnis siap berkembang dengan fondasi
+                digital yang kuat.
               </div>
             </div>
           </div>
