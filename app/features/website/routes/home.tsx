@@ -167,7 +167,7 @@ export default function Home() {
           </div>
         </section>
         <section className="bg-primary text-primary-foreground py-8">
-          <div className="container mx-auto flex flex-col items-center gap-10 md:flex-row">
+          <div className="container mx-auto flex flex-col items-center gap-10 overflow-hidden md:flex-row">
             <div className="p-4 md:max-w-sm">
               <div className="relative z-0">
                 <img
@@ -180,7 +180,7 @@ export default function Home() {
               </div>
             </div>
             <div className="space-y-6 p-4 text-xl">
-              <h2 className="font-display text-4xl">Rangga Maulana</h2>
+              <h2 className="font-display text-4xl">Halo, Perkenalkan!</h2>
               <p>
                 Saya Rangga Maulana, developer software bisnis dengan pengalaman
                 6+ tahun. Saya fokus membantu menyederhanakan alur kerja bisnis
