@@ -35,14 +35,18 @@ export default function Home() {
   const isScrolled = useIsScrolled(10);
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-50 p-1">
+      <header
+        className={cn(
+          "sticky top-0 z-50 w-full p-1 transition-transform",
+          isNavbarVisible ? "translate-y-0" : "-translate-y-full",
+        )}
+      >
         <div
           className={cn(
-            "container mx-auto flex w-full items-center rounded-lg px-4 py-2 transition-all",
+            "container mx-auto flex w-full items-center rounded-lg px-4 py-2 transition-colors",
             isScrolled
               ? "border bg-white/70 backdrop-blur-md"
               : "bg-transparent",
-            isNavbarVisible ? "translate-y-0" : "-translate-y-full",
           )}
         >
           <Link
@@ -239,7 +243,9 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full">Lihat Aplikasi</Button>
+                  <Button className="w-full" disabled={true}>
+                    Lihat Aplikasi
+                  </Button>
                 </CardFooter>
               </Card>
               <Card className="relative">
@@ -252,14 +258,16 @@ export default function Home() {
                   <CardAction>
                     <Badge>Terbaru</Badge>
                   </CardAction>
-                  <CardTitle>Sistem Menejemen Donasi</CardTitle>
+                  <CardTitle>Aplikasi PPOB</CardTitle>
                   <CardDescription>
-                    Sistem yang memudahkan penerimaan donasi yang terintegrasi
-                    dengan pembayaran online.
+                    Aplikasi untuk mengelola penjualan pulsa, kuota dan produk
+                    digital lainnya secara online.
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full">Lihat Aplikasi</Button>
+                  <Button className="w-full" disabled={true}>
+                    Lihat Aplikasi
+                  </Button>
                 </CardFooter>
               </Card>
               <Card className="relative">
@@ -272,14 +280,16 @@ export default function Home() {
                   <CardAction>
                     <Badge>Terbaru</Badge>
                   </CardAction>
-                  <CardTitle>Sistem Menejemen Donasi</CardTitle>
+                  <CardTitle>Sistem Menejemen Warung</CardTitle>
                   <CardDescription>
-                    Sistem yang memudahkan penerimaan donasi yang terintegrasi
-                    dengan pembayaran online.
+                    Sistem sederhana yang memudahkan pengelolaan warungmu dengan
+                    fitur POS dan inventori.
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full">Lihat Aplikasi</Button>
+                  <Button className="w-full" disabled={true}>
+                    Lihat Aplikasi
+                  </Button>
                 </CardFooter>
               </Card>
               <Card className="relative">
@@ -292,14 +302,16 @@ export default function Home() {
                   <CardAction>
                     <Badge>Terbaru</Badge>
                   </CardAction>
-                  <CardTitle>Sistem Menejemen Donasi</CardTitle>
+                  <CardTitle>Kustom ERP</CardTitle>
                   <CardDescription>
-                    Sistem yang memudahkan penerimaan donasi yang terintegrasi
-                    dengan pembayaran online.
+                    Aplikasi ERP dengan module lengkap dan terintegrasi dengan
+                    modul akunting, stok, POS, Manufaktur dan module lainnya.
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full">Lihat Aplikasi</Button>
+                  <Button className="w-full" disabled={true}>
+                    Lihat Aplikasi
+                  </Button>
                 </CardFooter>
               </Card>
             </div>
