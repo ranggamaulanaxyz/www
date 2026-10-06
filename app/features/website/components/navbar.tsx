@@ -12,14 +12,14 @@ export default function WebsiteNavbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full p-1 transition-transform",
+        "sticky top-0 z-50 w-full transition-transform",
         isVisible ? "translate-y-0" : "-translate-y-full",
       )}
     >
       <div
         className={cn(
-          "container mx-auto flex w-full items-center rounded-lg px-4 py-2 transition-colors",
-          isScrolled ? "border bg-white/70 backdrop-blur-md" : "bg-transparent",
+          "container mx-auto flex w-full items-center px-4 py-2 transition-colors",
+          isScrolled ? "bg-background" : "bg-transparent",
         )}
       >
         <Link
@@ -41,10 +41,7 @@ export default function WebsiteNavbar() {
               <Link
                 to="/contact/me"
                 title="Hubungi Saya"
-                className={cn(
-                  buttonVariants({ variant: "ghost", size: "lg" }),
-                  "border-primary text-primary",
-                )}
+                className={cn(buttonVariants({ variant: "ghost", size: "lg" }))}
               >
                 Hubungi Saya <ArrowRightIcon />
               </Link>

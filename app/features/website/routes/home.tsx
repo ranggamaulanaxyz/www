@@ -288,7 +288,7 @@ export default function Home() {
         </section>
         <section className="py-8">
           <div className="container mx-auto px-4">
-            <div className="bg-primary text-primary-foreground relative overflow-hidden rounded-lg px-6 py-12 md:px-12 md:py-16">
+            <div className="bg-primary text-primary-foreground relative overflow-hidden px-6 py-12 md:px-12 md:py-16">
               <div className="relative z-10 mx-auto max-w-3xl text-center">
                 <h2 className="font-display text-3xl leading-tight md:text-4xl lg:text-5xl">
                   Punya proses bisnis yang ingin dibuat lebih sederhana?
