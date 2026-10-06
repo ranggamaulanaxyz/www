@@ -54,7 +54,7 @@ export default function Home() {
               <h1 className="font-display text-3xl leading-tight md:mb-4 md:max-w-xl md:text-4xl lg:text-5xl">
                 Sederhanakan Proses Bisnismu
               </h1>
-              <p className="mb-6 font-light md:max-w-3xl md:text-xl">
+              <p className="mb-6 font-light md:max-w-3xl md:text-lg lg:text-xl">
                 Dari pekerjaan manual hingga proses yang kompleks, saya membantu
                 mengubahnya menjadi sistem digital yang lebih terstruktur,
                 terintegrasi, dan mudah digunakan.
@@ -105,10 +105,10 @@ export default function Home() {
                 <div className="absolute top-0 z-10 aspect-square w-1/2 rounded-full bg-slate-200">
                   <div className="absolute right-0 bottom-full aspect-square w-1/2 rounded-full bg-slate-300"></div>
                 </div>
-                <div className="absolute right-0 bottom-4 z-40 w-1/2 md:top-1/2 md:-left-1/4">
-                  <div className="bg-primary text-primary-foreground relative rounded-2xl px-2 py-1.5 text-xs shadow-lg md:px-4 md:py-3 md:text-sm">
+                <div className="absolute right-0 bottom-4 z-40 w-1/2 md:top-3/4 md:w-3/4 lg:top-5/7 2xl:top-1/2 2xl:-left-1/2">
+                  <div className="bg-primary text-primary-foreground relative rounded-2xl px-2 py-1.5 text-xs shadow-lg md:px-4 md:py-3 xl:text-sm">
                     Saya Rangga, software engineer dengan 6 tahun pengalaman.
-                    <div className="bg-primary absolute -top-1 size-3 rotate-40 md:top-auto md:-right-1 md:bottom-3 md:rotate-45" />
+                    <div className="bg-primary absolute -top-1 size-3 rotate-40 md:left-15 lg:left-25 2xl:top-auto 2xl:-right-1 2xl:bottom-3 2xl:left-auto 2xl:rotate-45" />
                   </div>
                 </div>
               </div>
@@ -121,7 +121,7 @@ export default function Home() {
               <div className="flex aspect-square size-16 rotate-45 items-center justify-center bg-slate-100 text-slate-600 transition-all duration-300 group-hover:bg-slate-700 group-hover:text-white md:size-24">
                 <WorkflowIcon className="-rotate-45" />
               </div>
-              <div className="text-slate-700 md:text-center md:text-lg">
+              <div className="md:text-center md:text-lg">
                 Ketika bisnis berkembang, pekerjaan yang awalnya sederhana bisa
                 menjadi semakin banyak, manual, dan sulit dikontrol.
               </div>
@@ -130,7 +130,7 @@ export default function Home() {
               <div className="flex aspect-square size-16 rotate-45 items-center justify-center bg-slate-100 text-slate-600 transition-all duration-300 group-hover:bg-slate-700 group-hover:text-white md:size-24">
                 <LightbulbIcon className="-rotate-45" />
               </div>
-              <div className="text-slate-700 md:text-center md:text-lg">
+              <div className="md:text-center md:text-lg">
                 Saya membantu mengubah proses yang kompleks menjadi solusi
                 digital yang lebih sederhana, terstruktur, dan terintegrasi.
               </div>
@@ -139,7 +139,7 @@ export default function Home() {
               <div className="flex aspect-square size-16 rotate-45 items-center justify-center bg-slate-100 text-slate-600 transition-all duration-300 group-hover:bg-slate-700 group-hover:text-white md:size-24">
                 <TrendingUpIcon className="-rotate-45" />
               </div>
-              <div className="text-slate-700 md:text-center md:text-lg">
+              <div className="md:text-center md:text-lg">
                 Dengan sistem yang tepat, pekerjaan menjadi lebih efisien,
                 kontrol semakin baik, dan bisnis siap berkembang dengan fondasi
                 digital yang kuat.
@@ -160,8 +160,10 @@ export default function Home() {
                 <div className="absolute top-1 left-3 z-0 h-full w-full border border-gray-300"></div>
               </div>
             </div>
-            <div className="space-y-6 p-4 text-xl">
-              <h2 className="font-display text-4xl">Halo, Perkenalkan!</h2>
+            <div className="space-y-6 p-4 md:text-lg lg:text-xl">
+              <h2 className="font-display text-2xl md:text-3xl lg:text-4xl">
+                Halo, Perkenalkan!
+              </h2>
               <p>
                 Saya Rangga Maulana, developer software bisnis dengan pengalaman
                 6+ tahun. Saya fokus membantu menyederhanakan alur kerja bisnis
