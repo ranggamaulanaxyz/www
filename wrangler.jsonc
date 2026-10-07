@@ -8,7 +8,8 @@
 	"compatibility_date": "2026-09-26",
 	"main": "./workers/app.ts",
 	"vars": {
-		"VALUE_FROM_CLOUDFLARE": "Hello from Cloudflare"
+		"SUPABASE_URL": "https://aifkexypqptqvywntfdl.supabase.co",
+		"SUPABASE_PUBLISHABLE_KEY":"sb_publishable_2InMUWrtyhSvwbOeTrcjSw_X2p4ePRd"
 	},
 	"observability": {
 		"enabled": true

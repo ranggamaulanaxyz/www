@@ -93,7 +93,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-                    Email Direct
+                    Alamat Email
                   </p>
                   <a
                     href="mailto:halo@domainanda.com"
