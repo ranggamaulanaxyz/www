@@ -6,6 +6,10 @@ export default [
 
   route("/signin", "features/auth/routes/signin.tsx"),
 
-  route("/app/assistant/chat", "features/assistant/routes/chat.tsx"),
-  route("/app/assistant/ai", "features/assistant/routes/ai.tsx"),
+  route("/zet/webhook/telegram", "features/zet/routes/telegram.ts"),
+
+  route("/desk", "features/desk/routes/desk.tsx", [
+    route("/desk/me", "features/auth/routes/account.tsx"),
+    route("/desk/assistant", "features/assistant/routes/chat.tsx"),
+  ]),
 ] satisfies RouteConfig;

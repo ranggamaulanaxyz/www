@@ -21,11 +21,17 @@ import { Button, buttonVariants } from "~/components/ui/button";
 import { XIcon } from "lucide-react";
 import type { Route } from "./+types/signin";
 import { supabaseClientContext } from "~/context";
+import { authMiddleware, guestOnlyMiddleware } from "../middlewares.server";
 
 const schema = z.object({
   email: z.email("Alamat email tidak sah"),
   password: z.string("Kata sandi tidak sah"),
 });
+
+export const middleware: Route.MiddlewareFunction[] = [
+  authMiddleware,
+  guestOnlyMiddleware,
+];
 
 export function meta() {
   return [
@@ -88,7 +94,6 @@ export default function Signin({ actionData }: Route.ComponentProps) {
             </CardAction>
           </CardHeader>
           <CardContent>
-            {actionData?.message}
             <Form {...getFormProps(form)} method="post">
               <FieldGroup>
                 <Field data-invalid={!fields.email.valid}>

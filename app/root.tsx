@@ -10,6 +10,7 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { supabaseMiddleware } from "./middlewares.server";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
@@ -40,7 +41,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <TooltipProvider>{children}</TooltipProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
