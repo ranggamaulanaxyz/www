@@ -9,6 +9,6 @@ RETURN NEW;
 END;$function$
 ;
 
-CREATE TRIGGER update_settings_updated_at BEFORE UPDATE ON public.settings FOR EACH ROW EXECUTE FUNCTION storage.update_updated_at_column();
+CREATE TRIGGER update_settings_updated_at BEFORE UPDATE ON public.settings FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
