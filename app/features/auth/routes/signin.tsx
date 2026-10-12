@@ -22,10 +22,11 @@ import { XIcon } from "lucide-react";
 import type { Route } from "./+types/signin";
 import { supabaseClientContext } from "~/context";
 import { authMiddleware, guestOnlyMiddleware } from "../middlewares.server";
+import Wrapper from "../components/wrapper";
 
 const schema = z.object({
-  email: z.email("Alamat email tidak sah"),
-  password: z.string("Kata sandi tidak sah"),
+  email: z.email("Alamat email tidak valid."),
+  password: z.string("Kata sandi tidak valid."),
 });
 
 export const middleware: Route.MiddlewareFunction[] = [
@@ -74,56 +75,55 @@ export default function Signin({ actionData }: Route.ComponentProps) {
   });
 
   return (
-    <main className="flex min-h-dvh items-center justify-center">
-      <div className="mx-auto max-w-md flex-1 grow">
-        <Card>
-          <CardHeader>
-            <CardTitle>Masuk</CardTitle>
-            <CardDescription>
-              Silahkan masukan alamat email dan kata sandi anda untuk mengakses
-              fitur yang lebih banyak.
-            </CardDescription>
-            <CardAction>
-              <Link
-                to="/"
-                title="Kembali ke halaman utama"
-                className={buttonVariants({ variant: "ghost" })}
-              >
-                <XIcon />
-              </Link>
-            </CardAction>
-          </CardHeader>
-          <CardContent>
-            <Form {...getFormProps(form)} method="post">
-              <FieldGroup>
-                <Field data-invalid={!fields.email.valid}>
-                  <FieldLabel htmlFor={fields.email.id}>
-                    Alamat Email
-                  </FieldLabel>
-                  <Input {...getInputProps(fields.email, { type: "email" })} />
-                  {fields.email.errors && (
-                    <FieldError>{fields.email.errors[0]}</FieldError>
-                  )}
-                </Field>
-                <Field data-invalid={!fields.password.valid}>
-                  <FieldLabel htmlFor={fields.password.id}>
-                    Kata Sandi
-                  </FieldLabel>
-                  <Input
-                    {...getInputProps(fields.password, { type: "password" })}
-                  />
-                  {fields.password.errors && (
-                    <FieldError>{fields.password.errors[0]}</FieldError>
-                  )}
-                </Field>
-                <Field>
-                  <Button type="submit">Masuk</Button>
-                </Field>
-              </FieldGroup>
-            </Form>
-          </CardContent>
-        </Card>
-      </div>
-    </main>
+    <Wrapper>
+      <Card>
+        <CardHeader>
+          <CardTitle>Masuk</CardTitle>
+          <CardDescription>
+            Silahkan masukan alamat email dan kata sandi anda untuk mengakses
+            fitur yang lebih banyak.
+          </CardDescription>
+          <CardAction>
+            <Link
+              to="/"
+              title="Kembali ke halaman utama"
+              className={buttonVariants({ variant: "ghost" })}
+            >
+              <XIcon />
+            </Link>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <Form {...getFormProps(form)} method="post">
+            <FieldGroup>
+              <Field data-invalid={!fields.email.valid}>
+                <FieldLabel htmlFor={fields.email.id}>Alamat Email</FieldLabel>
+                <Input {...getInputProps(fields.email, { type: "email" })} />
+                <FieldError errors={fields.email.errors} />
+              </Field>
+              <Field data-invalid={!fields.password.valid}>
+                <FieldLabel htmlFor={fields.password.id}>Kata Sandi</FieldLabel>
+                <Input
+                  {...getInputProps(fields.password, { type: "password" })}
+                />
+                <FieldError errors={fields.password.errors} />
+              </Field>
+              <p>
+                <Link
+                  to="/password/reset"
+                  title="Lupa kata sandi?"
+                  className="text-xs"
+                >
+                  Lupa kata sandi?
+                </Link>
+              </p>
+              <Field>
+                <Button type="submit">Masuk</Button>
+              </Field>
+            </FieldGroup>
+          </Form>
+        </CardContent>
+      </Card>
+    </Wrapper>
   );
 }
