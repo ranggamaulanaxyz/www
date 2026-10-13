@@ -1,4 +1,4 @@
-import { data, Form, Link, redirect } from "react-router";
+import { data, Form, Link, redirect, useNavigation } from "react-router";
 import {
   Card,
   CardAction,
@@ -25,6 +25,7 @@ import { authMiddleware, guestOnlyMiddleware } from "../middlewares.server";
 import Wrapper from "../components/wrapper";
 import { useEffect } from "react";
 import { toast } from "~/components/ui/toast";
+import { Spinner } from "~/components/ui/spinner";
 
 const schema = z.object({
   email: z.email("Alamat email tidak valid."),
@@ -51,7 +52,6 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
   const supabase = context.get(supabaseClientContext);
   const {
-    data: { user },
     error,
   } = await supabase.auth.signInWithPassword(submission.value);
 
@@ -70,10 +70,19 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
   }
 
-  return redirect("/desk");
+  const {data: isInternalUser} = await supabase.rpc("has_group", {name: "Internal User"}).single<boolean>()
+
+  if(isInternalUser) {
+    return redirect("/desk")
+  }
+
+  return redirect("/");
 }
 
 export default function Signin({ actionData }: Route.ComponentProps) {
+  const navigation = useNavigation()
+  const isIdle = navigation.state === "idle";
+  const isSubmitting = navigation.state === "submitting";
   const [form, fields] = useForm({
     lastResult: actionData?.lastResult,
     onValidate({ formData }) {
@@ -111,7 +120,7 @@ export default function Signin({ actionData }: Route.ComponentProps) {
               <Field data-invalid={!fields.password.valid}>
                 <FieldLabel htmlFor={fields.password.id}>Kata Sandi</FieldLabel>
                 <Input
-                  {...getInputProps(fields.password, { type: "password" })}
+                  {...getInputProps(fields.password, { type: "password" })} 
                 />
                 <FieldError errors={fields.password.errors} />
               </Field>
@@ -125,7 +134,7 @@ export default function Signin({ actionData }: Route.ComponentProps) {
                 </Link>
               </p>
               <Field>
-                <Button type="submit">Masuk</Button>
+                <Button type="submit" disabled={!isIdle}>{isSubmitting && <Spinner />}Masuk</Button>
                 <Link
                   to="/"
                   title="Kembali ke Halaman Utama"
