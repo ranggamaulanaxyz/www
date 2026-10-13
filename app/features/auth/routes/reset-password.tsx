@@ -36,7 +36,7 @@ export const middleware: Route.MiddlewareFunction[] = [
 ];
 
 export function meta() {
-  return [{ title: "Atur Ulang Kata Sandi" }];
+  return [{ title: "Pemulihan Kata Sandi" }];
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -80,10 +80,10 @@ export default function ResetPassword({ actionData }: Route.ComponentProps) {
       <Wrapper>
         <Card>
           <CardHeader>
-            <CardTitle>Email berhasul dikirim!</CardTitle>
+            <CardTitle>Email Terkirim!</CardTitle>
             <CardDescription>
-              Silahkan periksa dan klik URL untuk mengatur ulang kata sandi kamu
-              di forlder kotak masuk atau folder spam email kamu.
+              Silahkan periksa dan klik URL untuk memulihkan kata sandimu di
+              forlder kotak masuk atau folder spam emailmu.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -103,9 +103,9 @@ export default function ResetPassword({ actionData }: Route.ComponentProps) {
     <Wrapper>
       <Card>
         <CardHeader>
-          <CardTitle>Atur Ulang Kata Sandi</CardTitle>
+          <CardTitle>Pemulihan Kata Sandi</CardTitle>
           <CardDescription>
-            Masukan emailmu untuk mendapatkan URL atur ulang kata sandi.
+            Masukan emailmu untuk mendapatkan URL pemulihan kata sandi.
           </CardDescription>
         </CardHeader>
         <CardContent>

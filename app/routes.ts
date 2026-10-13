@@ -5,7 +5,9 @@ export default [
   route("/contact/me", "features/website/routes/contact.tsx"),
 
   route("/signin", "features/auth/routes/signin.tsx"),
+  route("/signout", "features/auth/routes/signout.tsx"),
   route("/password/reset", "features/auth/routes/reset-password.tsx"),
+  route("/password/recovery", "features/auth/routes/password-recovery.tsx"),
 
   route("/zet/webhook/telegram", "features/zet/routes/telegram.ts"),
 

@@ -1,4 +1,4 @@
-import { data, Form, Link } from "react-router";
+import { data, Form, Link, redirect } from "react-router";
 import {
   Card,
   CardAction,
@@ -18,11 +18,12 @@ import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
 import { Input } from "~/components/ui/input";
 import { Button, buttonVariants } from "~/components/ui/button";
-import { XIcon } from "lucide-react";
+import { ArrowLeftIcon, XIcon } from "lucide-react";
 import type { Route } from "./+types/signin";
 import { supabaseClientContext } from "~/context";
 import { authMiddleware, guestOnlyMiddleware } from "../middlewares.server";
 import Wrapper from "../components/wrapper";
+import { useEffect } from "react";
 
 const schema = z.object({
   email: z.email("Alamat email tidak valid."),
@@ -57,18 +58,23 @@ export async function action({ request, context }: Route.ActionArgs) {
     switch (error.code) {
       case "email_address_invalid":
       case "invalid_credentials":
-        return data({ message: "Alamat email atau kata sandi salah" });
+        return data({
+          lastResult: submission.reply({
+            formErrors: ["Alamat email atau kata sandi tidak valid."],
+          }),
+        });
 
       default:
         throw error;
     }
   }
 
-  return data({ message: user?.email });
+  return redirect("/desk");
 }
 
 export default function Signin({ actionData }: Route.ComponentProps) {
   const [form, fields] = useForm({
+    lastResult: actionData?.lastResult,
     onValidate({ formData }) {
       return parseWithZod(formData, { schema });
     },
@@ -83,15 +89,6 @@ export default function Signin({ actionData }: Route.ComponentProps) {
             Silahkan masukan alamat email dan kata sandi anda untuk mengakses
             fitur yang lebih banyak.
           </CardDescription>
-          <CardAction>
-            <Link
-              to="/"
-              title="Kembali ke halaman utama"
-              className={buttonVariants({ variant: "ghost" })}
-            >
-              <XIcon />
-            </Link>
-          </CardAction>
         </CardHeader>
         <CardContent>
           <Form {...getFormProps(form)} method="post">
@@ -119,6 +116,13 @@ export default function Signin({ actionData }: Route.ComponentProps) {
               </p>
               <Field>
                 <Button type="submit">Masuk</Button>
+                <Link
+                  to="/"
+                  title="Kembali ke Halaman Utama"
+                  className={buttonVariants({ variant: "link" })}
+                >
+                  <ArrowLeftIcon /> Kembali ke Halaman Utama
+                </Link>
               </Field>
             </FieldGroup>
           </Form>
