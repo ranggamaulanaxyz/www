@@ -83,7 +83,10 @@ export default function Signin({ actionData }: Route.ComponentProps) {
 
   useEffect(() => {
     form.errors?.map((message) => {
-      toast.add({ title: message, type: "info" });
+      toast.add({
+        title: message,
+        type: "info",
+      });
     });
   }, [form.errors]);
 
