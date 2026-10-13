@@ -24,6 +24,7 @@ import { supabaseClientContext } from "~/context";
 import { authMiddleware, guestOnlyMiddleware } from "../middlewares.server";
 import Wrapper from "../components/wrapper";
 import { useEffect } from "react";
+import { toast } from "~/components/ui/toast";
 
 const schema = z.object({
   email: z.email("Alamat email tidak valid."),
@@ -79,6 +80,12 @@ export default function Signin({ actionData }: Route.ComponentProps) {
       return parseWithZod(formData, { schema });
     },
   });
+
+  useEffect(() => {
+    form.errors?.map((message) => {
+      toast.add({ title: message, type: "info" });
+    });
+  }, [form.errors]);
 
   return (
     <Wrapper>
