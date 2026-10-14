@@ -1,4 +1,11 @@
-import { data, isRouteErrorResponse, Link } from "react-router";
+import {
+  data,
+  Form,
+  isRouteErrorResponse,
+  Link,
+  useNavigate,
+  useNavigation,
+} from "react-router";
 import type { Route } from "./+types/password-recovery";
 import { supabaseClientContext } from "~/context";
 import { ErrorBoundary as RootErrorBoundary } from "~/root";
@@ -10,17 +17,66 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { buttonVariants } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import { ArrowLeftIcon } from "lucide-react";
+import z from "zod";
+import { passwordSchema } from "../schemas/password";
+import { parseWithZod } from "@conform-to/zod/v4";
+import { getFormProps, getInputProps, useForm } from "@conform-to/react";
+import { useEffect } from "react";
+import { toast } from "~/components/ui/toast";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "~/components/ui/field";
+import { Input } from "~/components/ui/input";
+import { Spinner } from "~/components/ui/spinner";
+import { authMiddleware, guestOnlyMiddleware } from "../middlewares.server";
+
+const schema = z
+  .object({
+    newPassword: passwordSchema,
+    confirmNewPassword: z
+      .string("Mohon konfirmasi kata sandi.")
+      .min(1, "Mohon konfirmasi kata sandi."),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Kata sandi tidak sama.",
+    path: ["confirmNewPassword"],
+  });
+
+export const middleware: Route.MiddlewareFunction[] = [
+  authMiddleware,
+  guestOnlyMiddleware,
+];
 
 export function meta() {
   return [{ title: "Atur Ulang Kata Sandi" }];
 }
 
-export async function loader({ url, context }: Route.LoaderArgs) {
+export async function loader({ url }: Route.LoaderArgs) {
   const tokenHash = url.searchParams.get("token_hash");
   if (!tokenHash) {
     throw data({ message: "Halaman tidak ditemukan!" }, { status: 404 });
+  }
+}
+
+export async function action({ request, url, context }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const submission = parseWithZod(formData, { schema });
+  const tokenHash = url.searchParams.get("token_hash");
+  if (!tokenHash) {
+    return data({
+      lastResult: submission.reply({
+        formErrors: ["TOKEN_INVALID"],
+      }),
+    });
+  }
+
+  if (submission.status !== "success") {
+    return data({ lastResult: submission.reply() });
   }
 
   const supabase = context.get(supabaseClientContext);
@@ -33,14 +89,94 @@ export async function loader({ url, context }: Route.LoaderArgs) {
     switch (error.code) {
       case "otp_expired":
         throw data(
-          { message: "Token tidak valid atau kadaluarsa!" },
+          {
+            lastResult: submission.reply({
+              formErrors: ["TOKEN_INVALID"],
+            }),
+          },
           { status: 403 },
         );
 
       default:
-        break;
+        throw error;
     }
   }
+}
+
+export default function PasswordRecovery({ actionData }: Route.ComponentProps) {
+  const navigate = useNavigate();
+  const navigation = useNavigation();
+  const isIdle = navigation.state === "idle";
+  const isSubmitting = navigation.state === "submitting";
+
+  const [form, fields] = useForm({
+    lastResult: actionData?.lastResult ?? null,
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema });
+    },
+  });
+
+  useEffect(() => {
+    form.errors?.map((error) => {
+      const title =
+        error === "TOKEN_INVALID"
+          ? "Token sudah kadaluarsa atau invalid"
+          : error;
+      toast.add({
+        title,
+        actionProps: {
+          children: "Perbarui",
+          onClick() {
+            navigate("/password/reset");
+          },
+        },
+      });
+    });
+  }, [actionData?.lastResult]);
+
+  return (
+    <Wrapper>
+      <Card>
+        <CardHeader>
+          <CardTitle>Kata Sandi Baru</CardTitle>
+          <CardDescription>
+            Masukan kata sandi barumu dibawah ini untuk mengganti kata sandi.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...getFormProps(form)} method="post">
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor={fields.newPassword.id}>
+                  Kata Sandi Baru
+                </FieldLabel>
+                <Input
+                  {...getInputProps(fields.newPassword, { type: "password" })}
+                />
+                <FieldError errors={fields.newPassword.errors} />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor={fields.confirmNewPassword.id}>
+                  Konfirmasi Kata Sandi Baru
+                </FieldLabel>
+                <Input
+                  {...getInputProps(fields.confirmNewPassword, {
+                    type: "password",
+                  })}
+                />
+                <FieldError errors={fields.confirmNewPassword.errors} />
+              </Field>
+              <Field>
+                <Button type="submit" disabled={!isIdle}>
+                  {isSubmitting && <Spinner />} Ubah Kata Sandi
+                </Button>
+              </Field>
+            </FieldGroup>
+          </Form>
+        </CardContent>
+      </Card>
+    </Wrapper>
+  );
 }
 
 export function ErrorBoundary(props: Route.ErrorBoundaryProps) {
@@ -83,8 +219,4 @@ export function ErrorBoundary(props: Route.ErrorBoundaryProps) {
       </Wrapper>
     );
   }
-}
-
-export default function PasswordRecovery() {
-  return;
 }
