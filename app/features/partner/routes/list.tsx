@@ -42,6 +42,8 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "~/components/ui/input-group";
+import { useScrollDirection } from "~/hooks/use-scroll-direction";
+import { useIsScrolled } from "~/hooks/use-is-scrolled";
 
 export const middleware: Route.MiddlewareFunction[] = [
   authMiddleware,
@@ -72,8 +74,12 @@ export default function PartnerList({ loaderData }: Route.ComponentProps) {
   if (outlet) return <Outlet />;
 
   return (
-    <div className="flex flex-col gap-2 px-4">
-      <div className="bg-background sticky top-2 flex justify-between gap-4">
+    <div className="flex flex-col">
+      <div
+        className={cn(
+          "bg-background @container-[scroll-state] sticky top-0 z-50 flex justify-between gap-4 px-4 py-2 transition [@container_scroll-state(stuck:_top)]:shadow-lg",
+        )}
+      >
         <div className="flex-1">
           <Field orientation="horizontal">
             <InputGroup>
@@ -121,7 +127,7 @@ export default function PartnerList({ loaderData }: Route.ComponentProps) {
       </div>
       <div
         className={cn([
-          "grid gap-2",
+          "grid gap-2 px-4",
           "md:grid-cols-2 md:gap-3",
           "lg:grid-cols-3",
           "xl:grid-cols-4",
