@@ -40,4 +40,9 @@ grant trigger on table "public"."user_groups" to "service_role";
 
 grant truncate on table "public"."user_groups" to "service_role";
 
+GRANT DELETE, INSERT, SELECT, UPDATE ON public.user_groups TO authenticated;
 
+CREATE POLICY "Enable select access for authenticated users" ON public.user_groups
+  FOR SELECT
+  TO authenticated
+  USING (true);

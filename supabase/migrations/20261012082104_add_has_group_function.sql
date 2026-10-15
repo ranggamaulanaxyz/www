@@ -1,9 +1,11 @@
 set check_function_bodies = off;
 
-CREATE OR REPLACE FUNCTION public.has_group(name text)
- RETURNS boolean
- LANGUAGE plpgsql
-AS $function$BEGIN
+CREATE OR REPLACE FUNCTION public.has_group FUNCTION public.has_group (
+  p_name text
+)
+  RETURNS boolean
+  LANGUAGE plpgsql
+  AS $function$BEGIN
     RETURN EXISTS (
         WITH RECURSIVE user_groups_tree AS (
             -- Group yang dimiliki langsung oleh user login
@@ -29,9 +31,8 @@ AS $function$BEGIN
         )
         SELECT 1
         FROM user_groups_tree
-        WHERE name = name
+        WHERE name = p_name
     );
-END;$function$
-;
+END;$function$;
 
-
+GRANT ALL ON FUNCTION public.has_group(text) TO authenticated;

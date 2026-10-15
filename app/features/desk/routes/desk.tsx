@@ -15,9 +15,17 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
 import BottomNavbar from "../components/bottom-navbar";
-import { useMatches, type UIMatch } from "react-router";
+import {
+  Link,
+  Outlet,
+  useMatches,
+  useOutlet,
+  type UIMatch,
+} from "react-router";
 import type { Route } from "./+types/desk";
 import { Fragment } from "react/jsx-runtime";
+import Home from "../components/home";
+import { cn } from "cn";
 
 type RouteHandle = {
   breadcrumb?: string | ((match: UIMatch<unknown, unknown>) => string);
@@ -68,10 +76,15 @@ function useBreadcrumbs(): Breadcrumb[] {
 }
 
 export default function Desk() {
+  const outlet = useOutlet();
   const breadcrumbs = useBreadcrumbs();
 
+  if (!outlet) {
+    return <Home />;
+  }
+
   return (
-    <div>
+    <Fragment>
       <SidebarProvider>
         <DeskSidebar />
         <SidebarInset>
@@ -82,13 +95,18 @@ export default function Desk() {
                 <BreadcrumbList>
                   {breadcrumbs.map((breadcrumb) => (
                     <Fragment key={breadcrumb.to}>
-                      <BreadcrumbItem className="hidden md:block">
+                      <BreadcrumbItem
+                        className={cn(!breadcrumb.current && "hidden md:block")}
+                      >
                         {breadcrumb.current ? (
                           <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
                         ) : (
-                          <BreadcrumbLink href={breadcrumb.to}>
-                            {breadcrumb.label}
-                          </BreadcrumbLink>
+                          <BreadcrumbLink
+                            href={breadcrumb.to}
+                            render={
+                              <Link to={breadcrumb.to}>{breadcrumb.label}</Link>
+                            }
+                          />
                         )}
                       </BreadcrumbItem>
 
@@ -101,9 +119,12 @@ export default function Desk() {
               </Breadcrumb>
             </div>
           </header>
+          <div className="flex flex-1 flex-col">
+            <Outlet />
+          </div>
         </SidebarInset>
       </SidebarProvider>
       <BottomNavbar />
-    </div>
+    </Fragment>
   );
 }

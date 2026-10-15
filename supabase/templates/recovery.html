@@ -1,5 +1,5 @@
-<p>Halo {{ .Data.first_name}},</p>
-<p>Saya enerima permintaan untuk memulihkan kata sandi yang terhubung dengan akun mu. Jika kamu merasa melakukan permintaan ini, silahkan klik tautan di bawah ini untuk membuat kata sandi baru:</p>
+<p>Halo {{ .Data.name}},</p>
+<p>Saya menerima permintaan untuk memulihkan kata sandi yang terhubung dengan akun mu. Jika kamu merasa melakukan permintaan ini, silahkan klik tautan di bawah ini untuk membuat kata sandi baru:</p>
 <p><a href="{{ .SiteURL }}/password/recovery?token_hash={{ .TokenHash }}">Masukan Kata sandi Baru</a></p>
 <p>Jika kamu tidak merasa melakukan permintaan ini, kamu dapat mengabakan email ini dengan aman. Kata sandi kamu akan tetap aktif dan tidak ada perubahan yang terjadi di akunmu.</p>
 <p>Salam Hangat,<br/>Zet</p>
