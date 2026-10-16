@@ -1,4 +1,5 @@
 export type FilterOptions = {
-  page?: number;
-  pageSize: number;
+  query?: string | null;
+  from?: number;
+  to?: number;
 };

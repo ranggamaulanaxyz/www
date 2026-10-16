@@ -27,14 +27,14 @@ import { Fragment } from "react/jsx-runtime";
 import Home from "../components/home";
 import { cn } from "cn";
 
-type RouteHandle = {
-  breadcrumb?: string | ((match: UIMatch<unknown, unknown>) => string);
-};
-
 type Breadcrumb = {
   to: string;
   label: string;
   current: boolean;
+};
+
+type RouteHandle = {
+  breadcrumb?: Breadcrumb | ((match: UIMatch<unknown, unknown>) => Breadcrumb);
 };
 
 function hasBreadcrumb(match: UIMatch<unknown, unknown>): match is UIMatch<
@@ -54,7 +54,7 @@ function hasBreadcrumb(match: UIMatch<unknown, unknown>): match is UIMatch<
   }
 
   return (
-    typeof handle.breadcrumb === "string" ||
+    typeof handle.breadcrumb === "object" ||
     typeof handle.breadcrumb === "function"
   );
 }
@@ -65,12 +65,18 @@ function useBreadcrumbs(): Breadcrumb[] {
   const breadcrumbMatches = matches.filter(hasBreadcrumb);
 
   return breadcrumbMatches.map((match, index) => {
-    const breadcrumb = match.handle.breadcrumb;
+    const breadcrumb =
+      typeof match.handle.breadcrumb === "function"
+        ? match.handle.breadcrumb(match)
+        : match.handle.breadcrumb;
 
     return {
-      to: match.pathname,
-      label: typeof breadcrumb === "function" ? breadcrumb(match) : breadcrumb,
-      current: index === breadcrumbMatches.length - 1,
+      to: breadcrumb.to ?? match.pathname,
+      label: breadcrumb.label,
+      current:
+        breadcrumb !== undefined
+          ? index === breadcrumbMatches.length - 1
+          : false,
     };
   });
 }

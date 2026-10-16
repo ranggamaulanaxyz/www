@@ -28,9 +28,9 @@ export default function Home() {
       <main className="grid grid-cols-3 gap-4 lg:grid-cols-4">
         <Card>
           <CardHeader>
-            <CardTitle>Pengguna</CardTitle>
+            <CardTitle>Kontak</CardTitle>
             <CardAction>
-              <Link to="/desk/users" title="Pengguna">
+              <Link to="/desk/partners" title="Daftar Kontak">
                 <ArrowRightIcon />
               </Link>
             </CardAction>

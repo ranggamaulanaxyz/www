@@ -1,4 +1,13 @@
-import { Await, data, Link, Outlet, useOutlet } from "react-router";
+import {
+  Await,
+  data,
+  Form,
+  Link,
+  Outlet,
+  useNavigate,
+  useOutlet,
+  useSearchParams,
+} from "react-router";
 import type { Route } from "./+types/list";
 import { supabaseClientContext } from "~/context";
 import { getPartners } from "../services/partner";
@@ -14,16 +23,10 @@ import {
   ItemTitle,
 } from "~/components/ui/item";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import {
-  BookOpenIcon,
-  FilterIcon,
-  ListIcon,
-  PlusIcon,
-  SearchIcon,
-} from "lucide-react";
+import { BookOpenIcon, EllipsisVerticalIcon, PlusIcon } from "lucide-react";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { cn } from "cn";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Field } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
@@ -36,14 +39,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "~/components/ui/pagination";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "~/components/ui/input-group";
 import { useScrollDirection } from "~/hooks/use-scroll-direction";
-import { useIsScrolled } from "~/hooks/use-is-scrolled";
+import { ButtonGroup } from "~/components/ui/button-group";
+import FilterInputQuery from "../../desk/components/filter-input-query";
+import { parseFilter } from "~/features/desk/services/filter";
+import DeskPagination from "~/features/desk/components/pagination";
 
 export const middleware: Route.MiddlewareFunction[] = [
   authMiddleware,
@@ -51,25 +51,54 @@ export const middleware: Route.MiddlewareFunction[] = [
 ];
 
 export const handle = {
-  breadcrumb: "Daftar Kontak",
+  breadcrumb: (match: any) => ({
+    to: `${match.pathname}?${match?.loaderData?.searchParams}`,
+    label: "Daftar Kontak",
+  }),
 };
 
 export function meta() {
   return [{ title: "Kontak" }];
 }
 
-export async function loader({ context }: Route.ActionArgs) {
-  const supabase = context.get(supabaseClientContext);
-  const partnerResults = getPartners(supabase);
+export async function loader({ url, context }: Route.ActionArgs) {
+  const filterOptions = parseFilter(url.searchParams);
 
-  return data({ partnerResults });
+  const supabase = context.get(supabaseClientContext);
+  const partnerResults = getPartners(supabase, filterOptions);
+
+  return data({
+    partnerResults,
+    searchParams: url.searchParams.toString(),
+    filterOptions,
+  });
 }
 
 export async function action() {}
 
 export default function PartnerList({ loaderData }: Route.ComponentProps) {
-  const { partnerResults } = loaderData;
+  const { partnerResults, filterOptions } = loaderData;
   const outlet = useOutlet();
+  const isVisible = useScrollDirection();
+
+  const [searchParams] = useSearchParams();
+  const [paginationState, setPaginationState] = useState({
+    from: filterOptions.from,
+    to: filterOptions.to,
+    count: 0,
+  });
+
+  useEffect(() => {
+    const updatePaginationState = async () => {
+      const { filterData, count } = await partnerResults;
+      setPaginationState({
+        count: count || 0,
+        from: filterData.from,
+        to: filterData.to,
+      });
+    };
+    updatePaginationState();
+  }, [searchParams]);
 
   if (outlet) return <Outlet />;
 
@@ -77,51 +106,27 @@ export default function PartnerList({ loaderData }: Route.ComponentProps) {
     <div className="flex flex-col">
       <div
         className={cn(
-          "bg-background @container-[scroll-state] sticky top-0 z-50 flex justify-between gap-4 px-4 py-2 transition [@container_scroll-state(stuck:_top)]:shadow-lg",
+          "bg-background sticky top-0 z-50 flex justify-between gap-4 px-4 py-2 transition-[top]",
+          isVisible ? "top-0" : "-top-14",
         )}
       >
-        <div className="flex-1">
-          <Field orientation="horizontal">
-            <InputGroup>
-              <InputGroupInput type="text" />
-              <InputGroupAddon align="inline-start">
-                <SearchIcon />
-              </InputGroupAddon>
-              <InputGroupAddon align="inline-end">
-                <InputGroupButton>
-                  <FilterIcon />
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
-          </Field>
-        </div>
-        <div className="flex items-center justify-end gap-1">
-          <div className="flex items-center gap-1">
-            <Field orientation="horizontal" className="w-15 md:w-25">
-              <Input type="number" defaultValue={1} min={1} />
-            </Field>
-            <Separator className="max-w-2 shrink" />
-            <Field orientation="horizontal" className="w-15 md:w-25">
-              <Input type="number" defaultValue={84} min={1} />
-            </Field>
-            <div className="">
-              <Pagination className="shrink">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious href="#" />
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationNext href="#" />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          </div>
+        <FilterInputQuery />
+        <div className={cn("flex items-center justify-end gap-1")}>
+          <DeskPagination
+            from={paginationState.from}
+            to={paginationState.to}
+            count={paginationState.count}
+          />
           <div className="flex">
-            <Button>
-              <PlusIcon />{" "}
-              <span className="hidden md:inline">Tambah Kontak</span>
-            </Button>
+            <ButtonGroup>
+              <Button>
+                <PlusIcon />
+                <span className="hidden md:inline">Tambah Kontak</span>
+              </Button>
+              <Button variant="default" size="icon">
+                <EllipsisVerticalIcon />
+              </Button>
+            </ButtonGroup>
           </div>
         </div>
       </div>
@@ -149,7 +154,10 @@ export default function PartnerList({ loaderData }: Route.ComponentProps) {
                   </ItemContent>
                   <ItemActions>
                     <Link
-                      to={`/desk/partners/${partner.id}`}
+                      to={{
+                        pathname: `/desk/partners/${partner.id}`,
+                        search: searchParams.toString(),
+                      }}
                       className={buttonVariants({ variant: "link" })}
                     >
                       <BookOpenIcon />

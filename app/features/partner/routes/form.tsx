@@ -30,7 +30,9 @@ const schema = z.object({
 
 export const handle = {
   breadcrumb: (match: any) => {
-    return "Kontak";
+    return {
+      label: "Kontak",
+    };
   },
 };
 
