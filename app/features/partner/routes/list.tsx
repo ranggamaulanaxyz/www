@@ -4,13 +4,14 @@ import {
   Form,
   Link,
   Outlet,
+  redirect,
   useNavigate,
   useOutlet,
   useSearchParams,
 } from "react-router";
 import type { Route } from "./+types/list";
 import { supabaseClientContext } from "~/context";
-import { getPartners } from "../services/partner";
+import { createPartner, getPartners } from "../services/partner";
 import {
   authMiddleware,
   userOnlyMiddleware,
@@ -28,7 +29,7 @@ import { Button, buttonVariants } from "~/components/ui/button";
 import { cn } from "cn";
 import { Suspense, useEffect, useState } from "react";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Field } from "~/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Separator } from "~/components/ui/separator";
 import {
@@ -44,6 +45,27 @@ import { ButtonGroup } from "~/components/ui/button-group";
 import FilterInputQuery from "../../desk/components/filter-input-query";
 import { parseFilter } from "~/features/desk/services/filter";
 import DeskPagination from "~/features/desk/components/pagination";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTrigger,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "~/components/ui/dialog";
+import z from "zod";
+import { parseWithZod } from "@conform-to/zod/v4";
+import { getFormProps, useForm } from "@conform-to/react";
+import { FieldTextInput } from "~/components/ui/field-input";
+
+const schema = z.object({
+  name: z
+    .string("Nama tidak valid.")
+    .min(3, "Nama minimal 3 karakter.")
+    .max(64, "Nama maksimal 64 karakter."),
+  email: z.email("Alamat email tidak valid.").optional(),
+});
 
 export const middleware: Route.MiddlewareFunction[] = [
   authMiddleware,
@@ -74,9 +96,23 @@ export async function loader({ url, context }: Route.ActionArgs) {
   });
 }
 
-export async function action() {}
+export async function action({ request, url, context }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const submission = parseWithZod(formData, { schema });
+  if (submission.status !== "success") {
+    return data({ lastResult: submission.reply() }, { status: 422 });
+  }
 
-export default function PartnerList({ loaderData }: Route.ComponentProps) {
+  const supabase = context.get(supabaseClientContext);
+  const partner = await createPartner(supabase, submission.value);
+
+  throw redirect(`/desk/partners/${partner.id}?${url.searchParams.toString()}`);
+}
+
+export default function PartnerList({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
   const { partnerResults, filterOptions } = loaderData;
   const outlet = useOutlet();
   const isVisible = useScrollDirection();
@@ -86,6 +122,13 @@ export default function PartnerList({ loaderData }: Route.ComponentProps) {
     from: filterOptions.from,
     to: filterOptions.to,
     count: 0,
+  });
+
+  const [form, fields] = useForm({
+    lastResult: actionData?.lastResult ?? null,
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema });
+    },
   });
 
   useEffect(() => {
@@ -119,10 +162,38 @@ export default function PartnerList({ loaderData }: Route.ComponentProps) {
           />
           <div className="flex">
             <ButtonGroup>
-              <Button>
-                <PlusIcon />
-                <span className="hidden md:inline">Tambah Kontak</span>
-              </Button>
+              <Dialog>
+                <DialogTrigger
+                  render={
+                    <Button>
+                      <PlusIcon />
+                      <span className="hidden md:inline">Tambah Kontak</span>
+                    </Button>
+                  }
+                />
+                <DialogContent
+                  render={
+                    <Form {...getFormProps(form)} method="post">
+                      <DialogHeader>
+                        <DialogTitle>Tambah Kontak</DialogTitle>
+                      </DialogHeader>
+                      <FieldGroup>
+                        <FieldTextInput field={fields.name} label="Nama" />
+                        <FieldTextInput
+                          field={fields.email}
+                          label="Alamat Email"
+                        />
+                      </FieldGroup>
+                      <DialogFooter>
+                        <DialogClose
+                          render={<Button variant="outline">Batalkan</Button>}
+                        />
+                        <Button type="submit">Tambah</Button>
+                      </DialogFooter>
+                    </Form>
+                  }
+                />
+              </Dialog>
               <Button variant="default" size="icon">
                 <EllipsisVerticalIcon />
               </Button>

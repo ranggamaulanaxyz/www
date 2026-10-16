@@ -31,8 +31,6 @@ export async function getPartners(
 
   size = getRangeSize(from, to);
 
-  console.log({ from, to, size });
-
   const statement = supabase.from("partners").select("*", { count: "exact" });
 
   if (options?.query) {
