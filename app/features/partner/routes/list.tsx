@@ -25,13 +25,12 @@ import {
   ItemTitle,
 } from "~/components/ui/item";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { BookOpenIcon, EllipsisVerticalIcon, MailIcon, PlusIcon } from "lucide-react";
-import { Button, buttonVariants } from "~/components/ui/button";
+import { BookOpenIcon, EllipsisVerticalIcon, PlusIcon } from "lucide-react";
+import { Button } from "~/components/ui/button";
 import { cn } from "cn";
 import { Suspense, useEffect, useState } from "react";
 import { Skeleton } from "~/components/ui/skeleton";
 import { FieldGroup } from "~/components/ui/field";
-import { useScrollDirection } from "~/hooks/use-scroll-direction";
 import { ButtonGroup } from "~/components/ui/button-group";
 import FilterInputQuery from "../../desk/components/filter-input-query";
 import { parseFilter } from "~/features/desk/services/filter";
@@ -50,6 +49,10 @@ import { parseWithZod } from "@conform-to/zod/v4";
 import { getFormProps, useForm } from "@conform-to/react";
 import { FieldTextInput } from "~/components/ui/field-input";
 import { hasAccess } from "~/features/desk/services/access";
+import StickyToolbar from "~/features/desk/components/top-navbar";
+import TopNavbar from "~/features/desk/components/top-navbar";
+import DeskHeader from "~/features/desk/components/header";
+import { TopBar } from "~/features/desk/components/bar";
 
 const schema = z.object({
   name: z
@@ -80,13 +83,13 @@ export async function loader({ url, context }: Route.ActionArgs) {
 
   const supabase = context.get(supabaseClientContext);
   const partnerResults = getPartners(supabase, filterOptions);
-  const canCreate = await hasAccess(supabase, "insert", "partners")
+  const canCreate = await hasAccess(supabase, "insert", "partners");
 
   return data({
     partnerResults,
     searchParams: url.searchParams.toString(),
     filterOptions,
-    canCreate
+    canCreate,
   });
 }
 
@@ -109,7 +112,6 @@ export default function PartnerList({
 }: Route.ComponentProps) {
   const { partnerResults, filterOptions, canCreate } = loaderData;
   const outlet = useOutlet();
-  const isVisible = useScrollDirection();
 
   const [searchParams] = useSearchParams();
   const [paginationState, setPaginationState] = useState({
@@ -140,64 +142,72 @@ export default function PartnerList({
   if (outlet) return <Outlet />;
 
   return (
-    <div className="flex flex-col">
-      <div
-        className={cn(
-          "bg-background sticky top-0 z-50 flex justify-between gap-4 px-4 py-2 transition-[top]",
-          isVisible ? "top-0" : "-top-14",
-        )}
-      >
-        <FilterInputQuery />
-        <div className={cn("flex items-center justify-end gap-1")}>
-          <DeskPagination
-            from={paginationState.from}
-            to={paginationState.to}
-            count={paginationState.count}
-          />
-          <div className="flex">
-            <ButtonGroup>
-              {canCreate && <Dialog>
-                <DialogTrigger
-                  render={
-                    <Button>
-                      <PlusIcon />
-                      <span className="hidden md:inline">Tambah Kontak</span>
-                    </Button>
-                  }
-                />
-                <DialogContent
-                  render={
-                    <Form {...getFormProps(form)} method="post">
-                      <DialogHeader>
-                        <DialogTitle>Tambah Kontak</DialogTitle>
-                      </DialogHeader>
-                      <FieldGroup>
-                        <FieldTextInput field={fields.name} label="Nama" />
-                        <FieldTextInput
-                          field={fields.email}
-                          label="Alamat Email"
-                        />
-                      </FieldGroup>
-                      <DialogFooter>
-                        <DialogClose
-                          render={<Button variant="outline">Batalkan</Button>}
-                        />
-                        <Button type="submit">Tambah</Button>
-                      </DialogFooter>
-                    </Form>
-                  }
-                />
-              </Dialog>}
-              <Button variant="default" size="icon">
-                <EllipsisVerticalIcon />
-              </Button>
-            </ButtonGroup>
+    <div className="flex flex-col min-h-dvh">
+      <TopBar>
+        <DeskHeader>
+          <div className="flex justify-between gap-4 p-4">
+            <FilterInputQuery />
+            <div className={cn("flex items-center justify-end gap-1")}>
+              <DeskPagination
+                from={paginationState.from}
+                to={paginationState.to}
+                count={paginationState.count}
+              />
+              <div className="flex">
+                <ButtonGroup>
+                  {canCreate && (
+                    <Dialog>
+                      <DialogTrigger
+                        render={
+                          <Button>
+                            <PlusIcon />
+                            <span className="hidden md:inline">
+                              Tambah Kontak
+                            </span>
+                          </Button>
+                        }
+                      />
+                      <DialogContent
+                        render={
+                          <Form {...getFormProps(form)} method="post">
+                            <DialogHeader>
+                              <DialogTitle>Tambah Kontak</DialogTitle>
+                            </DialogHeader>
+                            <FieldGroup>
+                              <FieldTextInput
+                                field={fields.name}
+                                label="Nama"
+                              />
+                              <FieldTextInput
+                                field={fields.email}
+                                label="Alamat Email"
+                              />
+                            </FieldGroup>
+                            <DialogFooter>
+                              <DialogClose
+                                render={
+                                  <Button variant="outline">Batalkan</Button>
+                                }
+                              />
+                              <Button type="submit">Tambah</Button>
+                            </DialogFooter>
+                          </Form>
+                        }
+                      />
+                    </Dialog>
+                  )}
+                  <Button variant="default" size="icon">
+                    <EllipsisVerticalIcon />
+                  </Button>
+                </ButtonGroup>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </DeskHeader>
+      </TopBar>
       <div
         className={cn([
-          "grid gap-2 px-4",
+          "grid gap-2 p-4",
           "md:grid-cols-2 md:gap-3",
           "lg:grid-cols-3",
           "xl:grid-cols-4",
@@ -219,14 +229,20 @@ export default function PartnerList({
                     <ItemDescription>{partner.email}</ItemDescription>
                   </ItemContent>
                   <ItemActions>
-                    <Button variant="link" nativeButton={false} render={<Link
-                      to={{
-                        pathname: `/desk/partners/${partner.id}`,
-                        search: searchParams.toString(),
-                      }}
-                    >
-                      <BookOpenIcon />
-                    </Link>}/>
+                    <Button
+                      variant="link"
+                      nativeButton={false}
+                      render={
+                        <Link
+                          to={{
+                            pathname: `/desk/partners/${partner.id}`,
+                            search: searchParams.toString(),
+                          }}
+                        >
+                          <BookOpenIcon />
+                        </Link>
+                      }
+                    />
                   </ItemActions>
                 </Item>
               ))

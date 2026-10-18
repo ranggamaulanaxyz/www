@@ -31,12 +31,24 @@ export async function getPartners(
     throw error;
   }
 
-  const camelcaseData = camelcaseKeys(data, { deep: true });
-  const partners = await partnerListSchema.parseAsync(camelcaseData);
+  const camelcasedData = camelcaseKeys(data, { deep: true });
+  const partners = await partnerListSchema.parseAsync(camelcasedData);
   return {
     partners,
     metadata: parseMetadata({count, range: {from, to}}),
   };
+}
+
+export async function getPartnerById(supabase: SupabaseClient, id: string) {
+  const statement = supabase.from("partners").select("*").eq("id", id).single();
+  const {data, error} = await statement
+  if(error) {
+    throw error
+  }
+
+  const camelCasedData = camelcaseKeys(data)
+  const partner = await partnerSchema.parseAsync(camelCasedData)
+  return partner
 }
 
 export async function createPartner(

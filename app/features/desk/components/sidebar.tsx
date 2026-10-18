@@ -10,7 +10,7 @@ import {
 
 export default function DeskSidebar() {
   return (
-    <Sidebar variant="inset">
+    <Sidebar>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

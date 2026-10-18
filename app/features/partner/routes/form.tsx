@@ -17,6 +17,9 @@ import {
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
+import { supabaseClientContext } from "~/context";
+import { getPartnerById } from "../services/partner";
+import StickyToolbar from "~/features/desk/components/top-navbar";
 
 const schema = z.object({
   name: z
@@ -35,6 +38,13 @@ export const handle = {
     };
   },
 };
+
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const { partnerId } = params;
+  const supabase = context.get(supabaseClientContext);
+  const partner = await getPartnerById(supabase, partnerId);
+  return data({ partner });
+}
 
 export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
@@ -61,8 +71,18 @@ function FieldTextInput(props: {
   );
 }
 
-export default function PartnerForm({ actionData }: Route.ComponentProps) {
+export default function PartnerForm({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
+  const { partner } = loaderData;
   const [form, fields] = useForm({
+    defaultValue: {
+      name: partner.name,
+      nickname: partner.nickname,
+      email: partner.email,
+      phone: partner.phone,
+    },
     lastResult: actionData?.lastResult ?? null,
     onValidate({ formData }) {
       return parseWithZod(formData, { schema });
@@ -70,8 +90,13 @@ export default function PartnerForm({ actionData }: Route.ComponentProps) {
   });
 
   return (
-    <div className="flex flex-col gap-2">
-      <Form {...getFormProps(form)} method="post">
+    <Form {...getFormProps(form)} method="post" className="flex flex-col">
+      <StickyToolbar>
+        <div className="flex">
+          <Button type="submit">Simpan</Button>
+        </div>
+      </StickyToolbar>
+      <div className="p-4">
         <div className="grid md:grid-cols-2">
           <FieldGroup>
             <FieldTextInput field={fields.name} label="Nama" />
@@ -82,12 +107,9 @@ export default function PartnerForm({ actionData }: Route.ComponentProps) {
               label="Alamat Email"
             />
             <FieldTextInput field={fields.phone} label="Nomor Telepon" />
-            <Field orientation="horizontal">
-              <Button>Simpan</Button>
-            </Field>
           </FieldGroup>
         </div>
-      </Form>
-    </div>
+      </div>
+    </Form>
   );
 }
