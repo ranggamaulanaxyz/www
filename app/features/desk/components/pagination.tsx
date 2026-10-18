@@ -37,7 +37,7 @@ export default function DeskPagination({
   const [isNextDisabled, setIsNextDisabled] = useState(true);
 
   useEffect(() => {
-    setState({ from, to, count, size: to - from + 1 });
+    setState({ from, to: to, count, size: to - from + 1 });
     setSliderValue([from, to]);
     setIsPrevDisabled(from <= 1);
     setIsNextDisabled(to >= count);

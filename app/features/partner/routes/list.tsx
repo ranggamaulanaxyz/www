@@ -20,26 +20,17 @@ import {
   Item,
   ItemActions,
   ItemContent,
+  ItemDescription,
   ItemMedia,
   ItemTitle,
 } from "~/components/ui/item";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { BookOpenIcon, EllipsisVerticalIcon, PlusIcon } from "lucide-react";
+import { BookOpenIcon, EllipsisVerticalIcon, MailIcon, PlusIcon } from "lucide-react";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { cn } from "cn";
 import { Suspense, useEffect, useState } from "react";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
-import { Input } from "~/components/ui/input";
-import { Separator } from "~/components/ui/separator";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "~/components/ui/pagination";
+import { FieldGroup } from "~/components/ui/field";
 import { useScrollDirection } from "~/hooks/use-scroll-direction";
 import { ButtonGroup } from "~/components/ui/button-group";
 import FilterInputQuery from "../../desk/components/filter-input-query";
@@ -58,6 +49,7 @@ import z from "zod";
 import { parseWithZod } from "@conform-to/zod/v4";
 import { getFormProps, useForm } from "@conform-to/react";
 import { FieldTextInput } from "~/components/ui/field-input";
+import { hasAccess } from "~/features/desk/services/access";
 
 const schema = z.object({
   name: z
@@ -88,11 +80,13 @@ export async function loader({ url, context }: Route.ActionArgs) {
 
   const supabase = context.get(supabaseClientContext);
   const partnerResults = getPartners(supabase, filterOptions);
+  const canCreate = await hasAccess(supabase, "insert", "partners")
 
   return data({
     partnerResults,
     searchParams: url.searchParams.toString(),
     filterOptions,
+    canCreate
   });
 }
 
@@ -113,7 +107,7 @@ export default function PartnerList({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { partnerResults, filterOptions } = loaderData;
+  const { partnerResults, filterOptions, canCreate } = loaderData;
   const outlet = useOutlet();
   const isVisible = useScrollDirection();
 
@@ -133,11 +127,11 @@ export default function PartnerList({
 
   useEffect(() => {
     const updatePaginationState = async () => {
-      const { filterData, count } = await partnerResults;
+      const { metadata } = await partnerResults;
       setPaginationState({
-        count: count || 0,
-        from: filterData.from,
-        to: filterData.to,
+        count: metadata.count,
+        from: metadata.from,
+        to: metadata.to,
       });
     };
     updatePaginationState();
@@ -162,7 +156,7 @@ export default function PartnerList({
           />
           <div className="flex">
             <ButtonGroup>
-              <Dialog>
+              {canCreate && <Dialog>
                 <DialogTrigger
                   render={
                     <Button>
@@ -193,7 +187,7 @@ export default function PartnerList({
                     </Form>
                   }
                 />
-              </Dialog>
+              </Dialog>}
               <Button variant="default" size="icon">
                 <EllipsisVerticalIcon />
               </Button>
@@ -222,17 +216,17 @@ export default function PartnerList({
                   </ItemMedia>
                   <ItemContent>
                     <ItemTitle>{partner.name}</ItemTitle>
+                    <ItemDescription>{partner.email}</ItemDescription>
                   </ItemContent>
                   <ItemActions>
-                    <Link
+                    <Button variant="link" nativeButton={false} render={<Link
                       to={{
                         pathname: `/desk/partners/${partner.id}`,
                         search: searchParams.toString(),
                       }}
-                      className={buttonVariants({ variant: "link" })}
                     >
                       <BookOpenIcon />
-                    </Link>
+                    </Link>}/>
                   </ItemActions>
                 </Item>
               ))

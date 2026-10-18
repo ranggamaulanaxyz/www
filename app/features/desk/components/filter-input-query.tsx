@@ -40,6 +40,15 @@ export function useInputQuery() {
     } else {
       newSearchParams.delete("query");
     }
+    if(searchParams.get("from")) {
+      newSearchParams.set("from", "1")
+    }
+
+    const size = searchParams.get("size")
+    if(size) {
+      newSearchParams.set("to", size)
+    }
+    
     setSearchParams(newSearchParams, { replace: true });
   };
 

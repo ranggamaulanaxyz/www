@@ -2,34 +2,16 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import snakecaseKeys from "snakecase-keys";
 import camelcaseKeys from "camelcase-keys";
 import { partnerListSchema, partnerSchema } from "../schemas/partner";
-import { sleep } from "~/utils/tools";
 import type { FilterOptions } from "~/features/desk/types/filter";
-import { getPaginationRange, paginate } from "~/utils/supabase.paginate";
-
-function getRangeSize(from: number, to: number): number {
-  return to - (from - 1);
-}
+import { parseMetadata, parseRange } from "~/utils/supabase";
 
 export async function getPartners(
   supabase: SupabaseClient,
   options?: FilterOptions,
 ) {
-  let from = 1;
-  let to = 84;
-  let size = getRangeSize(from, to);
-  if (options?.from && options.from > 0) {
-    from = options.from;
-  }
-
-  if (options?.to && options.to >= from) {
-    to = options.to;
-  }
-
-  if (from > to) {
-    to = from + size - 1;
-  }
-
-  size = getRangeSize(from, to);
+  const {from, to} = parseRange({from: options?.from, to: options?.to})
+  console.log(options)
+  console.log(from, to)
 
   const statement = supabase.from("partners").select("*", { count: "exact" });
 
@@ -38,6 +20,8 @@ export async function getPartners(
       `name.ilike.%${options.query}%,nickname.ilike.%${options.query}%,email.ilike.%${options.query}%,phone.ilike.%${options.query}%`,
     );
   }
+
+  statement.order("name", {ascending: true})
 
   statement.range(from - 1, to - 1);
 
@@ -51,13 +35,7 @@ export async function getPartners(
   const partners = await partnerListSchema.parseAsync(camelcaseData);
   return {
     partners,
-    count,
-    filterData: {
-      query: options?.query,
-      from,
-      to,
-      size,
-    },
+    metadata: parseMetadata({count, range: {from, to}}),
   };
 }
 

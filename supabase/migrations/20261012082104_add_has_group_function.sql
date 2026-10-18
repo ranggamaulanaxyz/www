@@ -1,6 +1,6 @@
 set check_function_bodies = off;
 
-CREATE OR REPLACE FUNCTION public.has_group FUNCTION public.has_group (
+CREATE OR REPLACE FUNCTION public.has_group (
   p_name text
 )
   RETURNS boolean
