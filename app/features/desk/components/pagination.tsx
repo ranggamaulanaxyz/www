@@ -83,6 +83,9 @@ export default function DeskPagination({
       const newFrom = sliderValue[0];
       const newTo = sliderValue[1];
       const newSize = Math.max(1, newTo - newFrom + 1);
+      if (newFrom === from && newTo === to) {
+        return;
+      }
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.set("from", newFrom.toString());
       newSearchParams.set("to", newTo.toString());

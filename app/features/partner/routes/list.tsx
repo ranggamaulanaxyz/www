@@ -45,14 +45,13 @@ import {
   DialogClose,
 } from "~/components/ui/dialog";
 import z from "zod";
-import { parseWithZod } from "@conform-to/zod/v4";
+import { parseWithZod, type SubmissionResult } from "@conform-to/zod/v4";
 import { getFormProps, useForm } from "@conform-to/react";
 import { FieldTextInput } from "~/components/ui/field-input";
 import { hasAccess } from "~/features/desk/services/access";
-import StickyToolbar from "~/features/desk/components/top-navbar";
-import TopNavbar from "~/features/desk/components/top-navbar";
 import DeskHeader from "~/features/desk/components/header";
-import { TopBar } from "~/features/desk/components/bar";
+import { BottomBar, TopBar } from "~/features/desk/components/bar";
+import { useIsMobile } from "~/hooks/use-mobile";
 
 const schema = z.object({
   name: z
@@ -114,143 +113,168 @@ export default function PartnerList({
   const outlet = useOutlet();
 
   const [searchParams] = useSearchParams();
-  const [paginationState, setPaginationState] = useState({
+  const [paginationData, setPaginationData] = useState({
     from: filterOptions.from,
     to: filterOptions.to,
     count: 0,
   });
-
-  const [form, fields] = useForm({
-    lastResult: actionData?.lastResult ?? null,
-    onValidate({ formData }) {
-      return parseWithZod(formData, { schema });
-    },
-  });
-
   useEffect(() => {
-    const updatePaginationState = async () => {
-      const { metadata } = await partnerResults;
-      setPaginationState({
-        count: metadata.count,
-        from: metadata.from,
-        to: metadata.to,
-      });
+    const resolvePartner = async () => {
+      const {
+        metadata: { from, to, count },
+      } = await partnerResults;
+      setPaginationData({ from, to, count });
     };
-    updatePaginationState();
-  }, [searchParams]);
+    resolvePartner();
+  }, [filterOptions]);
 
   if (outlet) return <Outlet />;
 
   return (
-    <div className="flex flex-col min-h-dvh">
-      <TopBar>
-        <DeskHeader>
-          <div className="flex justify-between gap-4 p-4">
-            <FilterInputQuery />
-            <div className={cn("flex items-center justify-end gap-1")}>
-              <DeskPagination
-                from={paginationState.from}
-                to={paginationState.to}
-                count={paginationState.count}
+    <div className="flex min-h-dvh flex-col">
+      <PartnerTopBar
+        options={{ showCreateButton: canCreate!! }}
+        data={{ pagination: paginationData }}
+      />
+      <div className="flex-1">
+        <div
+          className={cn([
+            "grid gap-2 p-4",
+            "md:grid-cols-2 md:gap-3",
+            "lg:grid-cols-3",
+            "xl:grid-cols-4",
+          ])}
+        >
+          <Suspense fallback={<PartnerSkeleton />}>
+            <Await resolve={partnerResults}>
+              {({ partners }) =>
+                partners.map((partner) => (
+                  <Item key={partner.email} variant="outline">
+                    <ItemMedia>
+                      <Avatar>
+                        <AvatarImage src="https://github.com/evilrabbit.png" />
+                        <AvatarFallback>R</AvatarFallback>
+                      </Avatar>
+                    </ItemMedia>
+                    <ItemContent>
+                      <ItemTitle>{partner.name}</ItemTitle>
+                      <ItemDescription>{partner.email}</ItemDescription>
+                    </ItemContent>
+                    <ItemActions>
+                      <Button
+                        variant="link"
+                        nativeButton={false}
+                        render={
+                          <Link
+                            to={{
+                              pathname: `/desk/partners/${partner.id}`,
+                              search: searchParams.toString(),
+                            }}
+                          >
+                            <BookOpenIcon />
+                          </Link>
+                        }
+                      />
+                    </ItemActions>
+                  </Item>
+                ))
+              }
+            </Await>
+          </Suspense>
+        </div>
+      </div>
+      <PartnerBottomBar data={{ pagination: paginationData }} />
+    </div>
+  );
+}
+
+function PartnerCreateDialog({
+  lastResult,
+}: {
+  lastResult?: SubmissionResult;
+}) {
+  const [form, fields] = useForm({
+    lastResult: lastResult ?? null,
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema });
+    },
+  });
+  return (
+    <Dialog>
+      <DialogTrigger
+        render={
+          <Button>
+            <PlusIcon />
+            <span className="hidden md:inline">Tambah Kontak</span>
+          </Button>
+        }
+      />
+      <DialogContent
+        render={
+          <Form {...getFormProps(form)} method="post">
+            <DialogHeader>
+              <DialogTitle>Tambah Kontak</DialogTitle>
+            </DialogHeader>
+            <FieldGroup>
+              <FieldTextInput field={fields.name} label="Nama" />
+              <FieldTextInput field={fields.email} label="Alamat Email" />
+            </FieldGroup>
+            <DialogFooter>
+              <DialogClose
+                render={<Button variant="outline">Batalkan</Button>}
               />
-              <div className="flex">
-                <ButtonGroup>
-                  {canCreate && (
-                    <Dialog>
-                      <DialogTrigger
-                        render={
-                          <Button>
-                            <PlusIcon />
-                            <span className="hidden md:inline">
-                              Tambah Kontak
-                            </span>
-                          </Button>
-                        }
-                      />
-                      <DialogContent
-                        render={
-                          <Form {...getFormProps(form)} method="post">
-                            <DialogHeader>
-                              <DialogTitle>Tambah Kontak</DialogTitle>
-                            </DialogHeader>
-                            <FieldGroup>
-                              <FieldTextInput
-                                field={fields.name}
-                                label="Nama"
-                              />
-                              <FieldTextInput
-                                field={fields.email}
-                                label="Alamat Email"
-                              />
-                            </FieldGroup>
-                            <DialogFooter>
-                              <DialogClose
-                                render={
-                                  <Button variant="outline">Batalkan</Button>
-                                }
-                              />
-                              <Button type="submit">Tambah</Button>
-                            </DialogFooter>
-                          </Form>
-                        }
-                      />
-                    </Dialog>
-                  )}
-                  <Button variant="default" size="icon">
-                    <EllipsisVerticalIcon />
-                  </Button>
-                </ButtonGroup>
-              </div>
+              <Button type="submit">Tambah</Button>
+            </DialogFooter>
+          </Form>
+        }
+      />
+    </Dialog>
+  );
+}
+
+function PartnerTopBar({
+  data,
+  options,
+}: {
+  data: { pagination: { from: number; to: number; count: number } };
+  options: { showCreateButton?: boolean };
+}) {
+  const isMobile = useIsMobile();
+
+  return (
+    <TopBar>
+      <DeskHeader>
+        <div className="flex justify-between gap-4 p-4">
+          {!isMobile && <FilterInputQuery />}
+          <div className={cn("flex items-center justify-end gap-1")}>
+            {!isMobile && <DeskPagination {...data.pagination} />}
+            <div className="flex">
+              <ButtonGroup>
+                {options.showCreateButton && <PartnerCreateDialog />}
+                <Button variant="default" size="icon">
+                  <EllipsisVerticalIcon />
+                </Button>
+              </ButtonGroup>
             </div>
           </div>
-        </DeskHeader>
-      </TopBar>
-      <div
-        className={cn([
-          "grid gap-2 p-4",
-          "md:grid-cols-2 md:gap-3",
-          "lg:grid-cols-3",
-          "xl:grid-cols-4",
-        ])}
-      >
-        <Suspense fallback={<PartnerSkeleton />}>
-          <Await resolve={partnerResults}>
-            {({ partners }) =>
-              partners.map((partner) => (
-                <Item key={partner.email} variant="outline">
-                  <ItemMedia>
-                    <Avatar>
-                      <AvatarImage src="https://github.com/evilrabbit.png" />
-                      <AvatarFallback>R</AvatarFallback>
-                    </Avatar>
-                  </ItemMedia>
-                  <ItemContent>
-                    <ItemTitle>{partner.name}</ItemTitle>
-                    <ItemDescription>{partner.email}</ItemDescription>
-                  </ItemContent>
-                  <ItemActions>
-                    <Button
-                      variant="link"
-                      nativeButton={false}
-                      render={
-                        <Link
-                          to={{
-                            pathname: `/desk/partners/${partner.id}`,
-                            search: searchParams.toString(),
-                          }}
-                        >
-                          <BookOpenIcon />
-                        </Link>
-                      }
-                    />
-                  </ItemActions>
-                </Item>
-              ))
-            }
-          </Await>
-        </Suspense>
+        </div>
+      </DeskHeader>
+    </TopBar>
+  );
+}
+
+function PartnerBottomBar({
+  data,
+}: {
+  data: { pagination: { from: number; to: number; count: number } };
+}) {
+  return (
+    <BottomBar>
+      <div className="bg-background flex justify-between rounded-t-xl border-t p-4">
+        <FilterInputQuery />
+        <DeskPagination {...data.pagination} />
       </div>
-    </div>
+    </BottomBar>
   );
 }
 

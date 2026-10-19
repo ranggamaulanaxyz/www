@@ -9,9 +9,7 @@ export async function getPartners(
   supabase: SupabaseClient,
   options?: FilterOptions,
 ) {
-  const {from, to} = parseRange({from: options?.from, to: options?.to})
-  console.log(options)
-  console.log(from, to)
+  const { from, to } = parseRange({ from: options?.from, to: options?.to });
 
   const statement = supabase.from("partners").select("*", { count: "exact" });
 
@@ -21,7 +19,7 @@ export async function getPartners(
     );
   }
 
-  statement.order("name", {ascending: true})
+  statement.order("name", { ascending: true });
 
   statement.range(from - 1, to - 1);
 
@@ -35,20 +33,20 @@ export async function getPartners(
   const partners = await partnerListSchema.parseAsync(camelcasedData);
   return {
     partners,
-    metadata: parseMetadata({count, range: {from, to}}),
+    metadata: parseMetadata({ count, range: { from, to } }),
   };
 }
 
 export async function getPartnerById(supabase: SupabaseClient, id: string) {
   const statement = supabase.from("partners").select("*").eq("id", id).single();
-  const {data, error} = await statement
-  if(error) {
-    throw error
+  const { data, error } = await statement;
+  if (error) {
+    throw error;
   }
 
-  const camelCasedData = camelcaseKeys(data)
-  const partner = await partnerSchema.parseAsync(camelCasedData)
-  return partner
+  const camelCasedData = camelcaseKeys(data);
+  const partner = await partnerSchema.parseAsync(camelCasedData);
+  return partner;
 }
 
 export async function createPartner(

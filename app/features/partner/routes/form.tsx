@@ -19,7 +19,6 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { supabaseClientContext } from "~/context";
 import { getPartnerById } from "../services/partner";
-import StickyToolbar from "~/features/desk/components/top-navbar";
 
 const schema = z.object({
   name: z
@@ -91,11 +90,9 @@ export default function PartnerForm({
 
   return (
     <Form {...getFormProps(form)} method="post" className="flex flex-col">
-      <StickyToolbar>
-        <div className="flex">
-          <Button type="submit">Simpan</Button>
-        </div>
-      </StickyToolbar>
+      <div className="flex">
+        <Button type="submit">Simpan</Button>
+      </div>
       <div className="p-4">
         <div className="grid md:grid-cols-2">
           <FieldGroup>
