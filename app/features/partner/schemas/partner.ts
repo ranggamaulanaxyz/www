@@ -9,6 +9,8 @@ export const phoneSchema = z
 
 export const partnerSchema = z.object({
   id: z.uuid(),
+  createdAt: z.string(),
+  updatedAt: z.string().optional().nullable(),
   name: z.string("Nama kontak tidak valid."),
   nickname: z
     .string("Nama panggilan kontak tidak valid.")
@@ -16,8 +18,7 @@ export const partnerSchema = z.object({
     .nullable(),
   email: z.email("Alamat email kontak tidak valid.").optional().nullable(),
   phone: phoneSchema.optional().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string().optional().nullable(),
+  image: z.string().optional().nullable(),
 });
 
 export const partnerListSchema = z.array(partnerSchema);

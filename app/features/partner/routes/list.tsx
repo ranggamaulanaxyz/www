@@ -152,8 +152,11 @@ export default function PartnerList({
                   <Item key={partner.email} variant="outline">
                     <ItemMedia>
                       <Avatar>
-                        <AvatarImage src="https://github.com/evilrabbit.png" />
-                        <AvatarFallback>R</AvatarFallback>
+                        <AvatarImage src={partner.image||undefined} />
+                        <AvatarFallback>{partner.name.split(" ").map((name, index) => {
+                          if(index > 1) return;
+                          return name.at(0)
+                        }).join("")}</AvatarFallback>
                       </Avatar>
                     </ItemMedia>
                     <ItemContent>
