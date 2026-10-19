@@ -18,7 +18,10 @@ import {
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { supabaseClientContext } from "~/context";
-import { getPartnerById } from "../services/partner";
+import { getPartnerById, updatePartner } from "../services/partner";
+import { TopBar } from "~/features/desk/components/bar";
+import DeskHeader from "~/features/desk/components/header";
+import { hasAccess } from "~/features/desk/services/access";
 
 const schema = z.object({
   name: z
@@ -42,10 +45,11 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const { partnerId } = params;
   const supabase = context.get(supabaseClientContext);
   const partner = await getPartnerById(supabase, partnerId);
-  return data({ partner });
+  const canUpdate = await hasAccess(supabase, "update", "partners");
+  return data({ partner, canUpdate });
 }
 
-export async function action({ request, context }: Route.ActionArgs) {
+export async function action({ request, context, params }: Route.ActionArgs) {
   const formData = await request.formData();
   const submission = parseWithZod(formData, { schema });
 
@@ -53,18 +57,29 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data({ lastResult: submission.reply() }, { status: 422 });
   }
 
-  return data({ lastResult: submission.reply() });
+  const supabase = context.get(supabaseClientContext);
+  const success = await updatePartner(
+    supabase,
+    params.partnerId,
+    submission.value,
+  );
+
+  return data({ success, lastResult: submission.reply() });
 }
 
 function FieldTextInput(props: {
   field: FieldMetadata;
   type?: "text" | "email";
   label: string;
+  readOnly?: boolean;
 }) {
   return (
     <Field>
       <FieldLabel htmlFor={props.field.id}>{props.label}</FieldLabel>
-      <Input {...getInputProps(props.field, { type: props.type ?? "text" })} />
+      <Input
+        {...getInputProps(props.field, { type: props.type ?? "text" })}
+        readOnly={props.readOnly}
+      />
       <FieldError errors={props.field.errors} />
     </Field>
   );
@@ -74,7 +89,7 @@ export default function PartnerForm({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { partner } = loaderData;
+  const { partner, canUpdate } = loaderData;
   const [form, fields] = useForm({
     defaultValue: {
       name: partner.name,
@@ -90,23 +105,50 @@ export default function PartnerForm({
 
   return (
     <Form {...getFormProps(form)} method="post" className="flex flex-col">
-      <div className="flex">
-        <Button type="submit">Simpan</Button>
-      </div>
+      <PartnerTopBar options={{ showSaveButton: canUpdate }} />
       <div className="p-4">
         <div className="grid md:grid-cols-2">
           <FieldGroup>
-            <FieldTextInput field={fields.name} label="Nama" />
-            <FieldTextInput field={fields.nickname} label="Nama Panggilan" />
+            <FieldTextInput
+              field={fields.name}
+              label="Nama"
+              readOnly={canUpdate !== true}
+            />
+            <FieldTextInput
+              field={fields.nickname}
+              label="Nama Panggilan"
+              readOnly={canUpdate !== true}
+            />
             <FieldTextInput
               field={fields.email}
               type="email"
               label="Alamat Email"
+              readOnly={canUpdate !== true}
             />
-            <FieldTextInput field={fields.phone} label="Nomor Telepon" />
+            <FieldTextInput
+              field={fields.phone}
+              label="Nomor Telepon"
+              readOnly={canUpdate !== true}
+            />
           </FieldGroup>
         </div>
       </div>
     </Form>
+  );
+}
+
+function PartnerTopBar({
+  options,
+}: {
+  options: { showSaveButton: boolean | null };
+}) {
+  return (
+    <TopBar>
+      <DeskHeader>
+        <div className="px-4">
+          {options.showSaveButton && <Button type="submit">Simpan</Button>}
+        </div>
+      </DeskHeader>
+    </TopBar>
   );
 }

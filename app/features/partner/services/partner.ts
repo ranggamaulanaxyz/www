@@ -73,3 +73,22 @@ export async function createPartner(
 
   return partner;
 }
+
+export async function updatePartner(
+  supabase: SupabaseClient,
+  id: string,
+  values: {
+    name: string;
+    nickname?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  },
+) {
+  console.log(id, values);
+  const { error } = await supabase.from("partners").update(values).eq("id", id);
+  if (error) {
+    throw error;
+  }
+
+  return true;
+}
