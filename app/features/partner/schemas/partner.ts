@@ -16,6 +16,8 @@ export const partnerSchema = z.object({
     .nullable(),
   email: z.email("Alamat email kontak tidak valid.").optional().nullable(),
   phone: phoneSchema.optional().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string().optional().nullable(),
 });
 
 export const partnerListSchema = z.array(partnerSchema);

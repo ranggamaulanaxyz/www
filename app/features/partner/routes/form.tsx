@@ -130,6 +130,22 @@ export default function PartnerForm({
               label="Nomor Telepon"
               readOnly={canUpdate !== true}
             />
+
+            <Field>
+              <FieldLabel htmlFor="updatedAt">Tanggal Dibuat</FieldLabel>
+              <Input id="createdAt" value={partner.createdAt} readOnly={true} />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="updatedAt">
+                Tanggal Terakhir Diubah
+              </FieldLabel>
+              <Input
+                id="updatedAt"
+                value={partner.updatedAt || ""}
+                readOnly={true}
+              />
+            </Field>
           </FieldGroup>
         </div>
       </div>

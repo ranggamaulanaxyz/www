@@ -32,5 +32,5 @@ export function BottomBar({ children }: { children: ReactNode }) {
   if (!isMobile) {
     return null;
   }
-  return <div className="sticky bottom-0">{children}</div>;
+  return <div className="fixed bottom-0 w-full">{children}</div>;
 }
