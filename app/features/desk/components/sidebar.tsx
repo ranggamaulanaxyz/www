@@ -1,14 +1,37 @@
 import { CommandIcon } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useMatches, type UIMatch } from "react-router";
 import {
   Sidebar,
+  SidebarContent,
+  SidebarGroup,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
+import type { Handle, Match } from "../types/route";
+
+function useSidebarMenuItems() {
+  const matches = useMatches() as Match<unknown>[];
+
+  const parentIndex = matches.findIndex((match) => match.handle?.showInSidebar);
+  if (parentIndex === -1) {
+    return [];
+  }
+
+  return matches
+    .slice(parentIndex)
+    .filter((match) => match.handle?.showInSidebar)
+    .map((match) => {
+      return {
+        label: match.handle?.title || match.id,
+        to: match.pathname,
+      };
+    });
+}
 
 export default function DeskSidebar() {
+  const sidebarMenuItems = useSidebarMenuItems();
   return (
     <Sidebar>
       <SidebarHeader>
@@ -31,6 +54,19 @@ export default function DeskSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarMenu>
+            {sidebarMenuItems.map((menu) => (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  render={<Link to={menu.to}>{menu.label}</Link>}
+                />
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
     </Sidebar>
   );
 }

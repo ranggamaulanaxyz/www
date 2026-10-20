@@ -12,8 +12,9 @@ export default [
   route("/zet/webhook/telegram", "features/zet/routes/telegram.ts"),
 
   route("/desk", "features/desk/routes/desk.tsx", [
-    route("/desk/dashboard", "features/desk/routes/dashboard.tsx"),
+    route("dashboard", "features/desk/routes/dashboard.tsx"),
     route("partners", "features/partner/routes/list.tsx", [
+      route("titles", "features/partner/routes/title-list.tsx"),
       route(":partnerId", "features/partner/routes/form.tsx"),
     ]),
     route("/desk/me", "features/auth/routes/account.tsx"),

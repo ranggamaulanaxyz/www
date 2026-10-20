@@ -8,6 +8,7 @@ import {
   useNavigate,
   useOutlet,
   useSearchParams,
+  type UIMatch,
 } from "react-router";
 import type { Route } from "./+types/list";
 import { createPartner, getPartners } from "../services/partner";
@@ -53,6 +54,7 @@ import { BottomBar, TopBar } from "~/features/desk/components/bar";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { getInitials } from "~/utils/tools";
 import { supabaseClientContext } from "~/context";
+import type { Handle } from "~/features/desk/types/route";
 
 const schema = z.object({
   name: z
@@ -68,14 +70,16 @@ export const middleware: Route.MiddlewareFunction[] = [
 ];
 
 export const handle = {
-  breadcrumb: (match: any) => ({
+  title: "Kontak",
+  breadcrumb: (match) => ({
     to: `${match.pathname}?${match?.loaderData?.searchParams}`,
-    label: "Daftar Kontak",
+    label: "Kontak",
   }),
-};
+  showInSidebar: true,
+} satisfies Handle<Route.ComponentProps["loaderData"]>;
 
 export function meta() {
-  return [{ title: "Kontak" }];
+  return [{ title: handle.title }];
 }
 
 export async function loader({ url, context }: Route.ActionArgs) {

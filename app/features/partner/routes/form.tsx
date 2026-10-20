@@ -22,6 +22,7 @@ import { getPartnerById, updatePartner } from "../services/partner";
 import { TopBar } from "~/features/desk/components/bar";
 import DeskHeader from "~/features/desk/components/header";
 import { hasAccess } from "~/features/desk/services/access";
+import type { Handle } from "~/features/desk/types/route";
 
 const schema = z.object({
   name: z
@@ -34,12 +35,12 @@ const schema = z.object({
 });
 
 export const handle = {
-  breadcrumb: (match: any) => {
+  breadcrumb: (match) => {
     return {
       label: "Kontak",
     };
   },
-};
+} satisfies Handle<Route.ComponentProps["loaderData"]>;
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const { partnerId } = params;
