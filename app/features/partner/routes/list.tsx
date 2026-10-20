@@ -10,7 +10,6 @@ import {
   useSearchParams,
 } from "react-router";
 import type { Route } from "./+types/list";
-import { supabaseClientContext } from "~/context";
 import { createPartner, getPartners } from "../services/partner";
 import {
   authMiddleware,
@@ -52,6 +51,8 @@ import { hasAccess } from "~/features/desk/services/access";
 import DeskHeader from "~/features/desk/components/header";
 import { BottomBar, TopBar } from "~/features/desk/components/bar";
 import { useIsMobile } from "~/hooks/use-mobile";
+import { getInitials } from "~/utils/tools";
+import { supabaseClientContext } from "~/context";
 
 const schema = z.object({
   name: z
@@ -152,11 +153,10 @@ export default function PartnerList({
                   <Item key={partner.email} variant="outline">
                     <ItemMedia>
                       <Avatar>
-                        <AvatarImage src={partner.image||undefined} />
-                        <AvatarFallback>{partner.name.split(" ").map((name, index) => {
-                          if(index > 1) return;
-                          return name.at(0)
-                        }).join("")}</AvatarFallback>
+                        <AvatarImage src={partner.image || undefined} />
+                        <AvatarFallback>
+                          {getInitials(partner.name, 2)}
+                        </AvatarFallback>
                       </Avatar>
                     </ItemMedia>
                     <ItemContent>

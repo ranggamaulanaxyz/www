@@ -84,11 +84,29 @@ export async function updatePartner(
     phone?: string | null;
   },
 ) {
-  console.log(id, values);
   const { error } = await supabase.from("partners").update(values).eq("id", id);
   if (error) {
     throw error;
   }
 
   return true;
+}
+
+export async function getPartnerSummary(supabase: SupabaseClient) {
+  const { data, count, error } = await supabase
+    .from("partners")
+    .select("*", { count: "estimated" })
+    .range(0, 4);
+
+  if (error) {
+    throw error;
+  }
+
+  const camelCasedData = camelcaseKeys(data);
+  const partners = await partnerListSchema.parseAsync(camelCasedData);
+
+  return {
+    partners,
+    count,
+  };
 }

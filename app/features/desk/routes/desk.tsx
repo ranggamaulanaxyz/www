@@ -4,6 +4,16 @@ import BottomNavbar from "../components/bottom-navbar";
 import { Outlet, useOutlet } from "react-router";
 import { Fragment } from "react/jsx-runtime";
 import Home from "../components/home";
+import type { Route } from "./+types/dashboard";
+import {
+  authMiddleware,
+  userOnlyMiddleware,
+} from "~/features/auth/middlewares.server";
+
+export const middleware: Route.MiddlewareFunction[] = [
+  authMiddleware,
+  userOnlyMiddleware,
+];
 
 export default function Desk() {
   const outlet = useOutlet();

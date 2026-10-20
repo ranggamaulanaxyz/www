@@ -179,10 +179,9 @@ export default function PasswordRecovery({ actionData }: Route.ComponentProps) {
   );
 }
 
-export function ErrorBoundary(props: Route.ErrorBoundaryProps) {
-  const { error } = props;
+export function ErrorBoundary({ error, params }: Route.ErrorBoundaryProps) {
   if (!isRouteErrorResponse(error) || error.status === 404) {
-    return <RootErrorBoundary {...props} />;
+    return <RootErrorBoundary error={error} params={params} />;
   }
 
   if (error.status === 403) {

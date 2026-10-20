@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import PartnerSummaryCard from "~/features/partner/components/partner-summary-card";
 
 export default function Home() {
   return (
@@ -25,36 +26,8 @@ export default function Home() {
           </div>
         </Link>
       </header>
-      <main className="grid grid-cols-3 gap-4 lg:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Kontak</CardTitle>
-            <CardAction>
-              <Link to="/desk/partners" title="Daftar Kontak">
-                <ArrowRightIcon />
-              </Link>
-            </CardAction>
-          </CardHeader>
-          <CardContent>
-            <AvatarGroup>
-              <Avatar>
-                <AvatarImage
-                  src="https://github.com/shadcn.png"
-                  alt="@shadcn"
-                />
-                <AvatarFallback>R</AvatarFallback>
-              </Avatar>
-              <Avatar>
-                <AvatarImage
-                  src="https://github.com/shadcn.png"
-                  alt="@shadcn"
-                />
-                <AvatarFallback>R</AvatarFallback>
-              </Avatar>
-              <AvatarGroupCount>+10k</AvatarGroupCount>
-            </AvatarGroup>
-          </CardContent>
-        </Card>
+      <main className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <PartnerSummaryCard />
       </main>
     </div>
   );
