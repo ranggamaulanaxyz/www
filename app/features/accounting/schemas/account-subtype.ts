@@ -6,7 +6,7 @@ export const accountTypeSchema = z.enum([
   "equity",
   "income",
   "expense",
-]);
+], "Tipe tidak valid.");
 
 export const accountSubtypeSchema = z.object({
   id: z.uuid(),

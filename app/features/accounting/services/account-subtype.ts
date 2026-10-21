@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import camelcaseKeys from "camelcase-keys";
 import type { FilterOptions } from "~/features/desk/types/filter";
 import { parseMetadata, parseRange } from "~/utils/supabase";
-import { accountSubtypeListSchema } from "../schemas/account-subtype";
+import { accountSubtypeListSchema, accountSubtypeSchema } from "../schemas/account-subtype";
 
 export async function getAccountSubtypes(
   supabase: SupabaseClient,
@@ -35,4 +35,16 @@ export async function getAccountSubtypes(
     accountSubtypes,
     metadata: parseMetadata({ count, range: { from, to } }),
   };
+}
+
+export async function createAccountSubtype(supabase: SupabaseClient, values: {name: string, type: string}) {
+  const {data, error} = await supabase.from("account_subtypes").insert(values).select().single();
+  if(error) {
+    throw error
+  }
+
+  const camelcasedData = camelcaseKeys(data)
+  const accountSubtype = await accountSubtypeSchema.parseAsync(camelcasedData)
+  
+  return accountSubtype
 }

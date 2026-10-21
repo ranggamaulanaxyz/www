@@ -34,7 +34,7 @@ export function DeskCreateDialog({
       />
       <DialogContent
         render={
-          <Form {...getFormProps(form)}>
+          <Form {...getFormProps(form)} method="post">
             <DialogHeader>
               <DialogTitle>{title || "Tambah"}</DialogTitle>
             </DialogHeader>

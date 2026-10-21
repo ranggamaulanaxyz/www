@@ -1,14 +1,7 @@
-import { useForm } from "@conform-to/react";
-import { ArrowRightIcon, PencilIcon, PlusIcon } from "lucide-react";
-import z, { keyof } from "zod";
+import { getSelectProps, useForm } from "@conform-to/react";
+import { ArrowRightIcon } from "lucide-react";
+import z from "zod";
 import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
 import { TopBar } from "~/features/desk/components/bar";
 import { DeskCreateDialog } from "~/features/desk/components/create-dialog";
 import DeskHeader from "~/features/desk/components/header";
@@ -17,7 +10,7 @@ import { parseWithZod } from "@conform-to/zod/v4";
 import { FieldTextInput } from "~/components/ui/field-input";
 import type { Route } from "./+types/account-subtype";
 import type { Handle } from "~/features/desk/types/route";
-import { Field, FieldLabel } from "~/components/ui/field";
+import { Field, FieldError, FieldLabel } from "~/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -27,10 +20,10 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import type { AccountType } from "../types/account-subtype";
-import { Await, data, Link, useSearchParams } from "react-router";
+import { Await, data, Link, redirect, useSearchParams } from "react-router";
 import { supabaseClientContext } from "~/context";
 import { parseFilter } from "~/features/desk/services/filter";
-import { getAccountSubtypes } from "../services/account-subtype";
+import { createAccountSubtype, getAccountSubtypes } from "../services/account-subtype";
 import { hasAccess } from "~/features/desk/services/access";
 import { cn } from "cn";
 import { Suspense, useEffect, useState } from "react";
@@ -39,7 +32,6 @@ import {
   ItemActions,
   ItemContent,
   ItemDescription,
-  ItemMedia,
   ItemTitle,
 } from "~/components/ui/item";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -55,7 +47,7 @@ const schema = z.object({
 const accountTypes: Record<AccountType, string> = {
   asset: "Aset",
   liability: "Kewajiban",
-  equity: "Kewajiban",
+  equity: "Modal",
   income: "Pendapatan",
   expense: "Beban",
 };
@@ -82,14 +74,19 @@ export async function loader({ url, context }: Route.LoaderArgs) {
   });
 }
 
-export async function action({ request, context }: Route.ActionArgs) {
+export async function action({ request, url, context }: Route.ActionArgs) {
   const formData = await request.formData();
+  
+  console.log(formData.get("type"))
   const submission = parseWithZod(formData, { schema });
   if (submission.status !== "success") {
     return data({ lastResult: submission.reply() }, { status: 422 });
   }
 
   const supabase = context.get(supabaseClientContext);
+  const accountSubtype = await createAccountSubtype(supabase, submission.value)
+  
+  return redirect(`/desk/accounting/subtype/${accountSubtype.id}?${url.searchParams.toString()}`)
 }
 
 export default function AccountSubtype({ loaderData }: Route.ComponentProps) {
@@ -205,10 +202,10 @@ function AccountSubtypeCreateDialog() {
   return (
     <DeskCreateDialog form={form} title="Tambah Subtipe">
       <FieldTextInput field={fields.name} label="Nama" />
-      <Field>
-        <FieldLabel>Tipe</FieldLabel>
-        <Select items={accountTypeOptions}>
-          <SelectTrigger className="w-full">
+      <Field data-invalid={!fields.type.valid}>
+        <FieldLabel htmlFor={fields.type.id}>Tipe</FieldLabel>
+        <Select id={fields.type.id} name={fields.type.name} items={accountTypeOptions}>
+          <SelectTrigger className="w-full" aria-invalid={!fields.type.valid}>
             <SelectValue placeholder="Pilih Tipe" />
           </SelectTrigger>
           <SelectContent>
@@ -221,6 +218,7 @@ function AccountSubtypeCreateDialog() {
             </SelectGroup>
           </SelectContent>
         </Select>
+        <FieldError errors={fields.type.errors} />
       </Field>
     </DeskCreateDialog>
   );
@@ -236,9 +234,7 @@ function AccountSubtypeSkeleton() {
           <ItemTitle>
             <Skeleton className={cn(randomWidth)}>&nbsp;</Skeleton>
           </ItemTitle>
-          <ItemDescription>
-            <Skeleton className={cn(randomWidth)}>&nbsp;</Skeleton>
-          </ItemDescription>
+          <Skeleton className={cn(randomWidth)}>&nbsp;</Skeleton>
         </ItemContent>
         <ItemActions>
           <Skeleton className="size-4 rounded-full" />
