@@ -25,7 +25,12 @@ import {
   ItemTitle,
 } from "~/components/ui/item";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { BookOpenIcon, EllipsisVerticalIcon, PlusIcon } from "lucide-react";
+import {
+  BookOpenIcon,
+  Contact2Icon,
+  EllipsisVerticalIcon,
+  PlusIcon,
+} from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { cn } from "cn";
 import { Suspense, useEffect, useState } from "react";
@@ -75,7 +80,20 @@ export const handle = {
     to: `${match.pathname}?${match?.loaderData?.searchParams}`,
     label: "Kontak",
   }),
-  showInSidebar: true,
+  sidebarRegistry: () => {
+    return [
+      {
+        items: [
+          {
+            icon: Contact2Icon,
+            label: "Kontak",
+            pathname: "/desk/partners",
+            matchPattern: "/desk/partners/*",
+          },
+        ],
+      },
+    ];
+  },
 } satisfies Handle<Route.ComponentProps["loaderData"]>;
 
 export function meta() {

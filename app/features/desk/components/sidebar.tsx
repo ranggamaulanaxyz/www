@@ -1,5 +1,11 @@
 import { CommandIcon } from "lucide-react";
-import { Link, useMatches, type UIMatch } from "react-router";
+import {
+  Link,
+  useMatch,
+  useMatches,
+  type PathPattern,
+  type UIMatch,
+} from "react-router";
 import {
   Sidebar,
   SidebarContent,
@@ -9,29 +15,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import type { Handle, Match } from "../types/route";
-
-function useSidebarMenuItems() {
-  const matches = useMatches() as Match<unknown>[];
-
-  const parentIndex = matches.findIndex((match) => match.handle?.showInSidebar);
-  if (parentIndex === -1) {
-    return [];
-  }
-
-  return matches
-    .slice(parentIndex)
-    .filter((match) => match.handle?.showInSidebar)
-    .map((match) => {
-      return {
-        label: match.handle?.title || match.id,
-        to: match.pathname,
-      };
-    });
-}
+import type { Handle, Match, SidebarItem } from "../types/route";
 
 export default function DeskSidebar() {
-  const sidebarMenuItems = useSidebarMenuItems();
+  const matches = useMatches() as Match<unknown>[];
+  const sidebarMatch = matches
+    .reverse()
+    .find((match) => match.handle?.sidebarRegistry);
+  const sidebarItems =
+    sidebarMatch?.handle.sidebarRegistry?.(sidebarMatch) || [];
   return (
     <Sidebar>
       <SidebarHeader>
@@ -55,18 +47,33 @@ export default function DeskSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarMenu>
-            {sidebarMenuItems.map((menu) => (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  render={<Link to={menu.to}>{menu.label}</Link>}
-                />
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        {sidebarItems.map((group, index) => (
+          <SidebarGroup key={index}>
+            <SidebarMenu>
+              {group.items.map((menu, index) => {
+                return <DeskSidebarMenuItem key={index} {...menu} />;
+              })}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
     </Sidebar>
+  );
+}
+
+function DeskSidebarMenuItem({ pathname, ...props }: SidebarItem) {
+  const match = useMatch(`${props.matchPattern || pathname}`);
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        isActive={!!match}
+        render={
+          <Link to={{ pathname }}>
+            {props.icon && <props.icon />}
+            <span>{props.label}</span>
+          </Link>
+        }
+      />
+    </SidebarMenuItem>
   );
 }

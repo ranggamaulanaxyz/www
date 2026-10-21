@@ -37,10 +37,14 @@ const schema = z.object({
 export const handle = {
   breadcrumb: (match) => {
     return {
-      label: "Kontak",
+      label: match.loaderData?.partner.name || "Kontak",
     };
   },
 } satisfies Handle<Route.ComponentProps["loaderData"]>;
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [{ title: loaderData.partner.name || "Kontak" }];
+}
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const { partnerId } = params;

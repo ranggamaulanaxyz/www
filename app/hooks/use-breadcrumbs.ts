@@ -22,7 +22,7 @@ function hasBreadcrumb(
   );
 }
 
-export function useBreadcrumbs(): Breadcrumb[] {
+export function useBreadcrumbs() {
   const matches = useMatches();
 
   const breadcrumbMatches = matches.filter(hasBreadcrumb);
