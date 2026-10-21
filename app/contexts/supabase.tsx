@@ -18,7 +18,6 @@ export function SupabaseProvider({
   supabaseKey: string;
   children: ReactNode;
 }) {
-  console.log(supabaseUrl, supabaseKey);
   const [supabase] = useState(() =>
     createBrowserClient(supabaseUrl, supabaseKey),
   );

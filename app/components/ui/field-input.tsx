@@ -8,7 +8,7 @@ export function FieldTextInput(props: {
   label: string;
 }) {
   return (
-    <Field>
+    <Field data-invalid={!props.field.valid}>
       <FieldLabel htmlFor={props.field.id}>{props.label}</FieldLabel>
       <Input {...getInputProps(props.field, { type: props.type ?? "text" })} />
       <FieldError errors={props.field.errors} />
