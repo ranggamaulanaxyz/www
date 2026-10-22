@@ -1,4 +1,4 @@
-import { getSelectProps, useForm } from "@conform-to/react";
+import { useForm } from "@conform-to/react";
 import { ArrowRightIcon } from "lucide-react";
 import z from "zod";
 import { Button } from "~/components/ui/button";
@@ -20,10 +20,21 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import type { AccountType } from "../types/account-subtype";
-import { Await, data, Link, redirect, useSearchParams } from "react-router";
+import {
+  Await,
+  data,
+  Link,
+  Outlet,
+  redirect,
+  useOutlet,
+  useSearchParams,
+} from "react-router";
 import { supabaseClientContext } from "~/context";
 import { parseFilter } from "~/features/desk/services/filter";
-import { createAccountSubtype, getAccountSubtypes } from "../services/account-subtype";
+import {
+  createAccountSubtype,
+  getAccountSubtypes,
+} from "../services/account-subtype";
 import { hasAccess } from "~/features/desk/services/access";
 import { cn } from "cn";
 import { Suspense, useEffect, useState } from "react";
@@ -44,13 +55,20 @@ const schema = z.object({
   type: accountTypeSchema,
 });
 
-const accountTypes: Record<AccountType, string> = {
+export const accountTypes: Record<AccountType, string> = {
   asset: "Aset",
   liability: "Kewajiban",
   equity: "Modal",
   income: "Pendapatan",
   expense: "Beban",
 };
+
+export const accountTypeOptions = Object.entries(accountTypes).map(
+  ([key, label]) => ({
+    value: key as AccountType,
+    label: label,
+  }),
+);
 
 export const handle = {
   breadcrumb: { label: "Subtipe Akun" },
@@ -76,17 +94,19 @@ export async function loader({ url, context }: Route.LoaderArgs) {
 
 export async function action({ request, url, context }: Route.ActionArgs) {
   const formData = await request.formData();
-  
-  console.log(formData.get("type"))
+
+  console.log(formData.get("type"));
   const submission = parseWithZod(formData, { schema });
   if (submission.status !== "success") {
     return data({ lastResult: submission.reply() }, { status: 422 });
   }
 
   const supabase = context.get(supabaseClientContext);
-  const accountSubtype = await createAccountSubtype(supabase, submission.value)
-  
-  return redirect(`/desk/accounting/subtype/${accountSubtype.id}?${url.searchParams.toString()}`)
+  const accountSubtype = await createAccountSubtype(supabase, submission.value);
+
+  return redirect(
+    `/desk/accounting/subtype/${accountSubtype.id}?${url.searchParams.toString()}`,
+  );
 }
 
 export default function AccountSubtype({ loaderData }: Route.ComponentProps) {
@@ -97,15 +117,21 @@ export default function AccountSubtype({ loaderData }: Route.ComponentProps) {
     to: filterOptions.to,
     count: 0,
   });
+
   useEffect(() => {
-    const resolvePartner = async () => {
+    const resolveAccountSubtype = async () => {
       const {
         metadata: { from, to, count },
       } = await accountSubtypeResults;
       setPaginationData({ from, to, count });
     };
-    resolvePartner();
+    resolveAccountSubtype();
   }, [filterOptions]);
+
+  const outlet = useOutlet();
+  if (outlet) {
+    return <Outlet />;
+  }
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -192,19 +218,16 @@ function AccountSubtypeCreateDialog() {
     },
   });
 
-  const accountTypeOptions = Object.entries(accountTypes).map(
-    ([key, label]) => ({
-      value: key as AccountType,
-      label: label,
-    }),
-  );
-
   return (
     <DeskCreateDialog form={form} title="Tambah Subtipe">
       <FieldTextInput field={fields.name} label="Nama" />
       <Field data-invalid={!fields.type.valid}>
         <FieldLabel htmlFor={fields.type.id}>Tipe</FieldLabel>
-        <Select id={fields.type.id} name={fields.type.name} items={accountTypeOptions}>
+        <Select
+          id={fields.type.id}
+          name={fields.type.name}
+          items={accountTypeOptions}
+        >
           <SelectTrigger className="w-full" aria-invalid={!fields.type.valid}>
             <SelectValue placeholder="Pilih Tipe" />
           </SelectTrigger>

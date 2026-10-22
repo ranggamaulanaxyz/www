@@ -20,7 +20,12 @@ export default [
 
     route("accounting", "features/accounting/routes/accounting.tsx", [
       route("moves", "features/accounting/routes/account-move.tsx"),
-      route("subtypes", "features/accounting/routes/account-subtype.tsx"),
+      route("subtypes", "features/accounting/routes/account-subtype.tsx", [
+        route(
+          ":accountSubtypeId",
+          "features/accounting/routes/account-subtype-form.tsx",
+        ),
+      ]),
     ]),
     route("/desk/me", "features/auth/routes/account.tsx"),
     route("/desk/assistant", "features/assistant/routes/chat.tsx"),
