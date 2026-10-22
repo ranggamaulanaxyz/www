@@ -100,7 +100,7 @@ export default function DeskPagination({
         <PopoverTrigger
           render={
             <Button variant="ghost">
-              {sliderValue[0]}-{sliderValue[1]}/{count}
+              {count && sliderValue[0]}-{count && sliderValue[1]}/{count}
             </Button>
           }
         />
