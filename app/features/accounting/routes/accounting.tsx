@@ -1,7 +1,7 @@
 import { Outlet } from "react-router";
 import type { Handle } from "~/features/desk/types/route";
 import type { Route } from "./+types/accounting";
-import { BookOpenIcon, FolderTreeIcon } from "lucide-react";
+import { BookOpenIcon, FolderTreeIcon, ListTree } from "lucide-react";
 
 export const handle = {
   breadcrumb: { label: "Akuntansi" },
@@ -14,6 +14,12 @@ export const handle = {
             label: "Jurnal Umum",
             pathname: "/desk/accounting/moves",
             matchPattern: "/desk/accounting/moves/*",
+          },
+          {
+            icon: ListTree,
+            label: "Akun",
+            pathname: "/desk/accounting/accounts",
+            matchPattern: "/desk/accounting/accounts/*",
           },
           {
             icon: FolderTreeIcon,

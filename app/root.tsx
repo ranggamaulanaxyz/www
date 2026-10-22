@@ -1,10 +1,12 @@
 import {
   isRouteErrorResponse,
+  Link,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigate,
 } from "react-router";
 
 import type { Route } from "./+types/root";
@@ -14,6 +16,11 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster } from "./components/ui/toast";
 import { getEnv } from "./utils/env.server";
 import { SupabaseProvider } from "./contexts/supabase";
+import RouteErrorContent from "./components/route-error-content";
+import DevelopmentErrorContent from "./components/development-error-content";
+import UnexpectedErrorContent from "./components/unexpected-error-content";
+import { Button } from "./components/ui/button";
+import { ArrowLeftIcon, HomeIcon } from "lucide-react";
 
 export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
@@ -75,30 +82,62 @@ export default function App({ loaderData }: Route.ComponentProps) {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
-  let stack: string | undefined;
-
+  const navigate = useNavigate();
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
-    details =
-      error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
+    if (error.status === 404) {
+      return (
+        <RouteErrorContent
+          title="Halaman Tidak Tersedia"
+          description="Akses ke halaman ini tidak dapat diproses. Halaman mungkin telah dihapus, diubah namanya, atau sedang tidak dapat diakses untuk sementara waktu."
+        >
+          <div className="flex gap-2">
+            <Button onClick={() => navigate(-1)}>
+              <ArrowLeftIcon />
+              Kembali
+            </Button>
+            <Button
+              variant="secondary"
+              nativeButton={false}
+              render={
+                <Link to="/" title="Halaman Utama">
+                  <HomeIcon />
+                  Halaman Utama
+                </Link>
+              }
+            />
+          </div>
+        </RouteErrorContent>
+      );
+    }
   } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message;
-    stack = error.stack;
+    return <DevelopmentErrorContent error={error} />;
   }
 
-  return (
-    <main className="container mx-auto p-4 pt-16">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full overflow-x-auto p-4">
-          <code>{stack}</code>
-        </pre>
-      )}
-    </main>
-  );
+  return <UnexpectedErrorContent />;
+  // let message = "Oops!";
+  // let details = "An unexpected error occurred.";
+  // let stack: string | undefined;
+
+  // if (isRouteErrorResponse(error)) {
+  //   message = error.status === 404 ? "404" : "Error";
+  //   details =
+  //     error.status === 404
+  //       ? "The requested page could not be found."
+  //       : error.statusText || details;
+  // } else if (import.meta.env.DEV && error && error instanceof Error) {
+  //   details = error.message;
+  //   stack = error.stack;
+  // }
+
+  // return (
+  //   <main className="container mx-auto p-4 pt-16">
+  //     <h1>{message}</h1>
+  //     <p>{details}</p>
+  //     {stack && (
+  //       <pre className="w-full overflow-x-auto p-4">
+  //         <code>{stack}</code>
+  //       </pre>
+  //     )}
+  //   </main>
+  // );
 }

@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { accountTypeOptions, accountTypes } from "./account-subtype";
+import { accountTypeOptions } from "./account-subtype";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import type { Handle } from "~/features/desk/types/route";
