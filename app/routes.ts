@@ -20,6 +20,7 @@ export default [
 
     route("accounting", "features/accounting/routes/accounting.tsx", [
       route("moves", "features/accounting/routes/account-move.tsx"),
+      route("accounts", "features/accounting/routes/account.tsx"),
       route("subtypes", "features/accounting/routes/account-subtype.tsx", [
         route(
           ":accountSubtypeId",
