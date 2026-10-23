@@ -51,9 +51,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data({ lastResult: submission.reply() });
   }
   const supabase = context.get(supabaseClientContext);
-  const {
-    error,
-  } = await supabase.auth.signInWithPassword(submission.value);
+  const { error } = await supabase.auth.signInWithPassword(submission.value);
 
   if (error) {
     switch (error.code) {
@@ -70,17 +68,19 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
   }
 
-  const {data: isInternalUser} = await supabase.rpc("has_group", {name: "Internal User"}).single<boolean>()
+  const { data: isInternalUser } = await supabase
+    .rpc("has_group", { p_name: "Internal Users" })
+    .single<boolean>();
 
-  if(isInternalUser) {
-    return redirect("/desk")
+  if (isInternalUser) {
+    return redirect("/desk");
   }
 
   return redirect("/");
 }
 
 export default function Signin({ actionData }: Route.ComponentProps) {
-  const navigation = useNavigation()
+  const navigation = useNavigation();
   const isIdle = navigation.state === "idle";
   const isSubmitting = navigation.state === "submitting";
   const [form, fields] = useForm({
@@ -120,7 +120,7 @@ export default function Signin({ actionData }: Route.ComponentProps) {
               <Field data-invalid={!fields.password.valid}>
                 <FieldLabel htmlFor={fields.password.id}>Kata Sandi</FieldLabel>
                 <Input
-                  {...getInputProps(fields.password, { type: "password" })} 
+                  {...getInputProps(fields.password, { type: "password" })}
                 />
                 <FieldError errors={fields.password.errors} />
               </Field>
@@ -134,7 +134,9 @@ export default function Signin({ actionData }: Route.ComponentProps) {
                 </Link>
               </p>
               <Field>
-                <Button type="submit" disabled={!isIdle}>{isSubmitting && <Spinner />}Masuk</Button>
+                <Button type="submit" disabled={!isIdle}>
+                  {isSubmitting && <Spinner />}Masuk
+                </Button>
                 <Link
                   to="/"
                   title="Kembali ke Halaman Utama"

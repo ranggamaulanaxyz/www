@@ -105,7 +105,7 @@ export async function action({ request, url, context }: Route.ActionArgs) {
   const accountSubtype = await createAccountSubtype(supabase, submission.value);
 
   return redirect(
-    `/desk/accounting/subtype/${accountSubtype.id}?${url.searchParams.toString()}`,
+    `/desk/accounting/subtypes/${accountSubtype.id}?${url.searchParams.toString()}`,
   );
 }
 
