@@ -17,6 +17,12 @@ export const handle = {
           },
           {
             icon: ListTree,
+            label: "Jurnal",
+            pathname: "/desk/accounting/journals",
+            matchPattern: "/desk/accounting/journals/*",
+          },
+          {
+            icon: ListTree,
             label: "Akun",
             pathname: "/desk/accounting/accounts",
             matchPattern: "/desk/accounting/accounts/*",
