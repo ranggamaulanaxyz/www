@@ -20,7 +20,7 @@ import RouteErrorContent from "./components/route-error-content";
 import DevelopmentErrorContent from "./components/development-error-content";
 import UnexpectedErrorContent from "./components/unexpected-error-content";
 import { Button } from "./components/ui/button";
-import { ArrowLeftIcon, HomeIcon } from "lucide-react";
+import { ArrowLeftIcon, HomeIcon, RefreshCwIcon } from "lucide-react";
 
 export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
@@ -113,5 +113,26 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     return <DevelopmentErrorContent error={error} />;
   }
 
-  return <UnexpectedErrorContent />;
+  return <UnexpectedErrorContent><div className="flex gap-2">
+            <Button onClick={() => navigate(-1)}>
+              <ArrowLeftIcon />
+              Kembali
+            </Button>
+            <Button
+              variant="secondary"
+              nativeButton={false}
+              render={
+                <Link to="/" title="Halaman Utama">
+                  <HomeIcon />
+                  Halaman Utama
+                </Link>
+              }
+            />
+            
+            <Button 
+              variant="secondary" onClick={() => navigate(0)}>
+              <RefreshCwIcon />
+              Muat Ulang
+            </Button>
+          </div></UnexpectedErrorContent>;
 }
