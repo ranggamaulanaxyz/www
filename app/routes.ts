@@ -25,6 +25,12 @@ export default [
           "features/accounting/routes/account-move-form.tsx",
         ),
       ]),
+      route("move-items", "features/accounting/routes/account-move-item.tsx", [
+        route(
+          ":accountMoveItemId",
+          "features/accounting/routes/account-move-item-form.tsx",
+        ),
+      ]),
       route("journals", "features/accounting/routes/account-journal.tsx", [
         route(
           ":accountJournalId",

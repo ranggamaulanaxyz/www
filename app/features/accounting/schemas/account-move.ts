@@ -1,23 +1,17 @@
 import z from "zod";
+import {
+  accountMoveItemListSchema,
+  accountMoveItemSchema,
+} from "./account-move-item";
+
+export {
+  accountMoveItemListSchema,
+  accountMoveItemSchema,
+} from "./account-move-item";
 
 export const accountMoveStatusSchema = z.enum(["draft", "posted"], {
   message: "Status jurnal tidak valid.",
 });
-
-export const accountMoveItemSchema = z.object({
-  id: z.uuid(),
-  createdAt: z.string(),
-  updatedAt: z.string().optional().nullable(),
-  name: z.string("Deskripsi item jurnal tidak valid."),
-  productId: z.uuid().optional().nullable(),
-  partnerId: z.uuid("Kontak item jurnal tidak valid."),
-  accountId: z.uuid("Akun tidak valid."),
-  debit: z.number().min(0, "Debit minimal 0.").default(0),
-  credit: z.number().min(0, "Kredit minimal 0.").default(0),
-  moveId: z.uuid().optional().nullable(),
-});
-
-export const accountMoveItemListSchema = z.array(accountMoveItemSchema);
 
 export const accountMoveSchema = z.object({
   id: z.uuid(),
