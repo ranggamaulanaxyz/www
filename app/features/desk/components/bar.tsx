@@ -11,8 +11,19 @@ export function useTopBarHidden() {
   return scrolled && scrolledUp;
 }
 
-export function TopBar({ children }: { children: ReactNode }) {
-  const hidden = useTopBarHidden();
+export function TopBar({
+  children,
+  hidden: hiddenProp,
+}: {
+  children: ReactNode;
+  /**
+   * Controlled visibility. When omitted, the topbar follows the window scroll
+   * position (the default behavior for page-scrolled layouts).
+   */
+  hidden?: boolean;
+}) {
+  const hiddenFromScroll = useTopBarHidden();
+  const hidden = hiddenProp ?? hiddenFromScroll;
   const ref = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
