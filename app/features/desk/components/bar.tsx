@@ -1,26 +1,41 @@
-import { cn } from "cn";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { useScroll } from "~/hooks/use-scroll";
 
-export function TopBar({ children }: { children: ReactNode }) {
-  const { scrolledUp } = useScroll();
-  const ref = useRef<HTMLDivElement>(null);
-  const [top, setTop] = useState(45);
+/**
+ * The topbar only hides while the page is actually scrolled and the user is
+ * scrolling up, so it is always visible at the top of the page.
+ */
+export function useTopBarHidden() {
+  const { scrolled, scrolledUp } = useScroll();
+  return scrolled && scrolledUp;
+}
 
-  useEffect(() => {
-    if (ref.current?.clientHeight) {
-      setTop(ref.current?.clientHeight);
-    } else {
-      setTop(45);
-    }
-  }, [ref.current?.clientHeight]);
+export function TopBar({ children }: { children: ReactNode }) {
+  const hidden = useTopBarHidden();
+  const ref = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(0);
+
+  // Measure the real height instead of guessing, and keep it in sync when the
+  // topbar content changes (e.g. mobile filter input hidden on resize).
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const update = () => setHeight(el.offsetHeight);
+    update();
+
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div
       ref={ref}
-      className={cn("sticky z-50 transition-[top]")}
-      style={{ top: scrolledUp ? `-${top}px` : 0 }}
+      data-hidden={hidden || undefined}
+      className="sticky top-0 z-50 transition-[top] duration-200 ease-linear"
+      style={{ top: hidden ? -height : 0 }}
     >
       {children}
     </div>

@@ -9,8 +9,6 @@ export default [
   route("/password/reset", "features/auth/routes/reset-password.tsx"),
   route("/password/recovery", "features/auth/routes/password-recovery.tsx"),
 
-  route("/zet/webhook/telegram", "features/zet/routes/telegram.ts"),
-
   route("/desk", "features/desk/routes/desk.tsx", [
     route("dashboard", "features/desk/routes/dashboard.tsx"),
     route("partners", "features/partner/routes/list.tsx", [
@@ -47,7 +45,9 @@ export default [
         ),
       ]),
     ]),
+
+    route("/desk/products", "features/product/routes/product.tsx"),
+
     route("/desk/me", "features/auth/routes/account.tsx"),
-    route("/desk/assistant", "features/assistant/routes/chat.tsx"),
   ]),
 ] satisfies RouteConfig;

@@ -26,7 +26,7 @@ export default function Desk() {
     <Fragment>
       <SidebarProvider>
         <DeskSidebar />
-        <SidebarInset>
+        <SidebarInset className="min-w-0 flex min-h-0 flex-col">
           <Outlet />
         </SidebarInset>
       </SidebarProvider>
