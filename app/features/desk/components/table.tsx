@@ -8,6 +8,7 @@ import {
   type RowData,
 } from "@tanstack/react-table";
 import {
+  Suspense,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -23,10 +24,11 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { Skeleton } from "~/components/ui/skeleton";
 import { TopBar } from "./bar";
 import DeskHeader from "./header";
 import { Button } from "~/components/ui/button";
-import { Link } from "react-router";
+import { Await, Link } from "react-router";
 import { PlusIcon } from "lucide-react";
 import { useIsMobile } from "~/hooks/use-mobile";
 import FilterInputQuery from "./filter-input-query";
@@ -50,24 +52,76 @@ export type DeskTableColumns<TData extends RowData> = Array<
 >;
 
 type DeskTableProps<TData extends RowData> = {
-  data: TData[];
+  /** Resolved rows, or a pending loader promise (streamed with `<Await>`). */
+  data: TData[] | Promise<TData[]>;
   columns: DeskTableColumns<TData>;
   /** Optional footer content, rendered in a sticky row below the table. */
   footer?: ReactNode;
   /** Shown when there are no rows. */
   emptyMessage?: ReactNode;
-  options?: {
-    showCreateButton?: boolean;
-  };
+  /** Number of skeleton rows rendered while the data is pending. */
+  skeletonRows?: number;
+  showCreateButton?: boolean;
 };
+
+function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
+  return typeof (value as Promise<T> | null)?.then === "function";
+}
 
 export default function DeskTable<TData extends RowData>({
   data,
   columns,
   footer,
-  emptyMessage = "Tidak ada data",
-  options,
+  emptyMessage,
+  skeletonRows = 10,
+  showCreateButton,
 }: DeskTableProps<TData>) {
+  return (
+    <DeskTableLayout showCreateButton={showCreateButton}>
+      <Suspense
+        fallback={<DeskTableSkeleton columns={columns} rows={skeletonRows} />}
+      >
+        {isPromiseLike(data) ? (
+          <Await resolve={data}>
+            {(resolved) => (
+              <DeskTableContent
+                data={resolved}
+                columns={columns}
+                footer={footer}
+                emptyMessage={emptyMessage}
+                skeletonRows={skeletonRows}
+              />
+            )}
+          </Await>
+        ) : (
+          <DeskTableContent
+            data={data}
+            columns={columns}
+            footer={footer}
+            emptyMessage={emptyMessage}
+            skeletonRows={skeletonRows}
+          />
+        )}
+      </Suspense>
+    </DeskTableLayout>
+  );
+}
+
+type DeskTableContentProps<TData extends RowData> = {
+  data: TData[];
+  columns: DeskTableColumns<TData>;
+  footer?: ReactNode;
+  emptyMessage?: ReactNode;
+  skeletonRows?: number;
+};
+
+function DeskTableContent<TData extends RowData>({
+  data,
+  columns,
+  footer,
+  emptyMessage = "Tidak ada data",
+  skeletonRows = 10,
+}: DeskTableContentProps<TData>) {
   const { FlexRender, ...table } = useTable({
     features,
     columns,
@@ -177,92 +231,147 @@ export default function DeskTable<TData extends RowData>({
   }, [columnKey]);
 
   const visibleColumnCount = table.getAllLeafColumns().length;
+  const rows = table.getRowModel().rows;
 
   return (
-    <DeskTableLayout showCreateButton={options?.showCreateButton}>
-      <Table ref={tableRef} className="table-fixed">
-        <TableHeader className="bg-background sticky top-0 z-10 shadow">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                const isResizing = header.column.getIsResizing();
+    <Table ref={tableRef} className="table-fixed">
+      <TableHeader className="bg-background sticky top-0 z-10 shadow">
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => {
+              const isResizing = header.column.getIsResizing();
 
-                return (
-                  <TableHead
-                    key={header.id}
-                    className="relative overflow-hidden text-ellipsis first:pl-4 last:pr-4"
-                    colSpan={header.colSpan}
-                    style={{
-                      width: `calc(var(--header-${header.id}-size) * 1px)`,
-                    }}
-                  >
-                    {header.isPlaceholder ? null : (
-                      <FlexRender header={header} />
-                    )}
-                    {!header.isPlaceholder && header.column.getCanResize() && (
-                      <button
-                        type="button"
-                        role="separator"
-                        aria-orientation="vertical"
-                        aria-label={`Ubah lebar kolom ${header.column.id}`}
-                        tabIndex={-1}
-                        className={`hover:bg-border absolute inset-y-0 right-0 z-10 w-2 cursor-col-resize touch-none bg-transparent select-none ${
-                          isResizing ? "bg-border" : ""
-                        }`}
-                        onDoubleClick={(event) => {
-                          event.stopPropagation();
-                          header.column.resetSize();
-                          fitToContainerRef.current(true);
-                        }}
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                      />
-                    )}
-                  </TableHead>
-                );
-              })}
+              return (
+                <TableHead
+                  key={header.id}
+                  className="relative overflow-hidden text-ellipsis first:pl-4 last:pr-4"
+                  colSpan={header.colSpan}
+                  style={{
+                    width: `calc(var(--header-${header.id}-size) * 1px)`,
+                  }}
+                >
+                  {header.isPlaceholder ? null : <FlexRender header={header} />}
+                  {!header.isPlaceholder && header.column.getCanResize() && (
+                    <button
+                      type="button"
+                      role="separator"
+                      aria-orientation="vertical"
+                      aria-label={`Ubah lebar kolom ${header.column.id}`}
+                      tabIndex={-1}
+                      className={`hover:bg-border absolute inset-y-0 right-0 z-10 w-2 cursor-col-resize touch-none bg-transparent select-none ${
+                        isResizing ? "bg-border" : ""
+                      }`}
+                      onDoubleClick={(event) => {
+                        event.stopPropagation();
+                        header.column.resetSize();
+                        fitToContainerRef.current(true);
+                      }}
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                    />
+                  )}
+                </TableHead>
+              );
+            })}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {rows.length === 0 ? (
+          <TableRow>
+            <TableCell
+              colSpan={visibleColumnCount}
+              className="text-muted-foreground h-24 text-center"
+            >
+              {emptyMessage}
+            </TableCell>
+          </TableRow>
+        ) : (
+          rows.map((row) => (
+            <TableRow key={row.id}>
+              {row.getAllCells().map((cell) => (
+                <TableCell
+                  key={cell.id}
+                  className="overflow-hidden text-ellipsis first:pl-4 last:pr-4"
+                >
+                  <FlexRender cell={cell} />
+                </TableCell>
+              ))}
             </TableRow>
+          ))
+        )}
+      </TableBody>
+      {footer ? (
+        <TableFooter className="sticky bottom-0 z-10">
+          <TableRow>
+            <TableCell
+              colSpan={visibleColumnCount}
+              className="first:pl-4 last:pr-4"
+            >
+              {footer}
+            </TableCell>
+          </TableRow>
+        </TableFooter>
+      ) : null}
+    </Table>
+  );
+}
+
+const SKELETON_WIDTHS = ["w-16", "w-24", "w-20", "w-32", "w-28", "w-24"];
+
+function SkeletonRows({
+  columnCount,
+  rows,
+}: {
+  columnCount: number;
+  rows: number;
+}) {
+  return Array.from({ length: rows }).map((_, rowIndex) => (
+    <TableRow key={rowIndex}>
+      {Array.from({ length: columnCount }).map((_, columnIndex) => (
+        <TableCell key={columnIndex} className="first:pl-4 last:pr-4">
+          <Skeleton
+            className={`h-4 ${
+              SKELETON_WIDTHS[columnIndex % SKELETON_WIDTHS.length]
+            }`}
+          />
+        </TableCell>
+      ))}
+    </TableRow>
+  ));
+}
+
+type DeskTableSkeletonProps<TData extends RowData> = {
+  columns: DeskTableColumns<TData>;
+  rows?: number;
+};
+
+/**
+ * Table-shaped loading state. Used as the Suspense fallback inside
+ * `DeskTable`, and available directly for route-level suspense boundaries.
+ */
+export function DeskTableSkeleton<TData extends RowData>({
+  columns,
+  rows = 10,
+}: DeskTableSkeletonProps<TData>) {
+  return (
+    <Table className="table-fixed">
+      <TableHeader className="bg-background sticky top-0 z-10 shadow">
+        <TableRow>
+          {columns.map((column, index) => (
+            <TableHead
+              key={index}
+              className="overflow-hidden text-ellipsis first:pl-4 last:pr-4"
+            >
+              {typeof column.header === "string" ? column.header : null}
+            </TableHead>
           ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={visibleColumnCount}
-                className="text-muted-foreground h-24 text-center"
-              >
-                {emptyMessage}
-              </TableCell>
-            </TableRow>
-          ) : (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getAllCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    className="overflow-hidden text-ellipsis first:pl-4 last:pr-4"
-                  >
-                    <FlexRender cell={cell} />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-        {footer ? (
-          <TableFooter className="sticky bottom-0 z-10">
-            <TableRow>
-              <TableCell
-                colSpan={visibleColumnCount}
-                className="first:pl-4 last:pr-4"
-              >
-                {footer}
-              </TableCell>
-            </TableRow>
-          </TableFooter>
-        ) : null}
-      </Table>
-    </DeskTableLayout>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <SkeletonRows columnCount={columns.length} rows={rows} />
+      </TableBody>
+    </Table>
   );
 }
 
@@ -306,21 +415,34 @@ export function DeskTableLayout({
   // The table scrolls inside its own container instead of the window, so the
   // topbar has to follow that container rather than `useTopBarHidden`.
   useIsomorphicLayoutEffect(() => {
-    const scrollContainer = layoutRef.current?.querySelector<HTMLElement>(
-      '[data-slot="table-container"]',
-    );
-    if (!scrollContainer) return;
+    const layout = layoutRef.current;
+    if (!layout) return;
 
-    let lastScrollTop = scrollContainer.scrollTop;
-    const onScroll = () => {
-      const nextScrollTop = scrollContainer.scrollTop;
+    let lastScrollTop = 0;
+    let lastTarget: EventTarget | null = null;
+
+    const onScroll = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (!target.matches('[data-slot="table-container"]')) return;
+
+      const nextScrollTop = target.scrollTop;
+      if (target !== lastTarget) {
+        lastTarget = target;
+        lastScrollTop = nextScrollTop;
+        setTopBarHidden(nextScrollTop > 0);
+        return;
+      }
+
       // Hide while scrolling down past the top, reveal when scrolling up.
       setTopBarHidden(nextScrollTop > 0 && nextScrollTop > lastScrollTop);
       lastScrollTop = nextScrollTop;
     };
 
-    scrollContainer.addEventListener("scroll", onScroll, { passive: true });
-    return () => scrollContainer.removeEventListener("scroll", onScroll);
+    // Scroll does not bubble, but it does go through the capture phase, so
+    // this keeps working when the loading skeleton is swapped for the table.
+    layout.addEventListener("scroll", onScroll, true);
+    return () => layout.removeEventListener("scroll", onScroll, true);
   }, []);
 
   return (

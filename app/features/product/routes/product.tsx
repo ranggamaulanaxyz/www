@@ -5,30 +5,26 @@ import type { Route } from "./+types/product";
 import { supabaseClientContext } from "~/context";
 import { getProducts } from "../services/product";
 import { data } from "react-router";
-import type { Product as ProductModel } from "../types/product";
+import type { Product } from "../types/product";
 
 export async function loader({ context }: Route.LoaderArgs) {
   const supabase = context.get(supabaseClientContext);
-  const { products } = await getProducts(supabase);
-  return data({ products });
+  // Return a pending promise instead of awaiting it so the table can render
+  // its skeleton while the products stream in.
+  const productResult = getProducts(supabase).then((result) => result.products);
+  return data({ productResult });
 }
 
-// Defined outside the component so the array identity is stable across
-// renders and the table does not rebuild its column definitions each time.
-const columns: DeskTableColumns<ProductModel> = [
+const columns: DeskTableColumns<Product> = [
   { accessorKey: "code", header: "Kode" },
   { accessorKey: "name", header: "Nama" },
   { accessorKey: "costPrice", header: "Harga Beli" },
   { accessorKey: "salePrice", header: "Harga Jual" },
 ];
 
-export default function Product({ loaderData }: Route.ComponentProps) {
-  const { products } = loaderData;
+export default function RouteProduct({ loaderData }: Route.ComponentProps) {
+  const { productResult } = loaderData;
   return (
-    <DeskTable
-      data={products}
-      columns={columns}
-      options={{ showCreateButton: true }}
-    />
+    <DeskTable data={productResult} columns={columns} showCreateButton={true} />
   );
 }
