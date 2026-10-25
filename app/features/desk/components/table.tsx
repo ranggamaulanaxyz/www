@@ -13,7 +13,6 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type CSSProperties,
 } from "react";
 import {
   Table,
@@ -29,7 +28,7 @@ import { TopBar } from "./bar";
 import DeskHeader from "./header";
 import { Button } from "~/components/ui/button";
 import { Await, Link, useSearchParams } from "react-router";
-import { LayoutGridIcon, PlusIcon, TableIcon } from "lucide-react";
+import { FolderXIcon, LayoutGridIcon, PlusIcon, TableIcon } from "lucide-react";
 import { useIsMobile } from "~/hooks/use-mobile";
 import FilterInputQuery from "./filter-input-query";
 import { ButtonGroup } from "~/components/ui/button-group";
@@ -41,6 +40,13 @@ import type {
   DeskTableSkeletonProps,
   DeskTableView,
 } from "../types/table";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "~/components/ui/empty";
 
 export type {
   DeskTableColumn,
@@ -146,7 +152,7 @@ function DeskTableContent<TData extends RowData>({
   data,
   columns,
   renderFooter,
-  renderEmpty = "Tidak ada data",
+  renderEmpty,
 }: DeskTableContentProps<TData>) {
   const table = useTable({
     features,
@@ -259,6 +265,10 @@ function DeskTableContent<TData extends RowData>({
   const visibleColumnCount = table.getAllLeafColumns().length;
   const rows = table.getRowModel().rows;
 
+  if (rows.length === 0) {
+    return renderEmpty ?? <DeskTableEmpty />;
+  }
+
   return (
     <Table
       ref={tableRef}
@@ -266,7 +276,7 @@ function DeskTableContent<TData extends RowData>({
       containerClassName="h-full pt-[var(--desk-topbar-height,0px)]"
       containerStyle={{ maxHeight: "none" }}
     >
-      <TableHeader className="bg-background sticky top-(--desk-topbar-offset,0px) z-10 shadow transition-[top] duration-200 ease-out">
+      <TableHeader className="bg-background sticky top-0 z-10 translate-y-0 shadow transition-transform duration-200 ease-out will-change-transform group-data-[topbar-hidden=true]/desk:-translate-y-(--desk-topbar-height,0px)">
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => {
@@ -310,29 +320,18 @@ function DeskTableContent<TData extends RowData>({
         ))}
       </TableHeader>
       <TableBody>
-        {rows.length === 0 ? (
-          <TableRow>
-            <TableCell
-              colSpan={visibleColumnCount}
-              className="text-muted-foreground h-24 text-center"
-            >
-              {renderEmpty}
-            </TableCell>
+        {rows.map((row) => (
+          <TableRow key={row.id}>
+            {row.getAllCells().map((cell) => (
+              <TableCell
+                key={cell.id}
+                className="overflow-hidden text-ellipsis first:pl-4 last:pr-4"
+              >
+                <table.FlexRender cell={cell} />
+              </TableCell>
+            ))}
           </TableRow>
-        ) : (
-          rows.map((row) => (
-            <TableRow key={row.id}>
-              {row.getAllCells().map((cell) => (
-                <TableCell
-                  key={cell.id}
-                  className="overflow-hidden text-ellipsis first:pl-4 last:pr-4"
-                >
-                  <table.FlexRender cell={cell} />
-                </TableCell>
-              ))}
-            </TableRow>
-          ))
-        )}
+        ))}
       </TableBody>
       {renderFooter ? (
         <TableFooter className="sticky bottom-0 z-10">
@@ -380,14 +379,10 @@ const GRID_CLASSES =
 function DeskTableGrid<TData extends RowData>({
   items,
   renderItem,
-  renderEmpty = "Tidak ada data",
+  renderEmpty,
 }: DeskTableGridProps<TData>) {
   if (items.length === 0) {
-    return (
-      <div className="text-muted-foreground flex h-full items-center justify-center p-4 pt-[calc(var(--desk-topbar-height,0px)+1rem)] text-sm">
-        {renderEmpty}
-      </div>
-    );
+    return renderEmpty ?? <DeskTableEmpty />;
   }
 
   return (
@@ -427,7 +422,7 @@ export function DeskTableSkeleton<TData extends RowData>({
       containerClassName="h-full pt-[var(--desk-topbar-height,0px)]"
       containerStyle={{ maxHeight: "none" }}
     >
-      <TableHeader className="bg-background sticky top-(--desk-topbar-offset,0px) z-10 shadow transition-[top] duration-200 ease-out">
+      <TableHeader className="bg-background sticky top-[var(--desk-topbar-height,0px)] z-10 translate-y-0 shadow transition-transform duration-200 ease-out will-change-transform group-data-[topbar-hidden=true]/desk:-translate-y-[var(--desk-topbar-height,0px)]">
         <TableRow>
           {columns.map((column, index) => (
             <TableHead
@@ -446,6 +441,22 @@ export function DeskTableSkeleton<TData extends RowData>({
   );
 }
 
+export function DeskTableEmpty() {
+  return (
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <FolderXIcon />
+        </EmptyMedia>
+        <EmptyTitle>Tidak Ada Data</EmptyTitle>
+        <EmptyDescription>
+          Kamu belum membuat data apapun disini. Mulailah menambahkan data.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+}
+
 export function DeskTableLayout({
   children,
   showCreateButton = true,
@@ -457,6 +468,8 @@ export function DeskTableLayout({
   const topBarRef = useRef<HTMLDivElement>(null);
   const layoutRef = useRef<HTMLDivElement>(null);
   const [topBarHidden, setTopBarHidden] = useState(false);
+  // Mirrors `topBarHidden` so scroll events can skip redundant state updates.
+  const topBarHiddenRef = useRef(false);
 
   useIsomorphicLayoutEffect(() => {
     const updateHeight = () => {
@@ -486,9 +499,15 @@ export function DeskTableLayout({
     const layout = layoutRef.current;
     if (!layout) return;
 
+    const setHidden = (hidden: boolean) => {
+      if (topBarHiddenRef.current === hidden) return;
+      topBarHiddenRef.current = hidden;
+      setTopBarHidden(hidden);
+    };
+
     // The scroll container is replaced when the view (or data) changes, so
     // start with the bar visible instead of keeping the previous view's state.
-    setTopBarHidden(false);
+    setHidden(false);
 
     let lastScrollTop = 0;
     let lastTarget: EventTarget | null = null;
@@ -503,7 +522,7 @@ export function DeskTableLayout({
       if (target !== lastTarget) {
         lastTarget = target;
         lastScrollTop = nextScrollTop;
-        setTopBarHidden(nextScrollTop > 0);
+        setHidden(nextScrollTop > 0);
         return;
       }
 
@@ -513,7 +532,7 @@ export function DeskTableLayout({
       if (Math.abs(delta) < 4) return;
 
       // Hide while scrolling down past the top, reveal when scrolling up.
-      setTopBarHidden(nextScrollTop > 0 && delta > 0);
+      setHidden(nextScrollTop > 0 && delta > 0);
       lastScrollTop = nextScrollTop;
     };
 
@@ -526,21 +545,12 @@ export function DeskTableLayout({
   return (
     <div
       ref={layoutRef}
-      style={
-        {
-          // The header already sits below the topbar because of the scroll
-          // container's padding-top, so the visible offset is 0. When the bar
-          // hides, the header slides up by the bar height with it.
-          "--desk-topbar-offset": topBarHidden
-            ? "calc(-1 * var(--desk-topbar-height, 0px))"
-            : "0px",
-        } as CSSProperties
-      }
-      className="relative flex h-dvh min-w-0 flex-col overflow-hidden"
+      data-topbar-hidden={topBarHidden || undefined}
+      className="group/desk relative flex h-dvh min-w-0 flex-col overflow-hidden"
     >
       <div
         ref={topBarRef}
-        className={`absolute inset-x-0 top-0 z-30 transition-transform duration-200 ease-out ${
+        className={`absolute inset-x-0 top-0 z-30 transition-transform duration-200 ease-out will-change-transform ${
           topBarHidden ? "-translate-y-full" : "translate-y-0"
         }`}
       >

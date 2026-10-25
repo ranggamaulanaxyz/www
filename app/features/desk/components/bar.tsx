@@ -13,7 +13,7 @@ export function useTopBarHidden() {
 
 export function TopBar({
   children,
-  hidden: hiddenProp,
+  ...props
 }: {
   children: ReactNode;
   /**
@@ -22,8 +22,8 @@ export function TopBar({
    */
   hidden?: boolean;
 }) {
-  const hiddenFromScroll = useTopBarHidden();
-  const hidden = hiddenProp ?? hiddenFromScroll;
+  const shouldHide = useTopBarHidden();
+  const hidden = props.hidden ?? shouldHide;
   const ref = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
