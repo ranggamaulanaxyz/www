@@ -12,10 +12,17 @@ import {
 } from "react-router";
 import type { Product } from "../types/product";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Item, ItemContent, ItemTitle } from "~/components/ui/item";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "~/components/ui/item";
 import { parseFilter } from "~/features/desk/services/filter";
 import { formatCurrency } from "~/utils/tools";
 import type { Handle } from "~/features/desk/types/route";
+import { Package2Icon } from "lucide-react";
 
 const columns: DeskTableColumns<Product> = [
   { accessorKey: "code", header: "Kode" },
@@ -88,8 +95,12 @@ function ProductItemSkeleton({ rows = 8 }: { rows?: number }) {
 function ProductItem({ product }: { product: Product }) {
   return (
     <Item variant="outline">
+      <ItemMedia variant="icon">
+        <Package2Icon />
+      </ItemMedia>
       <ItemContent>
         <ItemTitle>{product.name}</ItemTitle>
+        <ItemDescription>{formatCurrency(product.salePrice)}</ItemDescription>
       </ItemContent>
     </Item>
   );
