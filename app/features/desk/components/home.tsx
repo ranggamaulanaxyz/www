@@ -1,19 +1,5 @@
-import { ArrowRightIcon, CommandIcon, Link2Icon, LinkIcon } from "lucide-react";
+import { CommandIcon } from "lucide-react";
 import { Link } from "react-router";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarGroup,
-  AvatarGroupCount,
-  AvatarImage,
-} from "~/components/ui/avatar";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
 import PartnerSummaryCard from "~/features/partner/components/partner-summary-card";
 
 export default function Home() {

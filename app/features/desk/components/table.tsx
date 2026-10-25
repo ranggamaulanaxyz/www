@@ -3,17 +3,17 @@ import {
   columnSizingFeature,
   columnResizingFeature,
   useTable,
-  type ColumnDef,
   type ColumnSizingState,
   type RowData,
 } from "@tanstack/react-table";
 import {
+  Fragment,
   Suspense,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
-  type ReactNode,
+  type CSSProperties,
 } from "react";
 import {
   Table,
@@ -28,10 +28,25 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { TopBar } from "./bar";
 import DeskHeader from "./header";
 import { Button } from "~/components/ui/button";
-import { Await, Link } from "react-router";
-import { PlusIcon } from "lucide-react";
+import { Await, Link, useSearchParams } from "react-router";
+import { LayoutGridIcon, PlusIcon, TableIcon } from "lucide-react";
 import { useIsMobile } from "~/hooks/use-mobile";
 import FilterInputQuery from "./filter-input-query";
+import { ButtonGroup } from "~/components/ui/button-group";
+import type {
+  DeskTableContentProps,
+  DeskTableGridProps,
+  DeskTableLayoutProps,
+  DeskTableProps,
+  DeskTableSkeletonProps,
+  DeskTableView,
+} from "../types/table";
+
+export type {
+  DeskTableColumn,
+  DeskTableColumns,
+  DeskTableView,
+} from "../types/table";
 
 export const features = tableFeatures({
   columnSizingFeature,
@@ -42,28 +57,6 @@ export const features = tableFeatures({
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-export type DeskTableColumn<TData extends RowData> = ColumnDef<
-  typeof features,
-  TData
->;
-
-export type DeskTableColumns<TData extends RowData> = Array<
-  DeskTableColumn<TData>
->;
-
-type DeskTableProps<TData extends RowData> = {
-  /** Resolved rows, or a pending loader promise (streamed with `<Await>`). */
-  data: TData[] | Promise<TData[]>;
-  columns: DeskTableColumns<TData>;
-  /** Optional footer content, rendered in a sticky row below the table. */
-  footer?: ReactNode;
-  /** Shown when there are no rows. */
-  emptyMessage?: ReactNode;
-  /** Number of skeleton rows rendered while the data is pending. */
-  skeletonRows?: number;
-  showCreateButton?: boolean;
-};
-
 function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
   return typeof (value as Promise<T> | null)?.then === "function";
 }
@@ -71,58 +64,91 @@ function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
 export default function DeskTable<TData extends RowData>({
   data,
   columns,
-  footer,
-  emptyMessage,
+  renderFooter,
   skeletonRows = 10,
   showCreateButton,
+  renderGridItem,
+  renderGridFallback,
+  renderEmpty,
 }: DeskTableProps<TData>) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isMobile = useIsMobile();
+
+  const gridEnabled = renderGridItem != null;
+  const requestedView = searchParams.get("view");
+  // An explicit `?view=` wins; otherwise mobile starts on grid and desktop on
+  // table.
+  const view: DeskTableView = !gridEnabled
+    ? "table"
+    : requestedView === "grid" || requestedView === "table"
+      ? requestedView
+      : isMobile
+        ? "grid"
+        : "table";
+
+  const setView = (nextView: DeskTableView) => {
+    if (!gridEnabled) return;
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.set("view", nextView);
+    setSearchParams(nextSearchParams, { replace: true });
+  };
+
+  const renderItems = (resolved: TData[]) =>
+    view === "grid" && renderGridItem ? (
+      <DeskTableGrid
+        items={resolved}
+        renderItem={renderGridItem}
+        renderEmpty={renderEmpty}
+      />
+    ) : (
+      <DeskTableContent
+        data={resolved}
+        columns={columns}
+        renderFooter={renderFooter}
+        renderEmpty={renderEmpty}
+        skeletonRows={skeletonRows}
+      />
+    );
+
+  const fallback =
+    view === "grid" ? (
+      renderGridFallback ? (
+        // Custom fallbacks are placed inside the standard grid container so
+        // the scroll area and column layout stay identical.
+        <div data-desk-scroll className={GRID_CLASSES}>
+          {renderGridFallback(skeletonRows)}
+        </div>
+      ) : (
+        <DeskTableGridSkeleton rows={skeletonRows} />
+      )
+    ) : (
+      <DeskTableSkeleton columns={columns} rows={skeletonRows} />
+    );
+
   return (
-    <DeskTableLayout showCreateButton={showCreateButton}>
-      <Suspense
-        fallback={<DeskTableSkeleton columns={columns} rows={skeletonRows} />}
-      >
+    <DeskTableLayout
+      showCreateButton={showCreateButton}
+      view={gridEnabled ? view : undefined}
+      onViewChange={gridEnabled ? setView : undefined}
+    >
+      <Suspense fallback={fallback}>
         {isPromiseLike(data) ? (
-          <Await resolve={data}>
-            {(resolved) => (
-              <DeskTableContent
-                data={resolved}
-                columns={columns}
-                footer={footer}
-                emptyMessage={emptyMessage}
-                skeletonRows={skeletonRows}
-              />
-            )}
-          </Await>
+          <Await resolve={data}>{(resolved) => renderItems(resolved)}</Await>
         ) : (
-          <DeskTableContent
-            data={data}
-            columns={columns}
-            footer={footer}
-            emptyMessage={emptyMessage}
-            skeletonRows={skeletonRows}
-          />
+          renderItems(data)
         )}
       </Suspense>
     </DeskTableLayout>
   );
 }
 
-type DeskTableContentProps<TData extends RowData> = {
-  data: TData[];
-  columns: DeskTableColumns<TData>;
-  footer?: ReactNode;
-  emptyMessage?: ReactNode;
-  skeletonRows?: number;
-};
-
 function DeskTableContent<TData extends RowData>({
   data,
   columns,
-  footer,
-  emptyMessage = "Tidak ada data",
-  skeletonRows = 10,
+  renderFooter,
+  renderEmpty = "Tidak ada data",
 }: DeskTableContentProps<TData>) {
-  const { FlexRender, ...table } = useTable({
+  const table = useTable({
     features,
     columns,
     data,
@@ -234,8 +260,13 @@ function DeskTableContent<TData extends RowData>({
   const rows = table.getRowModel().rows;
 
   return (
-    <Table ref={tableRef} className="table-fixed">
-      <TableHeader className="bg-background sticky top-0 z-10 shadow">
+    <Table
+      ref={tableRef}
+      className="table-fixed"
+      containerClassName="h-full pt-[var(--desk-topbar-height,0px)]"
+      containerStyle={{ maxHeight: "none" }}
+    >
+      <TableHeader className="bg-background sticky top-(--desk-topbar-offset,0px) z-10 shadow transition-[top] duration-200 ease-out">
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => {
@@ -250,7 +281,9 @@ function DeskTableContent<TData extends RowData>({
                     width: `calc(var(--header-${header.id}-size) * 1px)`,
                   }}
                 >
-                  {header.isPlaceholder ? null : <FlexRender header={header} />}
+                  {header.isPlaceholder ? null : (
+                    <table.FlexRender header={header} />
+                  )}
                   {!header.isPlaceholder && header.column.getCanResize() && (
                     <button
                       type="button"
@@ -283,7 +316,7 @@ function DeskTableContent<TData extends RowData>({
               colSpan={visibleColumnCount}
               className="text-muted-foreground h-24 text-center"
             >
-              {emptyMessage}
+              {renderEmpty}
             </TableCell>
           </TableRow>
         ) : (
@@ -294,21 +327,21 @@ function DeskTableContent<TData extends RowData>({
                   key={cell.id}
                   className="overflow-hidden text-ellipsis first:pl-4 last:pr-4"
                 >
-                  <FlexRender cell={cell} />
+                  <table.FlexRender cell={cell} />
                 </TableCell>
               ))}
             </TableRow>
           ))
         )}
       </TableBody>
-      {footer ? (
+      {renderFooter ? (
         <TableFooter className="sticky bottom-0 z-10">
           <TableRow>
             <TableCell
               colSpan={visibleColumnCount}
               className="first:pl-4 last:pr-4"
             >
-              {footer}
+              {renderFooter(table)}
             </TableCell>
           </TableRow>
         </TableFooter>
@@ -341,10 +374,44 @@ function SkeletonRows({
   ));
 }
 
-type DeskTableSkeletonProps<TData extends RowData> = {
-  columns: DeskTableColumns<TData>;
-  rows?: number;
-};
+const GRID_CLASSES =
+  "grid h-full auto-rows-max grid-cols-1 gap-3 overflow-y-auto p-4 pt-[calc(var(--desk-topbar-height,0px)+1rem)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+
+function DeskTableGrid<TData extends RowData>({
+  items,
+  renderItem,
+  renderEmpty = "Tidak ada data",
+}: DeskTableGridProps<TData>) {
+  if (items.length === 0) {
+    return (
+      <div className="text-muted-foreground flex h-full items-center justify-center p-4 pt-[calc(var(--desk-topbar-height,0px)+1rem)] text-sm">
+        {renderEmpty}
+      </div>
+    );
+  }
+
+  return (
+    <div data-desk-scroll className={GRID_CLASSES}>
+      {items.map((item, index) => (
+        <Fragment key={index}>{renderItem(item, index)}</Fragment>
+      ))}
+    </div>
+  );
+}
+
+export function DeskTableGridSkeleton({ rows = 8 }: { rows?: number }) {
+  return (
+    <div data-desk-scroll className={GRID_CLASSES}>
+      {Array.from({ length: rows }).map((_, index) => (
+        <div key={index} className="space-y-3 border p-4">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-3 w-1/2" />
+          <Skeleton className="h-3 w-3/4" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 /**
  * Table-shaped loading state. Used as the Suspense fallback inside
@@ -355,8 +422,12 @@ export function DeskTableSkeleton<TData extends RowData>({
   rows = 10,
 }: DeskTableSkeletonProps<TData>) {
   return (
-    <Table className="table-fixed">
-      <TableHeader className="bg-background sticky top-0 z-10 shadow">
+    <Table
+      className="table-fixed"
+      containerClassName="h-full pt-[var(--desk-topbar-height,0px)]"
+      containerStyle={{ maxHeight: "none" }}
+    >
+      <TableHeader className="bg-background sticky top-(--desk-topbar-offset,0px) z-10 shadow transition-[top] duration-200 ease-out">
         <TableRow>
           {columns.map((column, index) => (
             <TableHead
@@ -375,16 +446,12 @@ export function DeskTableSkeleton<TData extends RowData>({
   );
 }
 
-type DeskTableLayoutProps = {
-  children: ReactNode;
-  showCreateButton?: boolean;
-  createTo?: string;
-};
-
 export function DeskTableLayout({
   children,
   showCreateButton = true,
   createTo = "new",
+  view,
+  onViewChange,
 }: DeskTableLayoutProps) {
   const isMobile = useIsMobile();
   const topBarRef = useRef<HTMLDivElement>(null);
@@ -396,8 +463,9 @@ export function DeskTableLayout({
       const topBar = topBarRef.current;
       const layout = layoutRef.current;
       if (!topBar || !layout) return;
-      // The sticky topbar keeps its space in the flow, so the table
-      // container's available height is always viewport minus topbar.
+      // The topbar overlays the scroll area, so its height is exposed as a
+      // variable for the scroll container's top padding and the sticky header
+      // offset.
       layout.style.setProperty(
         "--desk-topbar-height",
         `${topBar.getBoundingClientRect().height}px`,
@@ -418,13 +486,18 @@ export function DeskTableLayout({
     const layout = layoutRef.current;
     if (!layout) return;
 
+    // The scroll container is replaced when the view (or data) changes, so
+    // start with the bar visible instead of keeping the previous view's state.
+    setTopBarHidden(false);
+
     let lastScrollTop = 0;
     let lastTarget: EventTarget | null = null;
 
     const onScroll = (event: Event) => {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
-      if (!target.matches('[data-slot="table-container"]')) return;
+      if (!target.matches('[data-slot="table-container"], [data-desk-scroll]'))
+        return;
 
       const nextScrollTop = target.scrollTop;
       if (target !== lastTarget) {
@@ -434,8 +507,13 @@ export function DeskTableLayout({
         return;
       }
 
+      // Ignore tiny scroll deltas so momentum/rubber-band jitter cannot flip
+      // the topbar back and forth mid-animation.
+      const delta = nextScrollTop - lastScrollTop;
+      if (Math.abs(delta) < 4) return;
+
       // Hide while scrolling down past the top, reveal when scrolling up.
-      setTopBarHidden(nextScrollTop > 0 && nextScrollTop > lastScrollTop);
+      setTopBarHidden(nextScrollTop > 0 && delta > 0);
       lastScrollTop = nextScrollTop;
     };
 
@@ -443,35 +521,75 @@ export function DeskTableLayout({
     // this keeps working when the loading skeleton is swapped for the table.
     layout.addEventListener("scroll", onScroll, true);
     return () => layout.removeEventListener("scroll", onScroll, true);
-  }, []);
+  }, [view]);
 
   return (
-    <div ref={layoutRef} className="flex min-w-0 flex-col">
+    <div
+      ref={layoutRef}
+      style={
+        {
+          // The header already sits below the topbar because of the scroll
+          // container's padding-top, so the visible offset is 0. When the bar
+          // hides, the header slides up by the bar height with it.
+          "--desk-topbar-offset": topBarHidden
+            ? "calc(-1 * var(--desk-topbar-height, 0px))"
+            : "0px",
+        } as CSSProperties
+      }
+      className="relative flex h-dvh min-w-0 flex-col overflow-hidden"
+    >
       <div
         ref={topBarRef}
-        className={`grid shrink-0 transition-[grid-template-rows] duration-200 ease-linear ${
-          topBarHidden ? "grid-rows-[0fr]" : "grid-rows-[1fr]"
+        className={`absolute inset-x-0 top-0 z-30 transition-transform duration-200 ease-out ${
+          topBarHidden ? "-translate-y-full" : "translate-y-0"
         }`}
       >
-        <div className="min-h-0 overflow-hidden">
-          <TopBar hidden={topBarHidden}>
-            <DeskHeader>
-              <div className="flex items-center gap-4 px-4">
-                {!isMobile && <FilterInputQuery />}
-                {showCreateButton && (
+        {/* Hiding is driven by this wrapper's transform so the scroll area
+            never grows/shrinks. The inner bar must not animate its own offset
+            too, otherwise both motions stack and look jittery. */}
+        <TopBar hidden={false}>
+          <DeskHeader>
+            <div className="flex items-center gap-4 px-4">
+              {!isMobile && <FilterInputQuery />}
+              {view && onViewChange && (
+                <ButtonGroup>
                   <Button
-                    nativeButton={false}
-                    render={
-                      <Link to={createTo}>
-                        <PlusIcon /> Tambah
-                      </Link>
-                    }
-                  />
-                )}
-              </div>
-            </DeskHeader>
-          </TopBar>
-        </div>
+                    type="button"
+                    size="icon-sm"
+                    variant={view === "table" ? "secondary" : "ghost"}
+                    aria-pressed={view === "table"}
+                    aria-label="Tampilan tabel"
+                    title="Tampilan tabel"
+                    onClick={() => onViewChange("table")}
+                  >
+                    <TableIcon />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon-sm"
+                    variant={view === "grid" ? "secondary" : "ghost"}
+                    aria-pressed={view === "grid"}
+                    aria-label="Tampilan grid"
+                    title="Tampilan grid"
+                    onClick={() => onViewChange("grid")}
+                  >
+                    <LayoutGridIcon />
+                  </Button>
+                </ButtonGroup>
+              )}
+              {showCreateButton && (
+                <Button
+                  nativeButton={false}
+                  render={
+                    <Link to={createTo}>
+                      <PlusIcon /> Tambah
+                    </Link>
+                  }
+                />
+              )}
+            </div>
+          </DeskHeader>
+        </TopBar>
       </div>
       <div className="min-h-0 flex-1">{children}</div>
     </div>
