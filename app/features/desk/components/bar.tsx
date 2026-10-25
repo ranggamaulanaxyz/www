@@ -1,52 +1,44 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { cn } from "cn";
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { useScroll } from "~/hooks/use-scroll";
 
-/**
- * The topbar only hides while the page is actually scrolled and the user is
- * scrolling up, so it is always visible at the top of the page.
- */
-export function useTopBarHidden() {
-  const { scrolled, scrolledUp } = useScroll();
-  return scrolled && scrolledUp;
-}
-
 export function TopBar({
   children,
-  ...props
+  hidden,
 }: {
   children: ReactNode;
-  /**
-   * Controlled visibility. When omitted, the topbar follows the window scroll
-   * position (the default behavior for page-scrolled layouts).
-   */
-  hidden?: boolean;
+  hidden: boolean;
 }) {
-  const shouldHide = useTopBarHidden();
-  const hidden = props.hidden ?? shouldHide;
   const ref = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
-  // Measure the real height instead of guessing, and keep it in sync when the
-  // topbar content changes (e.g. mobile filter input hidden on resize).
   useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    const element = ref.current;
+    if (!element) return;
 
-    const update = () => setHeight(el.offsetHeight);
+    const update = () => setHeight(element.offsetHeight);
     update();
 
     const observer = new ResizeObserver(update);
-    observer.observe(el);
+    observer.observe(element);
     return () => observer.disconnect();
   }, []);
 
   return (
     <div
       ref={ref}
-      data-hidden={hidden || undefined}
-      className="sticky top-0 z-50 transition-[top] duration-200 ease-linear"
-      style={{ top: hidden ? -height : 0 }}
+      data-hidden={!hidden}
+      className={cn(
+        "sticky top-0 z-50 transition-transform duration-200 ease-linear",
+        hidden ? "-translate-y-full" : "translate-y-0",
+      )}
     >
       {children}
     </div>

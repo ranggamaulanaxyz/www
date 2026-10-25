@@ -87,7 +87,7 @@ export default function DevelopmentErrorContent({ error }: { error: Error }) {
         </tr>
       </table>
       {error.stack && (
-        <pre className="rounded bg-gray-900 p-4 text-red-200">
+        <pre className="overflow-auto rounded bg-gray-900 p-4 text-red-200">
           {renderColoredStack(error.stack)}
         </pre>
       )}

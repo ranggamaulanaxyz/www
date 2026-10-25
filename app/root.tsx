@@ -41,12 +41,13 @@ export function meta() {
   return [{ title: "Rangga Maulana" }];
 }
 
-export async function loader() {
+export async function loader({ request }: Route.LoaderArgs) {
   return {
     env: {
       SUPABASE_URL: getEnv("SUPABASE_URL"),
       SUPABASE_PUBLISHABLE_KEY: getEnv("SUPABASE_PUBLISHABLE_KEY"),
     },
+    userAgent: request.headers.get("user-agent") || "",
   };
 }
 
@@ -113,26 +114,29 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     return <DevelopmentErrorContent error={error} />;
   }
 
-  return <UnexpectedErrorContent><div className="flex gap-2">
-            <Button onClick={() => navigate(-1)}>
-              <ArrowLeftIcon />
-              Kembali
-            </Button>
-            <Button
-              variant="secondary"
-              nativeButton={false}
-              render={
-                <Link to="/" title="Halaman Utama">
-                  <HomeIcon />
-                  Halaman Utama
-                </Link>
-              }
-            />
-            
-            <Button 
-              variant="secondary" onClick={() => navigate(0)}>
-              <RefreshCwIcon />
-              Muat Ulang
-            </Button>
-          </div></UnexpectedErrorContent>;
+  return (
+    <UnexpectedErrorContent>
+      <div className="flex gap-2">
+        <Button onClick={() => navigate(-1)}>
+          <ArrowLeftIcon />
+          Kembali
+        </Button>
+        <Button
+          variant="secondary"
+          nativeButton={false}
+          render={
+            <Link to="/" title="Halaman Utama">
+              <HomeIcon />
+              Halaman Utama
+            </Link>
+          }
+        />
+
+        <Button variant="secondary" onClick={() => navigate(0)}>
+          <RefreshCwIcon />
+          Muat Ulang
+        </Button>
+      </div>
+    </UnexpectedErrorContent>
+  );
 }

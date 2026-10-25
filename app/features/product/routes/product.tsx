@@ -4,23 +4,55 @@ import DeskTable, {
 import type { Route } from "./+types/product";
 import { supabaseClientContext } from "~/context";
 import { getProducts } from "../services/product";
-import { data, type ShouldRevalidateFunctionArgs } from "react-router";
+import {
+  data,
+  Outlet,
+  useOutlet,
+  type ShouldRevalidateFunctionArgs,
+} from "react-router";
 import type { Product } from "../types/product";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Item, ItemContent, ItemTitle } from "~/components/ui/item";
+import { parseFilter } from "~/features/desk/services/filter";
+import { formatCurrency } from "~/utils/tools";
+import type { Handle } from "~/features/desk/types/route";
 
-const currencyFormatter = new Intl.NumberFormat("id-ID", {
-  style: "currency",
-  currency: "IDR",
-  maximumFractionDigits: 0,
-});
+const columns: DeskTableColumns<Product> = [
+  { accessorKey: "code", header: "Kode" },
+  { accessorKey: "name", header: "Nama" },
+  {
+    accessorKey: "costPrice",
+    header: "Harga Beli",
+    cell: ({ getValue }) => formatCurrency(getValue<number>()),
+    meta: { align: "right" },
+  },
+  {
+    accessorKey: "salePrice",
+    header: "Harga Jual",
+    cell: ({ getValue }) => formatCurrency(getValue<number>()),
+    meta: { align: "right" },
+  },
+];
 
-export async function loader({ context }: Route.LoaderArgs) {
+const title = "Produk";
+
+export const handle = { breadcrumb: { label: title } } satisfies Handle<
+  Route.ComponentProps["loaderData"]
+>;
+
+export function meta() {
+  return [{ title }];
+}
+
+export async function loader({ url, context }: Route.LoaderArgs) {
+  const filterOptions = parseFilter(url.searchParams);
   const supabase = context.get(supabaseClientContext);
   // Return a pending promise instead of awaiting it so the table can render
   // its skeleton while the products stream in.
-  const productResult = getProducts(supabase).then((result) => result.products);
-  return data({ productResult });
+  const promiseGetProducts = getProducts(supabase, filterOptions);
+  const promiseProducts = promiseGetProducts.then((result) => result.products);
+  const promiseMetadata = promiseGetProducts.then((result) => result.metadata);
+  return data({ promiseProducts, promiseMetadata });
 }
 
 // Switching between table/grid only changes `?view=`, so skip the refetch and
@@ -39,13 +71,6 @@ export function shouldRevalidate({
   }
   return defaultShouldRevalidate;
 }
-
-const columns: DeskTableColumns<Product> = [
-  { accessorKey: "code", header: "Kode" },
-  { accessorKey: "name", header: "Nama" },
-  { accessorKey: "costPrice", header: "Harga Beli" },
-  { accessorKey: "salePrice", header: "Harga Jual" },
-];
 
 function ProductItemSkeleton({ rows = 8 }: { rows?: number }) {
   return Array.from({ length: rows }).map((_, index) => (
@@ -70,11 +95,18 @@ function ProductItem({ product }: { product: Product }) {
   );
 }
 
-export default function RouteProduct({ loaderData }: Route.ComponentProps) {
-  const { productResult } = loaderData;
+export default function ProductList({ loaderData }: Route.ComponentProps) {
+  const { promiseProducts, promiseMetadata } = loaderData;
+
+  const outlet = useOutlet();
+  if (outlet) {
+    return <Outlet />;
+  }
+
   return (
     <DeskTable
-      data={productResult}
+      data={promiseProducts}
+      metadata={promiseMetadata}
       columns={columns}
       showCreateButton={true}
       renderGridItem={(item) => <ProductItem product={item} />}

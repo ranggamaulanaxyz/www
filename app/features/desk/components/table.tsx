@@ -47,6 +47,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "~/components/ui/empty";
+import DeskPagination from "./pagination";
+import { parseFilter } from "../services/filter";
 
 export type {
   DeskTableColumn,
@@ -67,37 +69,65 @@ function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
   return typeof (value as Promise<T> | null)?.then === "function";
 }
 
-export default function DeskTable<TData extends RowData>({
-  data,
-  columns,
-  renderFooter,
-  skeletonRows = 10,
-  showCreateButton,
-  renderGridItem,
-  renderGridFallback,
-  renderEmpty,
-}: DeskTableProps<TData>) {
-  const [searchParams, setSearchParams] = useSearchParams();
+function useView({ enableGridView }: { enableGridView: boolean }) {
   const isMobile = useIsMobile();
-
-  const gridEnabled = renderGridItem != null;
+  const [searchParams, setSearchParams] = useSearchParams();
   const requestedView = searchParams.get("view");
-  // An explicit `?view=` wins; otherwise mobile starts on grid and desktop on
-  // table.
-  const view: DeskTableView = !gridEnabled
+  const view: DeskTableView = !enableGridView
     ? "table"
     : requestedView === "grid" || requestedView === "table"
       ? requestedView
       : isMobile
         ? "grid"
         : "table";
-
   const setView = (nextView: DeskTableView) => {
-    if (!gridEnabled) return;
+    if (!enableGridView) return;
     const nextSearchParams = new URLSearchParams(searchParams);
     nextSearchParams.set("view", nextView);
     setSearchParams(nextSearchParams, { replace: true });
   };
+
+  return { view, setView, gridViewEnabled: enableGridView };
+}
+
+function usePagination(
+  data:
+    | { from: number; to: number; count: number }
+    | Promise<{ from: number; to: number; count: number }>,
+) {
+  const [searchParams] = useSearchParams();
+  const filterOptions = parseFilter(searchParams);
+  const [state, setState] = useState({
+    from: filterOptions.from,
+    to: filterOptions.to,
+    count: 0,
+  });
+
+  useEffect(() => {
+    const resolveData = async () => {
+      const { from, to, count } = await data;
+      setState({ from, to, count });
+    };
+    resolveData();
+  }, [searchParams]);
+
+  return [state, setState] as const;
+}
+
+export default function DeskTable<TData extends RowData>({
+  data,
+  metadata,
+  columns,
+  skeletonRows = 10,
+  showCreateButton,
+  renderFooter,
+  renderGridItem,
+  renderGridFallback,
+  renderEmpty,
+}: DeskTableProps<TData>) {
+  const { view, setView, gridViewEnabled } = useView({
+    enableGridView: renderGridItem !== null,
+  });
 
   const renderItems = (resolved: TData[]) =>
     view === "grid" && renderGridItem ? (
@@ -131,11 +161,14 @@ export default function DeskTable<TData extends RowData>({
       <DeskTableSkeleton columns={columns} rows={skeletonRows} />
     );
 
+  const [pagination] = usePagination(metadata);
+
   return (
     <DeskTableLayout
       showCreateButton={showCreateButton}
-      view={gridEnabled ? view : undefined}
-      onViewChange={gridEnabled ? setView : undefined}
+      pagination={pagination}
+      view={gridViewEnabled ? view : undefined}
+      onViewChange={gridViewEnabled ? setView : undefined}
     >
       <Suspense fallback={fallback}>
         {isPromiseLike(data) ? (
@@ -422,7 +455,7 @@ export function DeskTableSkeleton<TData extends RowData>({
       containerClassName="h-full pt-[var(--desk-topbar-height,0px)]"
       containerStyle={{ maxHeight: "none" }}
     >
-      <TableHeader className="bg-background sticky top-[var(--desk-topbar-height,0px)] z-10 translate-y-0 shadow transition-transform duration-200 ease-out will-change-transform group-data-[topbar-hidden=true]/desk:-translate-y-[var(--desk-topbar-height,0px)]">
+      <TableHeader className="bg-background sticky top-(--desk-topbar-height,0px) z-10 translate-y-0 shadow transition-transform duration-200 ease-out will-change-transform group-data-[topbar-hidden=true]/desk:-translate-y-(--desk-topbar-height,0px)">
         <TableRow>
           {columns.map((column, index) => (
             <TableHead
@@ -460,147 +493,76 @@ export function DeskTableEmpty() {
 export function DeskTableLayout({
   children,
   showCreateButton = true,
-  createTo = "new",
+  createLink,
   view,
   onViewChange,
+  pagination,
 }: DeskTableLayoutProps) {
   const isMobile = useIsMobile();
-  const topBarRef = useRef<HTMLDivElement>(null);
-  const layoutRef = useRef<HTMLDivElement>(null);
-  const [topBarHidden, setTopBarHidden] = useState(false);
-  // Mirrors `topBarHidden` so scroll events can skip redundant state updates.
-  const topBarHiddenRef = useRef(false);
-
-  useIsomorphicLayoutEffect(() => {
-    const updateHeight = () => {
-      const topBar = topBarRef.current;
-      const layout = layoutRef.current;
-      if (!topBar || !layout) return;
-      // The topbar overlays the scroll area, so its height is exposed as a
-      // variable for the scroll container's top padding and the sticky header
-      // offset.
-      layout.style.setProperty(
-        "--desk-topbar-height",
-        `${topBar.getBoundingClientRect().height}px`,
-      );
-    };
-
-    updateHeight();
-    const observer = new ResizeObserver(updateHeight);
-    if (topBarRef.current) {
-      observer.observe(topBarRef.current);
-    }
-    return () => observer.disconnect();
-  }, []);
-
-  // The table scrolls inside its own container instead of the window, so the
-  // topbar has to follow that container rather than `useTopBarHidden`.
-  useIsomorphicLayoutEffect(() => {
-    const layout = layoutRef.current;
-    if (!layout) return;
-
-    const setHidden = (hidden: boolean) => {
-      if (topBarHiddenRef.current === hidden) return;
-      topBarHiddenRef.current = hidden;
-      setTopBarHidden(hidden);
-    };
-
-    // The scroll container is replaced when the view (or data) changes, so
-    // start with the bar visible instead of keeping the previous view's state.
-    setHidden(false);
-
-    let lastScrollTop = 0;
-    let lastTarget: EventTarget | null = null;
-
-    const onScroll = (event: Event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
-      if (!target.matches('[data-slot="table-container"], [data-desk-scroll]'))
-        return;
-
-      const nextScrollTop = target.scrollTop;
-      if (target !== lastTarget) {
-        lastTarget = target;
-        lastScrollTop = nextScrollTop;
-        setHidden(nextScrollTop > 0);
-        return;
-      }
-
-      // Ignore tiny scroll deltas so momentum/rubber-band jitter cannot flip
-      // the topbar back and forth mid-animation.
-      const delta = nextScrollTop - lastScrollTop;
-      if (Math.abs(delta) < 4) return;
-
-      // Hide while scrolling down past the top, reveal when scrolling up.
-      setHidden(nextScrollTop > 0 && delta > 0);
-      lastScrollTop = nextScrollTop;
-    };
-
-    // Scroll does not bubble, but it does go through the capture phase, so
-    // this keeps working when the loading skeleton is swapped for the table.
-    layout.addEventListener("scroll", onScroll, true);
-    return () => layout.removeEventListener("scroll", onScroll, true);
-  }, [view]);
+  const [searchParams] = useSearchParams();
 
   return (
-    <div
-      ref={layoutRef}
-      data-topbar-hidden={topBarHidden || undefined}
-      className="group/desk relative flex h-dvh min-w-0 flex-col overflow-hidden"
-    >
-      <div
-        ref={topBarRef}
-        className={`absolute inset-x-0 top-0 z-30 transition-transform duration-200 ease-out will-change-transform ${
-          topBarHidden ? "-translate-y-full" : "translate-y-0"
-        }`}
-      >
-        {/* Hiding is driven by this wrapper's transform so the scroll area
-            never grows/shrinks. The inner bar must not animate its own offset
-            too, otherwise both motions stack and look jittery. */}
-        <TopBar hidden={false}>
-          <DeskHeader>
-            <div className="flex items-center gap-4 px-4">
-              {!isMobile && <FilterInputQuery />}
-              {view && onViewChange && (
-                <ButtonGroup>
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    variant={view === "table" ? "secondary" : "ghost"}
-                    aria-pressed={view === "table"}
-                    aria-label="Tampilan tabel"
-                    title="Tampilan tabel"
-                    onClick={() => onViewChange("table")}
-                  >
-                    <TableIcon />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    variant={view === "grid" ? "secondary" : "ghost"}
-                    aria-pressed={view === "grid"}
-                    aria-label="Tampilan grid"
-                    title="Tampilan grid"
-                    onClick={() => onViewChange("grid")}
-                  >
-                    <LayoutGridIcon />
-                  </Button>
-                </ButtonGroup>
-              )}
-              {showCreateButton && (
+    <div className="group/desk flex h-dvh min-w-0 flex-col overflow-hidden">
+      <TopBar hidden={false}>
+        <DeskHeader>
+          <div className="flex items-center gap-2 px-4">
+            {!isMobile && (
+              <div className="hidden items-center md:flex">
+                <DeskPagination {...pagination} />
+              </div>
+            )}
+            {view && onViewChange && (
+              <ButtonGroup>
                 <Button
-                  nativeButton={false}
-                  render={
-                    <Link to={createTo}>
-                      <PlusIcon /> Tambah
-                    </Link>
-                  }
-                />
-              )}
-            </div>
-          </DeskHeader>
-        </TopBar>
-      </div>
+                  type="button"
+                  size="icon"
+                  variant={view === "table" ? "secondary" : "ghost"}
+                  aria-pressed={view === "table"}
+                  aria-label="Tampilan tabel"
+                  title="Tampilan tabel"
+                  onClick={() => onViewChange("table")}
+                >
+                  <TableIcon />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant={view === "grid" ? "secondary" : "ghost"}
+                  aria-pressed={view === "grid"}
+                  aria-label="Tampilan kanban"
+                  title="Tampilan kanban"
+                  onClick={() => onViewChange("grid")}
+                >
+                  <LayoutGridIcon />
+                </Button>
+              </ButtonGroup>
+            )}
+
+            {!isMobile && (
+              <div className="hidden items-center md:flex">
+                <FilterInputQuery />
+              </div>
+            )}
+            {showCreateButton && (
+              <Button
+                nativeButton={false}
+                render={
+                  <Link
+                    to={
+                      createLink ?? {
+                        pathname: "new",
+                        search: searchParams.toString(),
+                      }
+                    }
+                  >
+                    <PlusIcon /> Tambah
+                  </Link>
+                }
+              />
+            )}
+          </div>
+        </DeskHeader>
+      </TopBar>
       <div className="min-h-0 flex-1">{children}</div>
     </div>
   );

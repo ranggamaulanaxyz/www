@@ -18,3 +18,17 @@ export function getInitials(name: string, maxChars: number = 2): string {
 
   return initials.slice(0, Math.floor(maxChars)).join("").toUpperCase();
 }
+
+export function formatCurrency(
+  value: number | bigint,
+  currency: string = "IDR",
+  locales: Intl.LocalesArgument = "id-ID",
+) {
+  const formater = new Intl.NumberFormat(locales, {
+    style: "currency",
+    currency: currency,
+    maximumFractionDigits: 0,
+  });
+
+  return formater.format(value);
+}

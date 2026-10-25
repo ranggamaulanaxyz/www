@@ -46,7 +46,9 @@ export default [
       ]),
     ]),
 
-    route("/desk/products", "features/product/routes/product.tsx"),
+    route("/desk/products", "features/product/routes/product.tsx", [
+      route("new", "features/product/routes/product-create.tsx"),
+    ]),
 
     route("/desk/me", "features/auth/routes/account.tsx"),
   ]),

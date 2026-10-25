@@ -1,6 +1,7 @@
 import type { ColumnDef, ReactTable, RowData } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 import type { features } from "../components/table";
+import type { LinkProps } from "react-router";
 
 export type DeskTableColumn<TData extends RowData> = ColumnDef<
   typeof features,
@@ -18,10 +19,13 @@ export type DeskTableInstance<TData extends RowData> = ReactTable<
 
 export type DeskTableView = "table" | "grid";
 
+export type DeskTableMetadata = { from: number; to: number; count: number };
+
 export type DeskTableProps<TData extends RowData> = {
   /** Resolved rows, or a pending loader promise (streamed with `<Await>`). */
   data: TData[] | Promise<TData[]>;
   columns: DeskTableColumns<TData>;
+  metadata: DeskTableMetadata | Promise<DeskTableMetadata>;
   /** Renders the sticky footer with access to the table instance. */
   renderFooter?: (table: DeskTableInstance<TData>) => ReactNode;
   /** Number of skeleton rows rendered while the data is pending. */
@@ -58,7 +62,8 @@ export type DeskTableSkeletonProps<TData extends RowData> = {
 export type DeskTableLayoutProps = {
   children: ReactNode;
   showCreateButton?: boolean;
-  createTo?: string;
+  createLink?: LinkProps["to"];
   view?: DeskTableView;
   onViewChange?: (view: DeskTableView) => void;
+  pagination: { from: number; to: number; count: number };
 };
