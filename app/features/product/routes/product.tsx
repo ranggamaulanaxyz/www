@@ -1,4 +1,5 @@
 import DeskTable, {
+  deskColumnBuilder,
   type DeskTableColumns,
 } from "~/features/desk/components/table";
 import type { Route } from "./+types/product";
@@ -6,6 +7,7 @@ import { supabaseClientContext } from "~/context";
 import { getProducts } from "../services/product";
 import {
   data,
+  Link,
   Outlet,
   useOutlet,
   type ShouldRevalidateFunctionArgs,
@@ -22,27 +24,62 @@ import {
 import { parseFilter } from "~/features/desk/services/filter";
 import { formatCurrency } from "~/utils/tools";
 import type { Handle } from "~/features/desk/types/route";
-import { BookMarkedIcon, Package2Icon } from "lucide-react";
-import { useIsMobile } from "~/hooks/use-mobile";
-
-const columns: DeskTableColumns<Product> = [
-  { accessorKey: "code", header: "Kode" },
-  { accessorKey: "name", header: "Nama" },
-  {
-    accessorKey: "costPrice",
-    header: "Harga Beli",
-    cell: ({ getValue }) => formatCurrency(getValue<number>()),
-    meta: { align: "right" },
-  },
-  {
-    accessorKey: "salePrice",
-    header: "Harga Jual",
-    cell: ({ getValue }) => formatCurrency(getValue<number>()),
-    meta: { align: "right" },
-  },
-];
+import {
+  BookMarkedIcon,
+  EllipseIcon,
+  EllipsisVerticalIcon,
+  Package2Icon,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Button } from "~/components/ui/button";
 
 const title = "Produk";
+
+const columnBuilder = deskColumnBuilder<Product>();
+const columns = columnBuilder.columns([
+  columnBuilder.accessor("code", { header: "Kode" }),
+  columnBuilder.accessor("name", { header: "Nama" }),
+  columnBuilder.accessor("costPrice", {
+    header: "Harga Beli",
+    cell: ({ getValue }) => formatCurrency(getValue()),
+    meta: { align: "right" },
+  }),
+  columnBuilder.accessor("salePrice", {
+    header: "Harga Jual",
+    cell: ({ getValue }) => formatCurrency(getValue()),
+    meta: { align: "right" },
+  }),
+  columnBuilder.display({
+    id: "actions",
+    cell: ({ row }) => {
+      const product = row.original;
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon">
+                <EllipsisVerticalIcon />
+              </Button>
+            }
+          />
+          <DropdownMenuContent>
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                render={<Link to={`/desk/products/${product.id}`}>Buka</Link>}
+              />
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  }),
+]);
 
 export const handle = {
   breadcrumb: { label: title },

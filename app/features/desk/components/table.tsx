@@ -5,6 +5,7 @@ import {
   useTable,
   type ColumnSizingState,
   type RowData,
+  createColumnHelper,
 } from "@tanstack/react-table";
 import {
   Fragment,
@@ -60,6 +61,11 @@ export const features = tableFeatures({
   columnSizingFeature,
   columnResizingFeature,
 });
+
+export function deskColumnBuilder<TData extends RowData>() {
+  const helper = createColumnHelper<typeof features, TData>();
+  return helper;
+}
 
 // `useLayoutEffect` logs a warning while rendering on the server.
 const useIsomorphicLayoutEffect =
