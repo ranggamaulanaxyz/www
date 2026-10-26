@@ -32,3 +32,7 @@ export function formatCurrency(
 
   return formater.format(value);
 }
+
+export function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
+  return typeof (value as Promise<T> | null)?.then === "function";
+}

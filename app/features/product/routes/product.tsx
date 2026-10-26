@@ -38,6 +38,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
+import { DeskList } from "~/features/desk/components/list";
 
 const title = "Produk";
 
@@ -168,13 +169,10 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <DeskTable
+    <DeskList
       data={promiseProducts}
-      metadata={promiseMetadata}
       columns={columns}
-      showCreateButton={true}
-      renderGridItem={(item) => <ProductItem product={item} />}
-      renderGridFallback={(rows) => <ProductItemSkeleton rows={rows} />}
+      paginationData={promiseMetadata}
     />
   );
 }
