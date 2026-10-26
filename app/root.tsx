@@ -41,13 +41,12 @@ export function meta() {
   return [{ title: "Rangga Maulana" }];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader() {
   return {
     env: {
       SUPABASE_URL: getEnv("SUPABASE_URL"),
       SUPABASE_PUBLISHABLE_KEY: getEnv("SUPABASE_PUBLISHABLE_KEY"),
     },
-    userAgent: request.headers.get("user-agent") || "",
   };
 }
 

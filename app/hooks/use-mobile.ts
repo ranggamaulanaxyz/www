@@ -1,14 +1,10 @@
 import * as React from "react";
-import { useRouteLoaderData } from "react-router";
-import { isMobileUserAgent } from "~/utils/ua";
 
 const MOBILE_BREAKPOINT = 768;
 
 export function useIsMobile() {
-  const data = useRouteLoaderData("root");
-  const defaultIsMobile = isMobileUserAgent(data?.userAgent);
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
-    defaultIsMobile,
+    undefined,
   );
 
   React.useEffect(() => {
@@ -21,5 +17,5 @@ export function useIsMobile() {
     return () => mql.removeEventListener("change", onChange);
   }, []);
 
-  return !!isMobile;
+  return isMobile;
 }

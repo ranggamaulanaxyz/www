@@ -73,13 +73,15 @@ function useView({ enableGridView }: { enableGridView: boolean }) {
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedView = searchParams.get("view");
-  const view: DeskTableView = !enableGridView
-    ? "table"
-    : requestedView === "grid" || requestedView === "table"
-      ? requestedView
-      : isMobile
-        ? "grid"
-        : "table";
+
+  let view: DeskTableView = "table";
+  if (
+    enableGridView &&
+    (requestedView === "grid" || (requestedView !== "table" && isMobile))
+  ) {
+    view = "grid";
+  }
+
   const setView = (nextView: DeskTableView) => {
     if (!enableGridView) return;
     const nextSearchParams = new URLSearchParams(searchParams);
@@ -128,6 +130,7 @@ export default function DeskTable<TData extends RowData>({
   const { view, setView, gridViewEnabled } = useView({
     enableGridView: renderGridItem !== null,
   });
+  const [pagination] = usePagination(metadata);
 
   const renderItems = (resolved: TData[]) =>
     view === "grid" && renderGridItem ? (
@@ -160,8 +163,6 @@ export default function DeskTable<TData extends RowData>({
     ) : (
       <DeskTableSkeleton columns={columns} rows={skeletonRows} />
     );
-
-  const [pagination] = usePagination(metadata);
 
   return (
     <DeskTableLayout
@@ -503,7 +504,7 @@ export function DeskTableLayout({
 
   return (
     <div className="group/desk flex h-dvh min-w-0 flex-col overflow-hidden">
-      <TopBar hidden={false}>
+      <TopBar>
         <DeskHeader>
           <div className="flex items-center gap-2 px-4">
             {!isMobile && (
@@ -563,7 +564,7 @@ export function DeskTableLayout({
           </div>
         </DeskHeader>
       </TopBar>
-      <div className="min-h-0 flex-1">{children}</div>
+      <div className="min-h-0 flex-1">{isMobile !== undefined && children}</div>
     </div>
   );
 }

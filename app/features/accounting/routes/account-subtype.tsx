@@ -95,7 +95,6 @@ export async function loader({ url, context }: Route.LoaderArgs) {
 export async function action({ request, url, context }: Route.ActionArgs) {
   const formData = await request.formData();
 
-  console.log(formData.get("type"));
   const submission = parseWithZod(formData, { schema });
   if (submission.status !== "success") {
     return data({ lastResult: submission.reply() }, { status: 422 });

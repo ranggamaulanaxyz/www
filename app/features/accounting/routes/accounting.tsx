@@ -1,7 +1,14 @@
 import { Outlet } from "react-router";
 import type { Handle } from "~/features/desk/types/route";
 import type { Route } from "./+types/accounting";
-import { BookCheckIcon, BookMarkedIcon, BookOpen, BookOpenIcon, FolderTreeIcon, ListTree } from "lucide-react";
+import {
+  BookCheckIcon,
+  BookMarkedIcon,
+  BookOpen,
+  BookOpenIcon,
+  FolderTreeIcon,
+  ListTree,
+} from "lucide-react";
 
 export const handle = {
   breadcrumb: { label: "Akuntansi" },

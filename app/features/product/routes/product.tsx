@@ -22,7 +22,8 @@ import {
 import { parseFilter } from "~/features/desk/services/filter";
 import { formatCurrency } from "~/utils/tools";
 import type { Handle } from "~/features/desk/types/route";
-import { Package2Icon } from "lucide-react";
+import { BookMarkedIcon, Package2Icon } from "lucide-react";
+import { useIsMobile } from "~/hooks/use-mobile";
 
 const columns: DeskTableColumns<Product> = [
   { accessorKey: "code", header: "Kode" },
@@ -43,9 +44,23 @@ const columns: DeskTableColumns<Product> = [
 
 const title = "Produk";
 
-export const handle = { breadcrumb: { label: title } } satisfies Handle<
-  Route.ComponentProps["loaderData"]
->;
+export const handle = {
+  breadcrumb: { label: title },
+  sidebarRegistry: () => {
+    return [
+      {
+        items: [
+          {
+            icon: BookMarkedIcon,
+            label: "Jurnal Umum",
+            pathname: "/desk/accounting/moves",
+            matchPattern: "/desk/accounting/moves/*",
+          },
+        ],
+      },
+    ];
+  },
+} satisfies Handle<Route.ComponentProps["loaderData"]>;
 
 export function meta() {
   return [{ title }];
@@ -110,6 +125,7 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
   const { promiseProducts, promiseMetadata } = loaderData;
 
   const outlet = useOutlet();
+
   if (outlet) {
     return <Outlet />;
   }

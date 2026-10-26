@@ -2,7 +2,7 @@ import { cn } from "cn";
 import { type ReactNode } from "react";
 import { useIsMobile } from "~/hooks/use-mobile";
 
-export function TopBar({ children }: { children: ReactNode; hidden: boolean }) {
+export function TopBar({ children }: { children: ReactNode }) {
   return (
     <div
       className={cn(
