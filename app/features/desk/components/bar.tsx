@@ -1,6 +1,7 @@
 import { cn } from "cn";
 import { type ReactNode } from "react";
 import { useIsMobile } from "~/hooks/use-mobile";
+import DeskHeader from "./header";
 
 export function TopBar({ children }: { children: ReactNode }) {
   return (
@@ -20,4 +21,12 @@ export function BottomBar({ children }: { children: ReactNode }) {
     return null;
   }
   return <div className="fixed bottom-0 w-full">{children}</div>;
+}
+
+export function DeskTopBar({ children }: { children?: ReactNode }) {
+  return (
+    <TopBar>
+      <DeskHeader>{children}</DeskHeader>
+    </TopBar>
+  );
 }

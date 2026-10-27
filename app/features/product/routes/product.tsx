@@ -1,7 +1,4 @@
-import DeskTable, {
-  deskColumnBuilder,
-  type DeskTableColumns,
-} from "~/features/desk/components/table-old";
+import { deskColumnBuilder } from "~/features/desk/components/table";
 import type { Route } from "./+types/product";
 import { supabaseClientContext } from "~/context";
 import { getProducts } from "../services/product";
@@ -13,23 +10,10 @@ import {
   type ShouldRevalidateFunctionArgs,
 } from "react-router";
 import type { Product } from "../types/product";
-import { Skeleton } from "~/components/ui/skeleton";
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "~/components/ui/item";
 import { parseFilter } from "~/features/desk/services/filter";
 import { formatCurrency } from "~/utils/tools";
 import type { Handle } from "~/features/desk/types/route";
-import {
-  BookMarkedIcon,
-  EllipseIcon,
-  EllipsisVerticalIcon,
-  Package2Icon,
-} from "lucide-react";
+import { BookMarkedIcon, EllipsisVerticalIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,12 +22,14 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { DeskList } from "~/features/desk/components/list";
-import { DeskTableFallback } from "~/features/desk/components/table";
-import { hasAccess } from "~/features/desk/services/access";
-import { useSupabase } from "~/contexts/supabase";
-import { useCallback } from "react";
 import { useHasAccess } from "~/features/desk/hooks/use-has-access";
+import {
+  DeskList,
+  DeskListContent,
+  DeskListTopBar,
+} from "~/features/desk/components/list";
+import { DeskFilter } from "~/features/desk/components/filter";
+import { useListView } from "~/features/desk/hooks/use-list-view";
 
 const title = "Produk";
 
@@ -138,6 +124,7 @@ export function shouldRevalidate({
 export default function ProductList({ loaderData }: Route.ComponentProps) {
   const { promiseProducts, promiseMetadata } = loaderData;
   const showCreateButton = useHasAccess("insert", "products");
+  const { view, gridViewEnabled } = useListView(true);
 
   const outlet = useOutlet();
 
@@ -146,13 +133,18 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <DeskList
-      data={promiseProducts}
-      columns={columns}
-      metadata={promiseMetadata}
-      options={{
-        showCreateButton,
-      }}
-    ></DeskList>
+    <DeskList>
+      <DeskListTopBar metadata={promiseMetadata}>
+        <DeskFilter />
+      </DeskListTopBar>
+      <DeskListContent
+        data={promiseProducts}
+        columns={columns}
+        enableGridView={gridViewEnabled}
+        view={view}
+      >
+        d
+      </DeskListContent>
+    </DeskList>
   );
 }

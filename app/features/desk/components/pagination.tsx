@@ -17,17 +17,16 @@ import {
   PopoverHeader,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { Separator } from "~/components/ui/separator";
 import { Slider } from "~/components/ui/slider";
 
 export default function DeskPagination({
-  from,
-  to,
-  count,
+  from = 0,
+  to = 0,
+  count = 0,
 }: {
-  from: number;
-  to: number;
-  count: number;
+  from?: number;
+  to?: number;
+  count?: number;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [state, setState] = useState({ from, to, count, size: 0 });
