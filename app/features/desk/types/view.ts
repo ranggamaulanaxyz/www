@@ -17,6 +17,7 @@ export type DeskListProps<T extends RowData> = {
   columns: DeskListColumns<T>;
   children?: ReactNode;
   metadata: DeskListMetadata | Promise<DeskListMetadata>;
+  options?: { showCreateButton: boolean };
 };
 
 export type DeskListContentProps<T extends RowData> = {

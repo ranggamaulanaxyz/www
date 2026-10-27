@@ -46,7 +46,7 @@ export default function DeskHeader({ children }: { children?: ReactNode }) {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="flex">{children}</div>
+      <div className="flex items-center px-4">{children}</div>
     </header>
   );
 }

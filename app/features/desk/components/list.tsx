@@ -12,22 +12,68 @@ import DeskPagination from "./pagination";
 import type { RowData } from "@tanstack/react-table";
 import { DeskTable, DeskTableFallback } from "./table";
 import { Children, Suspense, type ReactNode } from "react";
-import { Await } from "react-router";
+import { Await, Link } from "react-router";
+import FilterInputQuery from "./filter-input-query";
+import { Button } from "~/components/ui/button";
+import { ButtonGroup } from "~/components/ui/button-group";
+import { LayoutGridIcon, TableIcon } from "lucide-react";
 
 export function DeskList<T extends RowData>({
   data,
   columns,
   children,
   metadata,
+  options,
 }: DeskListProps<T>) {
-  const { view } = useView(!!children);
+  const isMobile = useIsMobile();
+  const { view, setView } = useView(!!children);
   const [pagination] = usePagination(metadata);
 
   return (
     <div className="flex h-dvh min-w-0 flex-col overflow-hidden">
       <TopBar>
         <DeskHeader>
-          <DeskPagination {...pagination} />
+          <div className="flex items-center">
+            {isMobile === false && (
+              <div className="hidden items-center md:flex">
+                <FilterInputQuery /> <DeskPagination {...pagination} />
+              </div>
+            )}
+            <div className="flex items-center">
+              {!!children && (
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant={view === "table" ? "secondary" : "ghost"}
+                    aria-pressed={view === "table"}
+                    aria-label="Tampilan tabel"
+                    title="Tampilan tabel"
+                    onClick={() => setView("table")}
+                  >
+                    <TableIcon />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant={view === "grid" ? "secondary" : "ghost"}
+                    aria-pressed={view === "grid"}
+                    aria-label="Tampilan kanban"
+                    title="Tampilan kanban"
+                    onClick={() => setView("grid")}
+                  >
+                    <LayoutGridIcon />
+                  </Button>
+                </ButtonGroup>
+              )}
+              {options?.showCreateButton && (
+                <Button
+                  nativeButton={false}
+                  render={<Link to="/">Tambah</Link>}
+                />
+              )}
+            </div>
+          </div>
         </DeskHeader>
       </TopBar>
       <div className="min-h-0 flex-1">

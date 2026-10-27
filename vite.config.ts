@@ -12,4 +12,5 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  envPrefix: "PUBLIC_",
 });

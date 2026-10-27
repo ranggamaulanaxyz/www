@@ -39,6 +39,11 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { DeskList } from "~/features/desk/components/list";
+import { DeskTableFallback } from "~/features/desk/components/table";
+import { hasAccess } from "~/features/desk/services/access";
+import { useSupabase } from "~/contexts/supabase";
+import { useCallback } from "react";
+import { useHasAccess } from "~/features/desk/hooks/use-has-access";
 
 const title = "Produk";
 
@@ -132,6 +137,7 @@ export function shouldRevalidate({
 
 export default function ProductList({ loaderData }: Route.ComponentProps) {
   const { promiseProducts, promiseMetadata } = loaderData;
+  const showCreateButton = useHasAccess("insert", "products");
 
   const outlet = useOutlet();
 
@@ -144,6 +150,9 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
       data={promiseProducts}
       columns={columns}
       metadata={promiseMetadata}
+      options={{
+        showCreateButton,
+      }}
     ></DeskList>
   );
 }
