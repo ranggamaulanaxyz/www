@@ -1,6 +1,6 @@
 import type { ColumnDef, ReactTable, RowData } from "@tanstack/react-table";
 import type { ReactNode } from "react";
-import type { features } from "../components/table";
+import type { features } from "../components/table-old";
 import type { LinkProps } from "react-router";
 
 export type DeskTableColumn<TData extends RowData> = ColumnDef<

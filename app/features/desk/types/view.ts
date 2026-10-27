@@ -1,25 +1,27 @@
 import type { ColumnDef, RowData } from "@tanstack/react-table";
-import type { features } from "../components/table";
+import type { features } from "../components/table-old";
 import type { ReactNode } from "react";
 import type { Pagination } from "@supabase/supabase-js";
 import type { PaginationData } from "~/hooks/use-pagination";
 
 export type DeskListView = "table" | "grid";
 
-export type DeskListColumn<DeskListData extends RowData> = ColumnDef<
-  typeof features,
-  DeskListData
->;
+export type DeskListColumn<T extends RowData> = ColumnDef<typeof features, T>;
 
-export type DeskListColumns<DeskListData extends RowData> = Array<
-  DeskListColumn<DeskListData>
->;
+export type DeskListColumns<T extends RowData> = Array<DeskListColumn<T>>;
 
 export type DeskListMetadata = { from: number; to: number; count: number };
 
-export type DeskListProps<DeskListData extends RowData> = {
-  data: DeskListData[] | Promise<DeskListData[]>;
-  columns: DeskListColumns<DeskListData>;
+export type DeskListProps<T extends RowData> = {
+  data: T[] | Promise<T[]>;
+  columns: DeskListColumns<T>;
   children?: ReactNode;
   metadata: DeskListMetadata | Promise<DeskListMetadata>;
+};
+
+export type DeskListContentProps<T extends RowData> = {
+  view: DeskListView;
+  data: T[] | Promise<T[]>;
+  columns: DeskListColumns<T>;
+  children?: ReactNode;
 };

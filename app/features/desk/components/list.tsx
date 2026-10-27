@@ -1,37 +1,25 @@
-import {
-  tableFeatures,
-  columnSizingFeature,
-  columnResizingFeature,
-  createColumnHelper,
-  type RowData,
-  useTable,
-} from "@tanstack/react-table";
-import type { DeskListProps } from "../types/view";
+import type {
+  DeskListContentProps,
+  DeskListProps,
+  DeskListView,
+} from "../types/view";
 import { useView } from "../hooks/use-view";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { TopBar } from "./bar";
 import DeskHeader from "./header";
 import { usePagination } from "~/hooks/use-pagination";
 import DeskPagination from "./pagination";
+import type { RowData } from "@tanstack/react-table";
+import { DeskTable, DeskTableFallback } from "./table";
+import { Children, Suspense, type ReactNode } from "react";
+import { Await } from "react-router";
 
-const features = tableFeatures({
-  columnSizingFeature,
-  columnResizingFeature,
-});
-
-export function deskColumnBuilder<TData extends RowData>() {
-  const helper = createColumnHelper<typeof features, TData>();
-  return helper;
-}
-
-export function DeskList<DeskListData extends RowData>({
+export function DeskList<T extends RowData>({
   data,
   columns,
   children,
   metadata,
-}: DeskListProps<DeskListData>) {
-  const table = useTable({ features, data, columns });
-  const isMobile = useIsMobile();
+}: DeskListProps<T>) {
   const { view } = useView(!!children);
   const [pagination] = usePagination(metadata);
 
@@ -42,7 +30,36 @@ export function DeskList<DeskListData extends RowData>({
           <DeskPagination {...pagination} />
         </DeskHeader>
       </TopBar>
-      <div className="min-h-0 flex-1">{isMobile !== undefined && children}</div>
+      <div className="min-h-0 flex-1">
+        <DeskListContent view={view} data={data} columns={columns}>
+          {children}
+        </DeskListContent>
+      </div>
     </div>
+  );
+}
+
+export function DeskListContent<T extends RowData>({
+  view,
+  data,
+  columns,
+  children,
+}: DeskListContentProps<T>) {
+  const isMobile = useIsMobile();
+  if (isMobile === undefined) {
+    return null;
+  }
+
+  if (view === "grid" && children) {
+    return children;
+  }
+
+  return (
+    <Suspense fallback={<DeskTableFallback columns={columns} />}>
+      <Await
+        resolve={data}
+        children={(data) => <DeskTable data={data} columns={columns} />}
+      />
+    </Suspense>
   );
 }

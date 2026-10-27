@@ -15,7 +15,9 @@ function Table({
       data-slot="table-container"
       className={cn(
         "relative w-full min-w-0 overflow-x-auto overflow-y-auto",
-        "max-h-[calc(100dvh-var(--desk-topbar-height,0px))]",
+        // Follow the height of the nearest sized ancestor (the desk list's
+        // `flex-1` area) instead of computing from the viewport.
+        "max-h-full",
         containerClassName,
       )}
       style={containerStyle}

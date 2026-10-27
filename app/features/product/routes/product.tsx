@@ -1,7 +1,7 @@
 import DeskTable, {
   deskColumnBuilder,
   type DeskTableColumns,
-} from "~/features/desk/components/table";
+} from "~/features/desk/components/table-old";
 import type { Route } from "./+types/product";
 import { supabaseClientContext } from "~/context";
 import { getProducts } from "../services/product";
@@ -44,7 +44,7 @@ const title = "Produk";
 
 const columnBuilder = deskColumnBuilder<Product>();
 const columns = columnBuilder.columns([
-  columnBuilder.accessor("code", { header: "Kode" }),
+  columnBuilder.accessor("code", { header: "Kode", size: 100 }),
   columnBuilder.accessor("name", { header: "Nama" }),
   columnBuilder.accessor("costPrice", {
     header: "Harga Beli",
@@ -107,16 +107,14 @@ export function meta() {
 export async function loader({ url, context }: Route.LoaderArgs) {
   const filterOptions = parseFilter(url.searchParams);
   const supabase = context.get(supabaseClientContext);
-  // Return a pending promise instead of awaiting it so the table can render
-  // its skeleton while the products stream in.
+
   const promiseGetProducts = getProducts(supabase, filterOptions);
   const promiseProducts = promiseGetProducts.then((result) => result.products);
   const promiseMetadata = promiseGetProducts.then((result) => result.metadata);
+
   return data({ promiseProducts, promiseMetadata });
 }
 
-// Switching between table/grid only changes `?view=`, so skip the refetch and
-// keep the current rows on screen.
 export function shouldRevalidate({
   currentUrl,
   nextUrl,
@@ -132,33 +130,6 @@ export function shouldRevalidate({
   return defaultShouldRevalidate;
 }
 
-function ProductItemSkeleton({ rows = 8 }: { rows?: number }) {
-  return Array.from({ length: rows }).map((_, index) => (
-    <Item key={index} variant="outline">
-      <ItemContent>
-        <ItemTitle>
-          <Skeleton className="h-4 w-2/3" />
-        </ItemTitle>
-        <Skeleton className="h-3 w-1/2" />
-      </ItemContent>
-    </Item>
-  ));
-}
-
-function ProductItem({ product }: { product: Product }) {
-  return (
-    <Item variant="outline">
-      <ItemMedia variant="icon">
-        <Package2Icon />
-      </ItemMedia>
-      <ItemContent>
-        <ItemTitle>{product.name}</ItemTitle>
-        <ItemDescription>{formatCurrency(product.salePrice)}</ItemDescription>
-      </ItemContent>
-    </Item>
-  );
-}
-
 export default function ProductList({ loaderData }: Route.ComponentProps) {
   const { promiseProducts, promiseMetadata } = loaderData;
 
@@ -172,7 +143,7 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
     <DeskList
       data={promiseProducts}
       columns={columns}
-      paginationData={promiseMetadata}
-    />
+      metadata={promiseMetadata}
+    ></DeskList>
   );
 }
