@@ -2,6 +2,7 @@ import {
   tableFeatures,
   columnSizingFeature,
   columnResizingFeature,
+  rowSelectionFeature,
   createColumnHelper,
   type RowData,
   useTable,
@@ -12,14 +13,18 @@ import {
   type Cell_Core,
   type ColumnSizingState,
   type Table as TableInstance,
+  type ReactTable,
+  type TableFeatures,
 } from "@tanstack/react-table";
 import {
   Fragment,
   useLayoutEffect,
   useRef,
+  useState,
   type ReactNode,
   type RefObject,
 } from "react";
+import { Checkbox } from "~/components/ui/checkbox";
 import { Skeleton } from "~/components/ui/skeleton";
 import {
   Table,
@@ -29,10 +34,12 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import type { ListFeatures } from "../hooks/use-list";
 
 const features = tableFeatures({
   columnSizingFeature,
   columnResizingFeature,
+  rowSelectionFeature,
 });
 
 export type DeskTableFeatures = typeof features;
@@ -64,17 +71,36 @@ export function deskColumnBuilder<T extends RowData>() {
   return helper;
 }
 
-/**
- * Keeps the column size CSS variables in sync with the table state and fits
- * the columns to their container. Shared by the real table and its skeleton
- * so both distribute their widths the same way.
- */
-function useColumnSizing<T extends RowData>(
-  table: TableInstance<DeskTableFeatures, T>,
+const columnBuilder = deskColumnBuilder<any>();
+
+export const selectionColumn = columnBuilder.display({
+  id: "select",
+  header: ({ table }) => (
+    <Checkbox
+      checked={table.getIsAllPageRowsSelected()}
+      indeterminate={
+        table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()
+      }
+      onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+      aria-label="Pilih semua"
+    />
+  ),
+  cell: ({ row }) => (
+    <Checkbox
+      checked={row.getIsSelected()}
+      onCheckedChange={(value) => row.toggleSelected(!!value)}
+      aria-label="Pilih"
+    />
+  ),
+  enableResizing: false,
+  size: 20,
+});
+
+function useColumnSizing<TData extends RowData, TSelected>(
+  table: ReactTable<ListFeatures, TData, TSelected>,
   tableRef: RefObject<HTMLTableElement | null>,
+  onSynced: () => void,
 ) {
-  // Stable string that changes only when the set of columns changes, unlike
-  // the `columns` array itself.
   const columnKey = table
     .getAllLeafColumns()
     .map((column) => column.id)
@@ -83,78 +109,97 @@ function useColumnSizing<T extends RowData>(
   useLayoutEffect(() => {
     const tableEl = tableRef.current;
     const container = tableEl?.parentElement;
+
     if (!tableEl || !container) return;
 
     let lastWidth = -1;
     let writtenVars = new Set<string>();
+    let isSynced = false;
 
     const writeColumnSizeVars = () => {
       const nextVars = new Set<string>();
+
       for (const header of table.getFlatHeaders()) {
         const headerVar = `--header-${header.id}-size`;
+        const columnVar = `--col-${header.column.id}-size`;
+
         tableEl.style.setProperty(headerVar, String(header.getSize()));
+
+        tableEl.style.setProperty(columnVar, String(header.column.getSize()));
+
         nextVars.add(headerVar);
-        tableEl.style.setProperty(
-          `--col-${header.column.id}-size`,
-          String(header.column.getSize()),
-        );
+        nextVars.add(columnVar);
       }
-      // Drop vars for columns that no longer exist.
+
       for (const name of writtenVars) {
-        if (!nextVars.has(name)) tableEl.style.removeProperty(name);
+        if (!nextVars.has(name)) {
+          tableEl.style.removeProperty(name);
+        }
       }
+
       writtenVars = nextVars;
     };
 
-    // Distribute the container width across the columns, keeping the current
-    // size of each column as its share. This runs when the table is mounted
-    // (after the data has loaded), when the columns change, and whenever the
-    // container resizes.
     const fitToContainer = (force = false) => {
       const width = container.clientWidth;
+
       if (width <= 0 || (!force && width === lastWidth)) return;
+
       lastWidth = width;
 
-      const visibleColumns = table.getAllLeafColumns();
-      if (!visibleColumns.length) return;
+      const columns = table.getAllLeafColumns();
 
-      const currentTotal = visibleColumns.reduce(
+      if (!columns.length) return;
+
+      const currentTotal = columns.reduce(
         (sum, column) => sum + column.getSize(),
         0,
       );
+
       if (currentTotal <= 0) return;
 
       const next: ColumnSizingState = {};
       let assigned = 0;
-      visibleColumns.forEach((column, index) => {
+
+      columns.forEach((column, index) => {
         const minSize = column.columnDef.minSize ?? 20;
         const maxSize = column.columnDef.maxSize ?? Number.POSITIVE_INFINITY;
-        const isLast = index === visibleColumns.length - 1;
-        const raw = isLast
-          ? // Absorb rounding drift so the widths sum to the container width.
-            width - assigned
-          : (column.getSize() / currentTotal) * width;
+
+        const raw =
+          index === columns.length - 1
+            ? width - assigned
+            : (column.getSize() / currentTotal) * width;
+
         const size = Math.min(maxSize, Math.max(minSize, Math.round(raw)));
+
         next[column.id] = size;
         assigned += size;
       });
 
       table.setColumnSizing(next);
+      writeColumnSizeVars();
+
+      if (!isSynced) {
+        isSynced = true;
+        onSynced();
+      }
     };
 
     fitToContainer();
-    writeColumnSizeVars(); // paint before the atom subscription fires
 
     const { unsubscribe } =
       table.atoms.columnSizing.subscribe(writeColumnSizeVars);
 
-    // Defer the refit so we never write layout inside the observer callback
-    // (avoids "ResizeObserver loop completed with undelivered notifications").
     let frame = 0;
+
     const observer = new ResizeObserver(() => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => fitToContainer());
+
+      frame = requestAnimationFrame(() => {
+        fitToContainer();
+      });
     });
+
     observer.observe(container);
 
     return () => {
@@ -162,64 +207,65 @@ function useColumnSizing<T extends RowData>(
       unsubscribe();
       observer.disconnect();
     };
-    // `table` is intentionally omitted: `useTable()` returns a new wrapper
-    // object on every render, so depending on it would re-run this effect on
-    // every render, including while dragging. `columnKey` covers column
-    // definition changes and the component mounts after the data has loaded.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columnKey]);
 }
 
-export function DeskTable<T extends RowData>({
-  data,
-  columns,
-  columnOptions,
-}: DeskTableProps<T>) {
-  const { FlexRender, Subscribe, ...table } = useTable({
-    features,
-    data,
-    columns,
-    columnResizeMode: "onChange",
-    defaultColumn: columnOptions,
-  });
+export function DeskTable<TData extends RowData>({
+  table,
+  isLoading,
+}: {
+  table: ReactTable<ListFeatures, TData>;
+  isLoading?: boolean;
+}) {
   const tableRef = useRef<HTMLTableElement>(null);
 
-  useColumnSizing(table, tableRef);
+  const [isColumnSynced, setIsColumnSynced] = useState(false);
+
+  useColumnSizing(table, tableRef, () => {
+    setIsColumnSynced(true);
+  });
 
   return (
     <Table
       ref={tableRef}
-      className="w-full table-fixed"
+      className={`w-full table-fixed ${isColumnSynced ? "visible" : "invisible"}`}
       style={{ minWidth: table.getTotalSize() }}
     >
       <DeskTableHeader
         groups={table.getHeaderGroups()}
         render={(header) => (
           <Fragment>
-            <FlexRender header={header} />
-            <Subscribe
-              selector={(state) =>
-                state.columnResizing.isResizingColumn === header.column.id
-              }
-            >
-              {(isResizing) => (
-                <button
-                  onDoubleClick={() => header.column.resetSize()}
-                  onMouseDown={header.getResizeHandler()}
-                  onTouchStart={header.getResizeHandler()}
-                  className={`hover:bg-border absolute inset-y-0 right-0 z-10 w-2 cursor-col-resize touch-none bg-transparent select-none ${
-                    isResizing ? "bg-border" : ""
-                  }`}
-                />
-              )}
-            </Subscribe>
+            <table.FlexRender header={header} />
+            {header.column.getCanResize() && (
+              <table.Subscribe
+                selector={(state) =>
+                  state.columnResizing.isResizingColumn === header.column.id
+                }
+              >
+                {(isResizing) => (
+                  <button
+                    onDoubleClick={() => header.column.resetSize()}
+                    onMouseDown={header.getResizeHandler()}
+                    onTouchStart={header.getResizeHandler()}
+                    className={`hover:bg-border absolute inset-y-0 right-0 z-10 w-2 cursor-col-resize touch-none bg-transparent select-none ${
+                      isResizing ? "bg-border" : ""
+                    }`}
+                  />
+                )}
+              </table.Subscribe>
+            )}
           </Fragment>
         )}
       />
-      <DeskTableBody
-        rows={table.getRowModel().rows}
-        renderCell={(cell) => <FlexRender cell={cell} />}
-      />
+      {isLoading ? (
+        <DeskTableBodyFallback table={table} />
+      ) : (
+        <DeskTableBody
+          rows={table.getRowModel().rows}
+          renderCell={(cell) => <table.FlexRender cell={cell} />}
+        />
+      )}
     </Table>
   );
 }
@@ -229,7 +275,7 @@ export function DeskTableHeader<T extends RowData>({
   render,
 }: DeskTableHeaderProps<T>) {
   return (
-    <TableHeader className="bg-background shadow-border sticky top-0 shadow-[0_1px_0_0]">
+    <TableHeader className="bg-background shadow-border sticky top-0 z-40 shadow-[0_1px_0_0]">
       {groups.map((group) => (
         <TableRow key={group.id}>
           {group.headers.map((header) => (
@@ -290,48 +336,30 @@ export function DeskTableCell({
 
 const SKELETON_WIDTHS = ["w-16", "w-24", "w-20", "w-32", "w-28", "w-24"];
 
-export function DeskTableFallback<T extends RowData>({
-  columns,
+export function DeskTableBodyFallback<TData extends RowData>({
+  table,
   rowNumber = 10,
 }: {
-  columns: DeskTableColumns<T>;
+  table: ReactTable<ListFeatures, TData>;
   rowNumber?: number;
 }) {
-  const { FlexRender, ...table } = useTable({ features, data: [], columns });
-  const tableRef = useRef<HTMLTableElement>(null);
-  // Leaf columns carry the same ids as the header/cell ids used by DeskTable,
-  // so `column.id` is the `colId` the skeleton cells need.
-  const leafColumns = table.getAllLeafColumns();
-
-  // Distribute the skeleton columns exactly like the loaded table so the
-  // layout does not shift when the rows arrive.
-  useColumnSizing(table, tableRef);
+  const columns = table.getAllLeafColumns();
 
   return (
-    <Table
-      ref={tableRef}
-      className="w-full table-fixed"
-      style={{ minWidth: table.getTotalSize() }}
-    >
-      <DeskTableHeader
-        groups={table.getHeaderGroups()}
-        render={(header) => <FlexRender header={header} />}
-      />
-      <TableBody>
-        {Array.from({ length: rowNumber }).map((_, rowIndex) => (
-          <TableRow key={rowIndex}>
-            {leafColumns.map((column, columnIndex) => (
-              <DeskTableCell key={column.id} columnId={column.id}>
-                <Skeleton
-                  className={`h-4 ${
-                    SKELETON_WIDTHS[columnIndex % SKELETON_WIDTHS.length]
-                  }`}
-                />
-              </DeskTableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <TableBody>
+      {Array.from({ length: rowNumber }).map((_, rowIndex) => (
+        <TableRow key={rowIndex}>
+          {columns.map((column, columnIndex) => (
+            <DeskTableCell key={column.id} columnId={column.id}>
+              <Skeleton
+                className={`h-4 ${
+                  SKELETON_WIDTHS[columnIndex % SKELETON_WIDTHS.length]
+                }`}
+              />
+            </DeskTableCell>
+          ))}
+        </TableRow>
+      ))}
+    </TableBody>
   );
 }

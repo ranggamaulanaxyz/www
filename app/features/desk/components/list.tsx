@@ -1,11 +1,32 @@
-import { Suspense, type ReactNode } from "react";
+import { Fragment, Suspense, type ReactNode } from "react";
 import { DeskTopBar } from "./bar";
 import { useIsMobile } from "~/hooks/use-mobile";
 import DeskPagination from "./pagination";
 import { Await } from "react-router";
 import type { RowData } from "@tanstack/react-table";
-import { DeskTable, DeskTableFallback, type DeskTableColumns } from "./table";
+import { DeskTable, type DeskTableColumns } from "./table";
 import { useListView, type DeskListView } from "../hooks/use-list-view";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Button, buttonVariants } from "~/components/ui/button";
+import { EllipsisVerticalIcon, GridIcon, TableIcon } from "lucide-react";
+import type { VariantProps } from "class-variance-authority";
+import { Tabs, TabsContent } from "~/components/ui/tabs";
+import type { ListView } from "../hooks/use-list";
+import { cn } from "cn";
+import { Skeleton } from "~/components/ui/skeleton";
 
 type DeskListMetadata = {
   from: number;
@@ -15,14 +36,20 @@ type DeskListMetadata = {
 };
 
 type DeskListProps = {
+  view: ListView;
+  setView: (view: ListView) => void;
   children: ReactNode;
 };
 
-export function DeskList({ children }: DeskListProps) {
+export function DeskList({ view, children, setView }: DeskListProps) {
   return (
-    <div className="flex h-dvh min-w-0 flex-col overflow-hidden pb-12 md:pb-0">
+    <Tabs
+      className="flex h-dvh min-w-0 flex-col gap-0 overflow-hidden pb-12 md:pb-0"
+      value={view}
+      onValueChange={setView}
+    >
       {children}
-    </div>
+    </Tabs>
   );
 }
 
@@ -35,7 +62,7 @@ export function DeskListTopBar({ metadata, children }: DeskListTopBarProps) {
   return (
     <DeskTopBar>
       <div className="flex items-center">
-        <div className="hidden items-center md:flex">
+        <div className="hidden items-center gap-2 md:flex">
           <Suspense fallback={<DeskPagination />}>
             <Await
               resolve={metadata}
@@ -49,44 +76,82 @@ export function DeskListTopBar({ metadata, children }: DeskListTopBarProps) {
   );
 }
 
-type DeskListContentProps<T extends RowData> =
-  | {
-      data: T[] | Promise<T[]>;
-      columns: DeskTableColumns<T>;
-      enableGridView?: false;
-      view?: DeskListView;
-      children?: ReactNode;
-    }
-  | {
-      data: T[] | Promise<T[]>;
-      columns: DeskTableColumns<T>;
-      enableGridView: true;
-      view: DeskListView;
-      children: ReactNode;
-    };
+type DeskListContentProps = {
+  view: ListView;
+  children: ReactNode;
+};
 
-export function DeskListContent<T extends RowData>({
-  data,
-  columns,
-  children,
-}: DeskListContentProps<T>) {
-  const isMobile = useIsMobile();
-  const { view } = useListView(!!children);
+export function DeskListContent({ view, children }: DeskListContentProps) {
+  return <TabsContent value={view}>{children}</TabsContent>;
+}
 
-  if (isMobile === undefined) {
-    return null;
-  }
-
-  if (view === "grid" && children) {
-    return children;
-  }
-
+export function DeskListActions({
+  variant,
+}: {
+  variant?: VariantProps<typeof buttonVariants>["variant"];
+}) {
+  const { view, setView } = useListView(true);
   return (
-    <Suspense fallback={<DeskTableFallback columns={columns} />}>
-      <Await
-        resolve={data}
-        children={(data) => <DeskTable data={data} columns={columns} />}
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button variant={variant} size="icon">
+            <EllipsisVerticalIcon />
+          </Button>
+        }
       />
-    </Suspense>
+      <DropdownMenuContent>
+        <DropdownMenuGroup>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              {view == "table" ? <TableIcon /> : <GridIcon />}
+              <span>Tampilan</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Pilih Tampilan</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup
+                    value={view}
+                    onValueChange={(value) => setView(value)}
+                  >
+                    <DropdownMenuRadioItem value="table">
+                      <TableIcon /> Tabel
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="grid">
+                      <GridIcon /> Kanban
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+type DeskListGridProps = {
+  children: ReactNode;
+  isLoading?: boolean;
+};
+
+export function DeskListGrid({ children, isLoading }: DeskListGridProps) {
+  return (
+    <div
+      className={cn([
+        "grid gap-2 p-4",
+        "md:grid-cols-2 md:gap-3",
+        "lg:grid-cols-3",
+        "xl:grid-cols-4",
+      ])}
+    >
+      {isLoading
+        ? Array.from({ length: 12 }).map((_, index) => (
+            <Skeleton key={index} className="h-10" />
+          ))
+        : children}
+    </div>
   );
 }

@@ -1,4 +1,8 @@
-import { deskColumnBuilder } from "~/features/desk/components/table";
+import {
+  deskColumnBuilder,
+  DeskTable,
+  selectionColumn,
+} from "~/features/desk/components/table";
 import type { Route } from "./+types/product";
 import { supabaseClientContext } from "~/context";
 import { getProducts } from "../services/product";
@@ -11,9 +15,9 @@ import {
 } from "react-router";
 import type { Product } from "../types/product";
 import { parseFilter } from "~/features/desk/services/filter";
-import { formatCurrency } from "~/utils/tools";
+import { formatCurrency, sleep } from "~/utils/tools";
 import type { Handle } from "~/features/desk/types/route";
-import { BookMarkedIcon, EllipsisVerticalIcon } from "lucide-react";
+import { BookMarkedIcon, EllipsisVerticalIcon, PlusIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,19 +26,27 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { useHasAccess } from "~/features/desk/hooks/use-has-access";
+import { useList } from "~/features/desk/hooks/use-list";
 import {
   DeskList,
   DeskListContent,
+  DeskListGrid,
   DeskListTopBar,
 } from "~/features/desk/components/list";
 import { DeskFilter } from "~/features/desk/components/filter";
-import { useListView } from "~/features/desk/hooks/use-list-view";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "~/components/ui/item";
 
 const title = "Produk";
 
 const columnBuilder = deskColumnBuilder<Product>();
 const columns = columnBuilder.columns([
+  selectionColumn,
   columnBuilder.accessor("code", { header: "Kode", size: 100 }),
   columnBuilder.accessor("name", { header: "Nama" }),
   columnBuilder.accessor("costPrice", {
@@ -70,6 +82,8 @@ const columns = columnBuilder.columns([
         </DropdownMenu>
       );
     },
+    enableResizing: false,
+    size: 50,
   }),
 ]);
 
@@ -100,10 +114,10 @@ export async function loader({ url, context }: Route.LoaderArgs) {
   const supabase = context.get(supabaseClientContext);
 
   const promiseGetProducts = getProducts(supabase, filterOptions);
-  const promiseProducts = promiseGetProducts.then((result) => result.products);
-  const promiseMetadata = promiseGetProducts.then((result) => result.metadata);
+  const products = promiseGetProducts.then((result) => result.products);
+  const metadata = promiseGetProducts.then((result) => result.metadata);
 
-  return data({ promiseProducts, promiseMetadata });
+  return data({ data: products, metadata });
 }
 
 export function shouldRevalidate({
@@ -122,10 +136,13 @@ export function shouldRevalidate({
 }
 
 export default function ProductList({ loaderData }: Route.ComponentProps) {
-  const { promiseProducts, promiseMetadata } = loaderData;
-  const showCreateButton = useHasAccess("insert", "products");
-  const { view, gridViewEnabled } = useListView(true);
-
+  const { data, metadata } = loaderData;
+  const { table, rows, state, view, setView } = useList({
+    table: "products",
+    columns,
+    data,
+    metadata,
+  });
   const outlet = useOutlet();
 
   if (outlet) {
@@ -133,17 +150,27 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <DeskList>
-      <DeskListTopBar metadata={promiseMetadata}>
+    <DeskList view={view} setView={setView}>
+      <DeskListTopBar metadata={metadata}>
         <DeskFilter />
       </DeskListTopBar>
-      <DeskListContent
-        data={promiseProducts}
-        columns={columns}
-        enableGridView={gridViewEnabled}
-        view={view}
-      >
-        d
+      <DeskListContent view="table">
+        <DeskTable table={table} isLoading={state === "loading"} />
+      </DeskListContent>
+      <DeskListContent view="grid">
+        <DeskListGrid isLoading={state === "loading"}>
+          {rows.map((row) => (
+            <Item key={row.id} variant="outline">
+              <ItemContent>
+                <ItemTitle>{row.original.name}</ItemTitle>
+                <ItemDescription>
+                  {formatCurrency(row.original.costPrice)}
+                </ItemDescription>
+              </ItemContent>
+              <ItemActions>{row.renderValue("actasdasdions")}</ItemActions>
+            </Item>
+          ))}
+        </DeskListGrid>
       </DeskListContent>
     </DeskList>
   );
