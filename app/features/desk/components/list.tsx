@@ -1,5 +1,5 @@
 import { Fragment, Suspense, type ReactNode } from "react";
-import { DeskTopBar } from "./bar";
+import { DeskBottomBar, DeskTopBar } from "./bar";
 import { useIsMobile } from "~/hooks/use-mobile";
 import DeskPagination from "./pagination";
 import { Await } from "react-router";
@@ -21,12 +21,20 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button, buttonVariants } from "~/components/ui/button";
-import { EllipsisVerticalIcon, GridIcon, TableIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  EllipsisVerticalIcon,
+  GridIcon,
+  HomeIcon,
+  TableIcon,
+} from "lucide-react";
 import type { VariantProps } from "class-variance-authority";
 import { Tabs, TabsContent } from "~/components/ui/tabs";
 import type { ListView } from "../hooks/use-list";
 import { cn } from "cn";
 import { Skeleton } from "~/components/ui/skeleton";
+import { useNavigate } from "~/hooks/use-navigate";
 
 type DeskListMetadata = {
   from: number;
@@ -62,7 +70,7 @@ export function DeskListTopBar({ metadata, children }: DeskListTopBarProps) {
   return (
     <DeskTopBar>
       <div className="flex items-center">
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="items-center gap-2">
           <Suspense fallback={<DeskPagination />}>
             <Await
               resolve={metadata}
@@ -73,6 +81,45 @@ export function DeskListTopBar({ metadata, children }: DeskListTopBarProps) {
         {children}
       </div>
     </DeskTopBar>
+  );
+}
+
+type DeskListBottomBarProps = {
+  children?: ReactNode;
+};
+
+export function DeskListBottomBar({ children }: DeskListBottomBarProps) {
+  const { navigateBack, navigateNext, canGoBack, canGoNext } = useNavigate({
+    homeUrl: "/desk",
+  });
+  return (
+    <DeskBottomBar>
+      <div className="flex items-center">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-2xl"
+          onClick={() => navigateBack()}
+        >
+          {canGoBack ? (
+            <ArrowLeftIcon className="size-6" />
+          ) : (
+            <HomeIcon className="size-6" />
+          )}
+        </Button>
+      </div>
+      <div className="flex items-center">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-2xl"
+          onClick={() => navigateNext()}
+          disabled={!canGoNext}
+        >
+          <ArrowRightIcon className="size-6" />
+        </Button>
+      </div>
+    </DeskBottomBar>
   );
 }
 

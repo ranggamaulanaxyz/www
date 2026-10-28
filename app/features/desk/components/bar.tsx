@@ -30,3 +30,13 @@ export function DeskTopBar({ children }: { children?: ReactNode }) {
     </TopBar>
   );
 }
+
+export function DeskBottomBar({ children }: { children: ReactNode }) {
+  return (
+    <BottomBar>
+      <div className="bg-background grid grid-cols-5 rounded-2xl border-t p-2">
+        {children}
+      </div>
+    </BottomBar>
+  );
+}

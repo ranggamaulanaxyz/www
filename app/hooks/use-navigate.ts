@@ -1,39 +1,80 @@
-import { useCallback } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import {
   useLocation,
   useNavigate as useReactRouterNavigate,
 } from "react-router";
 
+function subscribeNavigation(callback: () => void) {
+  if (typeof window === "undefined" || !("navigation" in window)) {
+    return () => {};
+  }
+
+  const navigation = window.navigation;
+
+  navigation.addEventListener("currententrychange", callback);
+  navigation.addEventListener("navigatesuccess", callback);
+
+  return () => {
+    navigation.removeEventListener("currententrychange", callback);
+    navigation.removeEventListener("navigatesuccess", callback);
+  };
+}
+
+// Gunakan string primitif sebagai snapshot yang stabil.
+function getNavigationSnapshot() {
+  if (typeof window === "undefined" || !("navigation" in window)) {
+    return "0:0";
+  }
+
+  const navigation = window.navigation;
+  const entries = navigation.entries();
+  const index = entries.findIndex(
+    (entry) => entry.key === navigation.currentEntry?.key,
+  );
+
+  const canGoBack = index > 0;
+  const canGoNext = index >= 0 && index < entries.length - 1;
+
+  return `${Number(canGoBack)}:${Number(canGoNext)}`;
+}
+
+function getServerSnapshot() {
+  return "0:0";
+}
+
 export function useNavigate(options?: { homeUrl?: string }) {
   const navigate = useReactRouterNavigate();
   const location = useLocation();
 
-  const isBackHome = location.state?.fromApp !== true;
+  const snapshot = useSyncExternalStore(
+    subscribeNavigation,
+    getNavigationSnapshot,
+    getServerSnapshot,
+  );
 
-  // React Router tidak menyediakan API untuk memeriksa
-  // browser forward history secara langsung.
-  // Nilai ini merupakan fallback berdasarkan state navigasi.
-  const isLastPage = location.state?.hasNext !== true;
+  const [back, next] = snapshot.split(":");
+  const canGoBack = back === "1";
+  const canGoNext = next === "1";
 
   const navigateBack = useCallback(() => {
-    if (location.state?.fromApp) {
+    if (canGoBack) {
       navigate(-1);
     } else {
-      navigate(options?.homeUrl || "/");
+      navigate(options?.homeUrl ?? "/");
     }
-  }, [location.state, navigate]);
+  }, [canGoBack, navigate, options?.homeUrl]);
 
   const navigateNext = useCallback(() => {
-    if (!isLastPage) {
+    if (canGoNext) {
       navigate(1);
     }
-  }, [isLastPage, navigate]);
+  }, [canGoNext, navigate]);
 
   return {
     navigate,
     navigateBack,
     navigateNext,
-    isBackHome,
-    isLastPage,
+    canGoBack,
+    canGoNext,
   };
 }

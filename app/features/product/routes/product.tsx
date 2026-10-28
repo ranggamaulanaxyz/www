@@ -29,6 +29,7 @@ import { Button } from "~/components/ui/button";
 import { useList } from "~/features/desk/hooks/use-list";
 import {
   DeskList,
+  DeskListBottomBar,
   DeskListContent,
   DeskListGrid,
   DeskListTopBar,
@@ -41,6 +42,7 @@ import {
   ItemDescription,
   ItemTitle,
 } from "~/components/ui/item";
+import { DeskProductActionDropdown } from "../components/desk";
 
 const title = "Produk";
 
@@ -61,26 +63,8 @@ const columns = columnBuilder.columns([
   }),
   columnBuilder.display({
     id: "actions",
-    cell: ({ row }) => {
-      const product = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="ghost" size="icon">
-                <EllipsisVerticalIcon />
-              </Button>
-            }
-          />
-          <DropdownMenuContent>
-            <DropdownMenuGroup>
-              <DropdownMenuItem
-                render={<Link to={`/desk/products/${product.id}`}>Buka</Link>}
-              />
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    cell: ({ row: { original: product } }) => {
+      return <DeskProductActionDropdown product={product} />;
     },
     enableResizing: false,
     size: 50,
@@ -152,26 +136,31 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
   return (
     <DeskList view={view} setView={setView}>
       <DeskListTopBar metadata={metadata}>
-        <DeskFilter />
+        <div className="hidden items-center md:flex">
+          <DeskFilter />
+        </div>
       </DeskListTopBar>
       <DeskListContent view="table">
         <DeskTable table={table} isLoading={state === "loading"} />
       </DeskListContent>
       <DeskListContent view="grid">
         <DeskListGrid isLoading={state === "loading"}>
-          {rows.map((row) => (
+          {rows.map(({ original: product, ...row }) => (
             <Item key={row.id} variant="outline">
               <ItemContent>
-                <ItemTitle>{row.original.name}</ItemTitle>
+                <ItemTitle>{product.name}</ItemTitle>
                 <ItemDescription>
-                  {formatCurrency(row.original.costPrice)}
+                  {formatCurrency(product.costPrice)}
                 </ItemDescription>
               </ItemContent>
-              <ItemActions>{row.renderValue("actasdasdions")}</ItemActions>
+              <ItemActions>
+                <DeskProductActionDropdown product={product} />
+              </ItemActions>
             </Item>
           ))}
         </DeskListGrid>
       </DeskListContent>
+      <DeskListBottomBar />
     </DeskList>
   );
 }

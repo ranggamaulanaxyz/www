@@ -75,16 +75,18 @@ export default function DevelopmentErrorContent({ error }: { error: Error }) {
         <BugIcon /> Kesalahan Sistem!
       </h1>
       <table className="mb-2">
-        <tr>
-          <th className="text-left">Nama</th>
-          <td className="px-2">:</td>
-          <td>{error.name}</td>
-        </tr>
-        <tr>
-          <th className="text-left">Deskripsi</th>
-          <td className="px-2">:</td>
-          <td>{error.message}</td>
-        </tr>
+        <tbody>
+          <tr>
+            <th className="text-left">Nama</th>
+            <td className="px-2">:</td>
+            <td>{error.name}</td>
+          </tr>
+          <tr>
+            <th className="text-left">Deskripsi</th>
+            <td className="px-2">:</td>
+            <td>{error.message}</td>
+          </tr>
+        </tbody>
       </table>
       {error.stack && (
         <pre className="overflow-auto rounded bg-gray-900 p-4 text-red-200">
