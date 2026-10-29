@@ -43,7 +43,7 @@ import { useNavigate } from "~/hooks/use-navigate";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { ButtonGroup } from "~/components/ui/button-group";
-import { DeskFilter } from "./filter";
+import { DeskFilter, type DeskFilterState } from "./filter";
 
 type DeskListMetadata = {
   from: number;
@@ -65,6 +65,7 @@ type CanCreate =
 type DeskListContext = {
   view: ListView;
   setView: (view: ListView) => void;
+  filter: DeskFilterState;
 } & CanCreate;
 
 type DeskListProps = DeskListContext & {
@@ -134,7 +135,7 @@ type DeskListBottomBarProps = {
 };
 
 export function DeskListBottomBar({ children }: DeskListBottomBarProps) {
-  const { canCreate, onClickCreate } = useDeskList();
+  const { filter, canCreate, onClickCreate } = useDeskList();
   const { navigateBack, navigateNext, canGoBack, canGoNext } = useNavigate({
     homeUrl: "/desk",
   });
@@ -194,6 +195,7 @@ export function DeskListBottomBar({ children }: DeskListBottomBarProps) {
               <SearchIcon className="size-6" />
             </Button>
           }
+          {...filter}
         />
       </DeskBottomBarItem>
 

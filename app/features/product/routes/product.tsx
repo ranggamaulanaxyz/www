@@ -35,7 +35,7 @@ import {
   DeskListGrid,
   DeskListTopBar,
 } from "~/features/desk/components/list";
-import { DeskFilter } from "~/features/desk/components/filter";
+import { DeskFilter, useDeskFilter } from "~/features/desk/components/filter";
 import {
   Item,
   ItemActions,
@@ -129,6 +129,7 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
     data,
     metadata,
   });
+  const filter = useDeskFilter();
   const outlet = useOutlet();
 
   if (outlet) {
@@ -137,6 +138,7 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
 
   return (
     <DeskList
+      filter={filter}
       view={view}
       setView={setView}
       canCreate={canCreate}
@@ -144,7 +146,7 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
     >
       <DeskListTopBar metadata={metadata}>
         <div className="hidden items-center md:flex">
-          <DeskFilter />
+          <DeskFilter {...filter} />
         </div>
       </DeskListTopBar>
       <DeskListContent view="table">
