@@ -1,16 +1,18 @@
-import { Fragment, Suspense, type ReactNode } from "react";
-import { DeskBottomBar, DeskTopBar } from "./bar";
-import { useIsMobile } from "~/hooks/use-mobile";
+import {
+  createContext,
+  Suspense,
+  useContext,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
+import { DeskBottomBar, DeskBottomBarItem, DeskTopBar } from "./bar";
 import DeskPagination from "./pagination";
 import { Await } from "react-router";
-import type { RowData } from "@tanstack/react-table";
-import { DeskTable, type DeskTableColumns } from "./table";
-import { useListView, type DeskListView } from "../hooks/use-list-view";
+import { useListView } from "../hooks/use-list-view";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuRadioGroup,
@@ -24,9 +26,12 @@ import { Button, buttonVariants } from "~/components/ui/button";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  CommandIcon,
   EllipsisVerticalIcon,
   GridIcon,
   HomeIcon,
+  PlusIcon,
+  SearchIcon,
   TableIcon,
 } from "lucide-react";
 import type { VariantProps } from "class-variance-authority";
@@ -35,6 +40,10 @@ import type { ListView } from "../hooks/use-list";
 import { cn } from "cn";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useNavigate } from "~/hooks/use-navigate";
+import { ScrollArea } from "~/components/ui/scroll-area";
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { ButtonGroup } from "~/components/ui/button-group";
+import { DeskFilter } from "./filter";
 
 type DeskListMetadata = {
   from: number;
@@ -43,33 +52,60 @@ type DeskListMetadata = {
   size: number;
 };
 
-type DeskListProps = {
+type CanCreate =
+  | {
+      canCreate: true;
+      onClickCreate: (event?: MouseEvent<HTMLButtonElement>) => void;
+    }
+  | {
+      canCreate?: false;
+      onClickCreate?: (event?: MouseEvent<HTMLButtonElement>) => void;
+    };
+
+type DeskListContext = {
   view: ListView;
   setView: (view: ListView) => void;
+} & CanCreate;
+
+type DeskListProps = DeskListContext & {
   children: ReactNode;
 };
 
-export function DeskList({ view, children, setView }: DeskListProps) {
+const DeskListContext = createContext<DeskListContext | null>(null);
+
+function useDeskList() {
+  return useContext(DeskListContext) || ({} as DeskListContext);
+}
+
+export function DeskList({ children, view, setView, ...props }: DeskListProps) {
   return (
-    <Tabs
-      className="flex h-dvh min-w-0 flex-col gap-0 overflow-hidden pb-12 md:pb-0"
-      value={view}
-      onValueChange={setView}
-    >
-      {children}
-    </Tabs>
+    <DeskListContext.Provider value={{ view, setView, ...props }}>
+      <Tabs
+        className="flex h-dvh min-w-0 flex-col gap-0 overflow-hidden"
+        value={view}
+        onValueChange={setView}
+      >
+        {children}
+      </Tabs>
+    </DeskListContext.Provider>
   );
 }
 
 type DeskListTopBarProps = {
   metadata: DeskListMetadata | Promise<DeskListMetadata>;
   children?: ReactNode;
+  actions?: ReactNode;
 };
 
-export function DeskListTopBar({ metadata, children }: DeskListTopBarProps) {
+export function DeskListTopBar({
+  metadata,
+  children,
+  actions,
+}: DeskListTopBarProps) {
+  const { canCreate, onClickCreate } = useDeskList();
   return (
     <DeskTopBar>
-      <div className="flex items-center">
+      <div className="flex items-center gap-1">
         <div className="items-center gap-2">
           <Suspense fallback={<DeskPagination />}>
             <Await
@@ -79,6 +115,15 @@ export function DeskListTopBar({ metadata, children }: DeskListTopBarProps) {
           </Suspense>
         </div>
         {children}
+
+        <ButtonGroup className="hidden md:flex">
+          {canCreate && onClickCreate && (
+            <Button onClick={onClickCreate}>
+              <PlusIcon /> <span>Tambah</span>
+            </Button>
+          )}
+          <DeskListActions>{actions}</DeskListActions>
+        </ButtonGroup>
       </div>
     </DeskTopBar>
   );
@@ -89,12 +134,14 @@ type DeskListBottomBarProps = {
 };
 
 export function DeskListBottomBar({ children }: DeskListBottomBarProps) {
+  const { canCreate, onClickCreate } = useDeskList();
   const { navigateBack, navigateNext, canGoBack, canGoNext } = useNavigate({
     homeUrl: "/desk",
   });
+
   return (
     <DeskBottomBar>
-      <div className="flex items-center">
+      <DeskBottomBarItem>
         <Button
           variant="ghost"
           size="icon"
@@ -107,8 +154,8 @@ export function DeskListBottomBar({ children }: DeskListBottomBarProps) {
             <HomeIcon className="size-6" />
           )}
         </Button>
-      </div>
-      <div className="flex items-center">
+      </DeskBottomBarItem>
+      <DeskBottomBarItem>
         <Button
           variant="ghost"
           size="icon"
@@ -118,7 +165,39 @@ export function DeskListBottomBar({ children }: DeskListBottomBarProps) {
         >
           <ArrowRightIcon className="size-6" />
         </Button>
-      </div>
+      </DeskBottomBarItem>
+      <DeskBottomBarItem className="h-8">
+        {canCreate && onClickCreate ? (
+          <Button
+            variant="default"
+            size="icon-lg"
+            className="size-12 -translate-y-1/2 rounded shadow active:not-aria-[haspopup]:-translate-y-1/3"
+            onClick={(e) => onClickCreate(e)}
+          >
+            <PlusIcon className="size-6" />
+          </Button>
+        ) : (
+          <Button
+            variant="default"
+            size="icon-lg"
+            className="size-12 -translate-y-1/2 rounded shadow active:not-aria-[haspopup]:-translate-y-1/3"
+          >
+            <CommandIcon className="size-6" />
+          </Button>
+        )}
+      </DeskBottomBarItem>
+      <DeskBottomBarItem>
+        <DeskFilter
+          mode="dialog"
+          renderTrigger={
+            <Button variant="ghost" size="icon" className="rounded-2xl">
+              <SearchIcon className="size-6" />
+            </Button>
+          }
+        />
+      </DeskBottomBarItem>
+
+      {children}
     </DeskBottomBar>
   );
 }
@@ -129,21 +208,28 @@ type DeskListContentProps = {
 };
 
 export function DeskListContent({ view, children }: DeskListContentProps) {
-  return <TabsContent value={view}>{children}</TabsContent>;
+  return (
+    <TabsContent value={view}>
+      <ScrollArea className="h-[calc(100dvh-6rem)] md:h-[calc(100dvh-3rem)]">
+        {children}
+      </ScrollArea>
+    </TabsContent>
+  );
 }
 
 export function DeskListActions({
-  variant,
-}: {
-  variant?: VariantProps<typeof buttonVariants>["variant"];
-}) {
+  iconClassName,
+  size,
+  ...props
+}: ButtonPrimitive.Props &
+  VariantProps<typeof buttonVariants> & { iconClassName?: string }) {
   const { view, setView } = useListView(true);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant={variant} size="icon">
-            <EllipsisVerticalIcon />
+          <Button size={size || "icon"} {...props}>
+            <EllipsisVerticalIcon className={iconClassName} />
           </Button>
         }
       />

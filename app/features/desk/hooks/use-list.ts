@@ -10,6 +10,7 @@ import {
 import { useResolveData } from "./use-resolve-data";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { useSearchParams } from "react-router";
+import { useHasAccess } from "./use-has-access";
 
 const features = tableFeatures({
   columnSizingFeature,
@@ -25,26 +26,29 @@ type ListColumns<T extends RowData> = Array<ListColumn<T>>;
 export type ListView = "grid" | "table";
 
 type ListOptions<T extends RowData> = {
-  table: string;
+  resource: string;
   data: T[] | Promise<T[]>;
   columns: ListColumns<T>;
   metadata: any;
 };
 export function useList<T extends RowData & { id: string }>({
+  resource,
   data,
   columns,
 }: ListOptions<T>) {
-  const { data: resolvedData, state } = useResolveData(data);
-
   const isMobile = useIsMobile();
-
+  const { data: resolvedData, state } = useResolveData(data);
   const [searchParams, setSearchParams] = useSearchParams();
+  const canCreate = useHasAccess("insert", resource);
 
   const table = useTable({
     features,
     data: resolvedData ?? [],
     columns,
     getRowId: (row) => row.id,
+    defaultColumn: {
+      minSize: 60,
+    },
     columnResizeMode: "onChange",
   });
 
@@ -73,5 +77,6 @@ export function useList<T extends RowData & { id: string }>({
     state,
     view: getView(),
     setView,
+    canCreate,
   };
 }

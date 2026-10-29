@@ -1,10 +1,12 @@
 import { FilterIcon, SearchIcon, XIcon } from "lucide-react";
 import {
   useEffect,
+  useRef,
   useState,
   type ChangeEvent,
   type FocusEvent,
   type KeyboardEvent,
+  type MouseEvent,
 } from "react";
 import { useSearchParams } from "react-router";
 import { Field } from "~/components/ui/field";
@@ -18,6 +20,7 @@ import {
 export function useInputQuery() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("query") || "");
+  const skipBlurRef = useRef(false);
 
   useEffect(() => {
     setQuery(searchParams.get("query") || "");
@@ -34,6 +37,10 @@ export function useInputQuery() {
   };
 
   const queryOnBlur = (e: FocusEvent<HTMLInputElement>) => {
+    if (skipBlurRef.current) {
+      skipBlurRef.current = false;
+      return;
+    }
     const newSearchParams = new URLSearchParams(searchParams);
     if (e.target.value !== "") {
       newSearchParams.set("query", e.target.value);
@@ -53,10 +60,16 @@ export function useInputQuery() {
   };
 
   const clearQuery = () => {
+    skipBlurRef.current = false;
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete("query");
     setSearchParams(newSearchParams, { replace: true });
     setQuery("");
+  };
+
+  const clearQueryOnMouseDown = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    skipBlurRef.current = true;
   };
 
   return {
@@ -66,6 +79,7 @@ export function useInputQuery() {
     queryOnKeydown,
     querySearchParams: searchParams.get("query"),
     clearQuery,
+    clearQueryOnMouseDown,
   };
 }
 
@@ -77,6 +91,7 @@ export default function FilterInputQuery() {
     queryOnBlur,
     queryOnKeydown,
     clearQuery,
+    clearQueryOnMouseDown,
   } = useInputQuery();
   return (
     <form onSubmit={(e) => e.preventDefault()} className="flex-1">
@@ -93,7 +108,11 @@ export default function FilterInputQuery() {
           />
           <InputGroupAddon align="inline-start">
             {querySearchParams ? (
-              <InputGroupButton variant="destructive" onClick={clearQuery}>
+              <InputGroupButton
+                variant="destructive"
+                onClick={clearQuery}
+                onMouseDown={clearQueryOnMouseDown}
+              >
                 <XIcon />
               </InputGroupButton>
             ) : (

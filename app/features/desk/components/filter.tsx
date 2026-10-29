@@ -1,12 +1,24 @@
 import { FilterIcon, SearchIcon, XIcon } from "lucide-react";
 import {
   useEffect,
+  useRef,
   useState,
   type ChangeEvent,
   type FocusEvent,
   type KeyboardEvent,
+  type MouseEvent,
+  type ReactElement,
+  type ReactNode,
 } from "react";
 import { useSearchParams } from "react-router";
+import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Field } from "~/components/ui/field";
 import {
   InputGroup,
@@ -18,6 +30,7 @@ import {
 export function useFilterQuery() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("query") || "");
+  const skipBlurRef = useRef(false);
 
   useEffect(() => {
     setQuery(searchParams.get("query") || "");
@@ -34,6 +47,10 @@ export function useFilterQuery() {
   };
 
   const queryOnBlur = (e: FocusEvent<HTMLInputElement>) => {
+    if (skipBlurRef.current) {
+      skipBlurRef.current = false;
+      return;
+    }
     const newSearchParams = new URLSearchParams(searchParams);
     if (e.target.value !== "") {
       newSearchParams.set("query", e.target.value);
@@ -53,10 +70,16 @@ export function useFilterQuery() {
   };
 
   const clearQuery = () => {
+    skipBlurRef.current = false;
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete("query");
     setSearchParams(newSearchParams, { replace: true });
     setQuery("");
+  };
+
+  const clearQueryOnMouseDown = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    skipBlurRef.current = true;
   };
 
   return {
@@ -66,10 +89,19 @@ export function useFilterQuery() {
     queryOnKeydown,
     querySearchParams: searchParams.get("query"),
     clearQuery,
+    clearQueryOnMouseDown,
   };
 }
 
-export function DeskFilter() {
+export function DeskFilter({
+  children,
+  mode,
+  renderTrigger,
+}: {
+  children?: ReactNode;
+  mode?: "default" | "dialog";
+  renderTrigger?: ReactElement;
+}) {
   const {
     query,
     querySearchParams,
@@ -77,34 +109,68 @@ export function DeskFilter() {
     queryOnBlur,
     queryOnKeydown,
     clearQuery,
+    clearQueryOnMouseDown,
   } = useFilterQuery();
+
+  if (mode === "dialog") {
+    return (
+      <Dialog>
+        <DialogTrigger render={renderTrigger} />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pencarian</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <form onSubmit={(e) => e.preventDefault()} className="flex-1">
+    <form
+      onSubmit={(e) => e.preventDefault()}
+      className="w-full flex-1 md:w-60 lg:w-80"
+    >
       <Field orientation="horizontal">
         <InputGroup>
           <InputGroupInput
             id="query"
             type="text"
             value={query}
-            placeholder="Cari..."
+            placeholder="Ketik dan enter untuk mencari..."
             onChange={queryOnChange}
             onBlur={queryOnBlur}
             onKeyDown={queryOnKeydown}
           />
           <InputGroupAddon align="inline-start">
-            {querySearchParams ? (
-              <InputGroupButton variant="destructive" onClick={clearQuery}>
-                <XIcon />
-              </InputGroupButton>
+            {children ? (
+              <Dialog>
+                <DialogTrigger
+                  render={
+                    <InputGroupButton size="icon-sm">
+                      <FilterIcon />
+                    </InputGroupButton>
+                  }
+                />
+                <DialogContent className="sm:max-w-lg">
+                  {children}
+                </DialogContent>
+              </Dialog>
             ) : (
               <SearchIcon />
             )}
           </InputGroupAddon>
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton>
-              <FilterIcon />
-            </InputGroupButton>
-          </InputGroupAddon>
+          {query && (
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                variant="destructive"
+                size="icon-sm"
+                onClick={clearQuery}
+                onMouseDown={clearQueryOnMouseDown}
+              >
+                <XIcon />
+              </InputGroupButton>
+            </InputGroupAddon>
+          )}
         </InputGroup>
       </Field>
     </form>

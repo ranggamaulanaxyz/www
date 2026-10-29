@@ -35,6 +35,8 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import type { ListFeatures } from "../hooks/use-list";
+import { ArrowRightLeftIcon } from "lucide-react";
+import { Button } from "~/components/ui/button";
 
 const features = tableFeatures({
   columnSizingFeature,
@@ -244,14 +246,20 @@ export function DeskTable<TData extends RowData>({
                 }
               >
                 {(isResizing) => (
-                  <button
-                    onDoubleClick={() => header.column.resetSize()}
-                    onMouseDown={header.getResizeHandler()}
-                    onTouchStart={header.getResizeHandler()}
-                    className={`hover:bg-border absolute inset-y-0 right-0 z-10 w-2 cursor-col-resize touch-none bg-transparent select-none ${
-                      isResizing ? "bg-border" : ""
-                    }`}
-                  />
+                  <div className="absolute inset-y-0 right-0 z-10 flex h-full items-center">
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      onDoubleClick={() => header.column.resetSize()}
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                      className={`bg-background cursor-col-resize touch-none select-none ${
+                        isResizing ? "bg-border" : ""
+                      }`}
+                    >
+                      <ArrowRightLeftIcon className="size-3" />
+                    </Button>
+                  </div>
                 )}
               </table.Subscribe>
             )}

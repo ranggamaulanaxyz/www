@@ -31,12 +31,37 @@ export function DeskTopBar({ children }: { children?: ReactNode }) {
   );
 }
 
-export function DeskBottomBar({ children }: { children: ReactNode }) {
+export function DeskBottomBar({
+  className,
+  children,
+  ...props
+}: { children: ReactNode } & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <BottomBar>
-      <div className="bg-background grid grid-cols-5 rounded-2xl border-t p-2">
+      <div
+        className={cn(
+          "bg-background grid grid-cols-5 rounded-2xl border-t p-2",
+          className,
+        )}
+        {...props}
+      >
         {children}
       </div>
     </BottomBar>
+  );
+}
+
+export function DeskBottomBarItem({
+  className,
+  children,
+  ...props
+}: { children: ReactNode } & React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("flex items-center justify-center", className)}
+      {...props}
+    >
+      {children}
+    </div>
   );
 }

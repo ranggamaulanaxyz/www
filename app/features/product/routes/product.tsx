@@ -29,6 +29,7 @@ import { Button } from "~/components/ui/button";
 import { useList } from "~/features/desk/hooks/use-list";
 import {
   DeskList,
+  DeskListActions,
   DeskListBottomBar,
   DeskListContent,
   DeskListGrid,
@@ -43,6 +44,7 @@ import {
   ItemTitle,
 } from "~/components/ui/item";
 import { DeskProductActionDropdown } from "../components/desk";
+import { DeskBottomBarItem } from "~/features/desk/components/bar";
 
 const title = "Produk";
 
@@ -121,8 +123,8 @@ export function shouldRevalidate({
 
 export default function ProductList({ loaderData }: Route.ComponentProps) {
   const { data, metadata } = loaderData;
-  const { table, rows, state, view, setView } = useList({
-    table: "products",
+  const { table, rows, state, view, setView, canCreate } = useList({
+    resource: "products",
     columns,
     data,
     metadata,
@@ -134,7 +136,12 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <DeskList view={view} setView={setView}>
+    <DeskList
+      view={view}
+      setView={setView}
+      canCreate={canCreate}
+      onClickCreate={() => console.log("Create")}
+    >
       <DeskListTopBar metadata={metadata}>
         <div className="hidden items-center md:flex">
           <DeskFilter />
@@ -160,7 +167,11 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
           ))}
         </DeskListGrid>
       </DeskListContent>
-      <DeskListBottomBar />
+      <DeskListBottomBar>
+        <DeskBottomBarItem>
+          <DeskListActions variant="ghost" iconClassName="size-6" />
+        </DeskBottomBarItem>
+      </DeskListBottomBar>
     </DeskList>
   );
 }
