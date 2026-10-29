@@ -17,7 +17,13 @@ import type { Product } from "../types/product";
 import { parseFilter } from "~/features/desk/services/filter";
 import { formatCurrency, sleep } from "~/utils/tools";
 import type { Handle } from "~/features/desk/types/route";
-import { BookMarkedIcon, EllipsisVerticalIcon, PlusIcon } from "lucide-react";
+import {
+  BookMarkedIcon,
+  EllipsisVerticalIcon,
+  Package2Icon,
+  PlusIcon,
+  StoreIcon,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,10 +86,16 @@ export const handle = {
       {
         items: [
           {
-            icon: BookMarkedIcon,
-            label: "Jurnal Umum",
-            pathname: "/desk/accounting/moves",
-            matchPattern: "/desk/accounting/moves/*",
+            icon: Package2Icon,
+            label: "Produk",
+            pathname: "/desk/products",
+            matchPattern: "/desk/products/*",
+          },
+          {
+            icon: StoreIcon,
+            label: "Merek",
+            pathname: "/desk/product-brands",
+            matchPattern: "/desk/product-brands/*",
           },
         ],
       },
@@ -123,7 +135,7 @@ export function shouldRevalidate({
 
 export default function ProductList({ loaderData }: Route.ComponentProps) {
   const { data, metadata } = loaderData;
-  const { table, rows, state, view, setView, canCreate } = useList({
+  const { table, rows, state, ...listProps } = useList({
     resource: "products",
     columns,
     data,
@@ -139,10 +151,8 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
   return (
     <DeskList
       filter={filter}
-      view={view}
-      setView={setView}
-      canCreate={canCreate}
       onClickCreate={() => console.log("Create")}
+      {...listProps}
     >
       <DeskListTopBar metadata={metadata}>
         <div className="hidden items-center md:flex">
