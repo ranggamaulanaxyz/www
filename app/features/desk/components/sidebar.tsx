@@ -1,10 +1,13 @@
-import { CommandIcon } from "lucide-react";
+import { Collapsible } from "@base-ui/react/collapsible";
+import { cn } from "cn";
+import { ChevronRightIcon, CommandIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
   Link,
+  matchPath,
+  useLocation,
   useMatch,
   useMatches,
-  type PathPattern,
-  type UIMatch,
 } from "react-router";
 import {
   Sidebar,
@@ -14,8 +17,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "~/components/ui/sidebar";
-import type { Handle, Match, SidebarItem } from "../types/route";
+import type { Match, SidebarItem } from "../types/route";
 
 export default function DeskSidebar() {
   const matches = useMatches() as Match<unknown>[];
@@ -61,7 +67,15 @@ export default function DeskSidebar() {
   );
 }
 
-function DeskSidebarMenuItem({ pathname, ...props }: SidebarItem) {
+function DeskSidebarMenuItem(props: SidebarItem) {
+  if (props.children?.length) {
+    return <DeskSidebarMenuSubMenu {...props} />;
+  }
+
+  return <DeskSidebarMenuLink {...props} />;
+}
+
+function DeskSidebarMenuLink({ pathname, ...props }: SidebarItem) {
   const match = useMatch(`${props.matchPattern || pathname}`);
   return (
     <SidebarMenuItem>
@@ -76,4 +90,79 @@ function DeskSidebarMenuItem({ pathname, ...props }: SidebarItem) {
       />
     </SidebarMenuItem>
   );
+}
+
+function DeskSidebarMenuSubMenu({
+  icon: Icon,
+  label,
+  pathname,
+  matchPattern,
+  children = [],
+}: SidebarItem) {
+  const location = useLocation();
+  const isActive =
+    isSidebarItemActive({ pathname, matchPattern }, location.pathname) ||
+    children.some((child) => isSidebarItemActive(child, location.pathname));
+  const [open, setOpen] = useState(isActive);
+
+  useEffect(() => {
+    if (isActive) {
+      setOpen(true);
+    }
+  }, [isActive]);
+
+  return (
+    <SidebarMenuItem>
+      <Collapsible.Root open={open} onOpenChange={setOpen}>
+        <Collapsible.Trigger
+          render={
+            <SidebarMenuButton isActive={isActive}>
+              {Icon && <Icon />}
+              <span className="truncate">{label}</span>
+              <ChevronRightIcon
+                className={cn(
+                  "ml-auto transition-transform duration-200",
+                  open && "rotate-90",
+                )}
+              />
+            </SidebarMenuButton>
+          }
+        />
+        <Collapsible.Panel>
+          <SidebarMenuSub>
+            {children.map((child, index) => (
+              <DeskSidebarSubMenuItem key={index} {...child} />
+            ))}
+          </SidebarMenuSub>
+        </Collapsible.Panel>
+      </Collapsible.Root>
+    </SidebarMenuItem>
+  );
+}
+
+function DeskSidebarSubMenuItem({ pathname, ...props }: SidebarItem) {
+  const match = useMatch(`${props.matchPattern || pathname}`);
+  return (
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton
+        isActive={!!match}
+        render={
+          <Link to={{ pathname }}>
+            {props.icon && <props.icon />}
+            <span>{props.label}</span>
+          </Link>
+        }
+      />
+    </SidebarMenuSubItem>
+  );
+}
+
+function isSidebarItemActive(
+  item: Pick<SidebarItem, "pathname" | "matchPattern">,
+  pathname: string,
+) {
+  const pattern = item.matchPattern || item.pathname;
+  if (!pattern) return false;
+
+  return !!matchPath(pattern, pathname);
 }

@@ -31,7 +31,7 @@ type ListOptions<T extends RowData> = {
   columns: ListColumns<T>;
   metadata: any;
 };
-export function useList<T extends RowData & { id: string }>({
+export function useDeskList<T extends RowData & { id: string }>({
   resource,
   data,
   columns,

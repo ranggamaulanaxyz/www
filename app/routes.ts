@@ -46,9 +46,27 @@ export default [
       ]),
     ]),
 
-    route("/desk/products", "features/product/routes/product.tsx", [
+    route("products", "features/product/routes/product.tsx", [
       route("new", "features/product/routes/product-create.tsx"),
     ]),
+
+    route("product-brands", "features/product/routes/product-brand.tsx", [
+      route(
+        ":productBrandId",
+        "features/product/routes/product-brand-update.tsx",
+      ),
+    ]),
+
+    route(
+      "product-categories",
+      "features/product/routes/product-category.tsx",
+      [
+        route(
+          ":productCategoryId",
+          "features/product/routes/product-category-update.tsx",
+        ),
+      ],
+    ),
 
     route("/desk/me", "features/auth/routes/account.tsx"),
   ]),

@@ -6,24 +6,13 @@ import {
 import type { Route } from "./+types/product";
 import { supabaseClientContext } from "~/context";
 import { getProducts } from "../services/product";
-import {
-  data,
-  Link,
-  Outlet,
-  useOutlet,
-  type ShouldRevalidateFunctionArgs,
-} from "react-router";
+import { data, Link, Outlet, useOutlet } from "react-router";
+import { createShouldRevalidate } from "~/utils/revalidate";
 import type { Product } from "../types/product";
 import { parseFilter } from "~/features/desk/services/filter";
 import { formatCurrency, sleep } from "~/utils/tools";
 import type { Handle } from "~/features/desk/types/route";
-import {
-  BookMarkedIcon,
-  EllipsisVerticalIcon,
-  Package2Icon,
-  PlusIcon,
-  StoreIcon,
-} from "lucide-react";
+import { BookMarkedIcon, EllipsisVerticalIcon, PlusIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { useList } from "~/features/desk/hooks/use-list";
+import { useDeskList } from "~/features/desk/hooks/use-list";
 import {
   DeskList,
   DeskListActions,
@@ -50,6 +39,7 @@ import {
   ItemTitle,
 } from "~/components/ui/item";
 import { DeskProductActionDropdown } from "../components/desk";
+import { productSidebarRegistry } from "../sidebar";
 import { DeskBottomBarItem } from "~/features/desk/components/bar";
 
 const title = "Produk";
@@ -81,26 +71,7 @@ const columns = columnBuilder.columns([
 
 export const handle = {
   breadcrumb: { label: title },
-  sidebarRegistry: () => {
-    return [
-      {
-        items: [
-          {
-            icon: Package2Icon,
-            label: "Produk",
-            pathname: "/desk/products",
-            matchPattern: "/desk/products/*",
-          },
-          {
-            icon: StoreIcon,
-            label: "Merek",
-            pathname: "/desk/product-brands",
-            matchPattern: "/desk/product-brands/*",
-          },
-        ],
-      },
-    ];
-  },
+  sidebarRegistry: productSidebarRegistry,
 } satisfies Handle<Route.ComponentProps["loaderData"]>;
 
 export function meta() {
@@ -118,24 +89,11 @@ export async function loader({ url, context }: Route.LoaderArgs) {
   return data({ data: products, metadata });
 }
 
-export function shouldRevalidate({
-  currentUrl,
-  nextUrl,
-  defaultShouldRevalidate,
-}: ShouldRevalidateFunctionArgs) {
-  if (currentUrl.pathname === nextUrl.pathname) {
-    const currentParams = new URLSearchParams(currentUrl.search);
-    const nextParams = new URLSearchParams(nextUrl.search);
-    currentParams.delete("view");
-    nextParams.delete("view");
-    if (currentParams.toString() === nextParams.toString()) return false;
-  }
-  return defaultShouldRevalidate;
-}
+export const shouldRevalidate = createShouldRevalidate();
 
 export default function ProductList({ loaderData }: Route.ComponentProps) {
   const { data, metadata } = loaderData;
-  const { table, rows, state, ...listProps } = useList({
+  const { table, rows, state, ...listProps } = useDeskList({
     resource: "products",
     columns,
     data,

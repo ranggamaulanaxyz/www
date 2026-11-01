@@ -94,7 +94,6 @@ export const selectionColumn = columnBuilder.display({
       aria-label="Pilih"
     />
   ),
-  enableResizing: false,
   size: 20,
 });
 
