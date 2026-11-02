@@ -34,3 +34,5 @@ export const createProductSchema = productSchema.omit({
   updatedAt: true,
   templateId: true,
 });
+
+export const updateProductSchema = createProductSchema;

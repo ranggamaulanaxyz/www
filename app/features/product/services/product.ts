@@ -33,6 +33,20 @@ export async function getProducts(
   };
 }
 
+export async function getProductById(supabase: SupabaseClient, id: string) {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error) {
+    throw error;
+  }
+  const camelcasedData = camelcaseKeys(data);
+  const product = await productSchema.parseAsync(camelcasedData);
+  return product;
+}
+
 export async function createProduct(
   supabase: SupabaseClient,
   values: CreateProductValues,
@@ -41,7 +55,8 @@ export async function createProduct(
   const { data, error } = await supabase
     .from("products")
     .insert(snakecasedValues)
-    .select();
+    .select()
+    .single();
   if (error) {
     throw error;
   }
@@ -49,4 +64,21 @@ export async function createProduct(
   const product = await productSchema.parseAsync(camelcasedData);
 
   return product;
+}
+
+export async function updateProduct(
+  supabase: SupabaseClient,
+  id: string,
+  values: CreateProductValues,
+) {
+  const snakecasedValues = snakecaseKeys(values);
+  const { error } = await supabase
+    .from("products")
+    .update(snakecasedValues)
+    .eq("id", id);
+  if (error) {
+    throw error;
+  }
+
+  return true;
 }
