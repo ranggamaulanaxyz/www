@@ -48,6 +48,7 @@ export default [
 
     route("products", "features/product/routes/product.tsx", [
       route("new", "features/product/routes/product-create.tsx"),
+      route(":productId", "features/product/routes/product-update.tsx"),
     ]),
 
     route("product-brands", "features/product/routes/product-brand.tsx", [
