@@ -57,11 +57,13 @@ export default function PartnerSummaryCard() {
               }
             />
           ))}
-          <AvatarGroupCount>
-            <Link to="/desk/partners" title="Daftar Kontak">
-              +{estimatedCount - partners.length}
-            </Link>
-          </AvatarGroupCount>
+          {estimatedCount - partners.length > 0 && (
+            <AvatarGroupCount>
+              <Link to="/desk/partners" title="Daftar Kontak">
+                +{estimatedCount - partners.length}
+              </Link>
+            </AvatarGroupCount>
+          )}
         </AvatarGroup>
       </CardContent>
       <CardFooter>

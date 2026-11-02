@@ -2,8 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import camelcaseKeys from "camelcase-keys";
 import type { FilterOptions } from "~/features/desk/types/filter";
 import { parseMetadata, parseRange } from "~/utils/supabase";
-import { productListSchema } from "../schemas/product";
+import { productListSchema, productSchema } from "../schemas/product";
 import { sleep } from "~/utils/tools";
+import type { CreateProductValues } from "../types/product";
+import snakecaseKeys from "snakecase-keys";
 
 export async function getProducts(
   supabase: SupabaseClient,
@@ -29,4 +31,22 @@ export async function getProducts(
     products,
     metadata: parseMetadata({ count, range: { from, to } }),
   };
+}
+
+export async function createProduct(
+  supabase: SupabaseClient,
+  values: CreateProductValues,
+) {
+  const snakecasedValues = snakecaseKeys(values);
+  const { data, error } = await supabase
+    .from("products")
+    .insert(snakecasedValues)
+    .select();
+  if (error) {
+    throw error;
+  }
+  const camelcasedData = camelcaseKeys(data);
+  const product = await productSchema.parseAsync(camelcasedData);
+
+  return product;
 }

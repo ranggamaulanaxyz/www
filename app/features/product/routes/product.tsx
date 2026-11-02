@@ -6,21 +6,12 @@ import {
 import type { Route } from "./+types/product";
 import { supabaseClientContext } from "~/context";
 import { getProducts } from "../services/product";
-import { data, Link, Outlet, useOutlet } from "react-router";
+import { data, Outlet, useOutlet } from "react-router";
 import { createShouldRevalidate } from "~/utils/revalidate";
 import type { Product } from "../types/product";
 import { parseFilter } from "~/features/desk/services/filter";
-import { formatCurrency, sleep } from "~/utils/tools";
+import { formatCurrency } from "~/utils/tools";
 import type { Handle } from "~/features/desk/types/route";
-import { BookMarkedIcon, EllipsisVerticalIcon, PlusIcon } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { Button } from "~/components/ui/button";
 import { useDeskList } from "~/features/desk/hooks/use-list";
 import {
   DeskList,
@@ -41,6 +32,7 @@ import {
 import { DeskProductActionDropdown } from "../components/desk";
 import { productSidebarRegistry } from "../sidebar";
 import { DeskBottomBarItem } from "~/features/desk/components/bar";
+import { useNavigate } from "~/hooks/use-navigate";
 
 const title = "Produk";
 
@@ -93,6 +85,7 @@ export const shouldRevalidate = createShouldRevalidate();
 
 export default function ProductList({ loaderData }: Route.ComponentProps) {
   const { data, metadata } = loaderData;
+  const { navigate } = useNavigate();
   const { table, rows, state, ...listProps } = useDeskList({
     resource: "products",
     columns,
@@ -109,7 +102,7 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
   return (
     <DeskList
       filter={filter}
-      onClickCreate={() => console.log("Create")}
+      onClickCreate={() => navigate("new")}
       {...listProps}
     >
       <DeskListTopBar metadata={metadata}>
