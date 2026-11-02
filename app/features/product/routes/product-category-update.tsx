@@ -1,12 +1,7 @@
 import { getFormProps } from "@conform-to/react";
 import { data, Form } from "react-router";
 import { Button } from "~/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "~/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { FieldTextInput } from "~/components/ui/field-input";
 import { Input } from "~/components/ui/input";
 import { supabaseClientContext } from "~/context";
@@ -25,7 +20,7 @@ import type { ProductCategory } from "../types/product-category";
 import type { Route } from "./+types/product-category-update";
 import { ButtonGroup } from "~/components/ui/button-group";
 import { SaveIcon } from "lucide-react";
-import { ProductCategoryCombobox } from "../components/product-category-combobox";
+import { FieldProductCategory } from "../components/desk-category";
 
 export const handle = {
   breadcrumb: (match) => ({
@@ -75,11 +70,8 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     productCategories,
     productCategory.id,
   );
-  const parentOptions = productCategories
-    .filter((category) => !unavailableIds.has(category.id))
-    .map((category) => ({ value: category.id, label: category.name }));
 
-  return data({ productCategory, parentOptions });
+  return data({ productCategory, excludeIds: Array.from(unavailableIds) });
 }
 
 export async function action({ request, params, context }: Route.ActionArgs) {
@@ -90,6 +82,8 @@ export async function action({ request, params, context }: Route.ActionArgs) {
   if (submission.status !== "success") {
     return data({ lastResult: submission.reply() }, { status: 422 });
   }
+
+  console.log(submission.value);
 
   const supabase = context.get(supabaseClientContext);
   const success = await updateProductCategory(
@@ -105,12 +99,12 @@ export default function ProductCategoryUpdate({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { productCategory, parentOptions } = loaderData;
+  const { productCategory, excludeIds } = loaderData;
   const { form, fields } = useDeskForm({
     schema: createProductCategorySchema,
     defaultValue: {
       name: productCategory.name,
-      parentId: productCategory.parentId,
+      parentId: productCategory.parentId || "",
     },
     lastResult: actionData?.lastResult,
   });
@@ -129,18 +123,11 @@ export default function ProductCategoryUpdate({
       <div className="max-w-1/2 p-4">
         <FieldGroup>
           <FieldTextInput field={fields.name} label="Nama" />
-          <Field data-invalid={!fields.parentId.valid}>
-            <FieldLabel htmlFor={fields.parentId.id}>Kategori Induk</FieldLabel>
-            <ProductCategoryCombobox
-              id={fields.parentId.id}
-              name={fields.parentId.name}
-              items={parentOptions}
-              defaultValue={productCategory.parentId}
-              placeholder="Pilih Kategori Induk"
-              invalid={!fields.parentId.valid}
-            />
-            <FieldError errors={fields.parentId.errors} />
-          </Field>
+          <FieldProductCategory
+            field={fields.parentId}
+            label="Kategori Induk"
+            excludeIds={excludeIds}
+          />
           <Field>
             <FieldLabel htmlFor="createdAt">Tanggal Dibuat</FieldLabel>
             <Input id="createdAt" value={productCategory.createdAt} readOnly />

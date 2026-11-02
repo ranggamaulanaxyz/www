@@ -8,11 +8,6 @@ import {
   productCategorySchema,
 } from "../schemas/product-category";
 
-export type ProductCategoryValues = {
-  name: string;
-  parentId: string | null;
-};
-
 export async function getProductCategories(
   supabase: SupabaseClient,
   options?: FilterOptions,
@@ -63,7 +58,7 @@ export async function getProductCategoryById(
 
 export async function createProductCategory(
   supabase: SupabaseClient,
-  values: ProductCategoryValues,
+  values: { name: string; parentId?: string },
 ) {
   const snakecasedValues = snakecaseKeys(values);
   const { data, error } = await supabase
@@ -84,7 +79,7 @@ export async function createProductCategory(
 export async function updateProductCategory(
   supabase: SupabaseClient,
   id: string,
-  values: ProductCategoryValues,
+  values: { name: string; parentId?: string },
 ) {
   const snakecasedValues = snakecaseKeys(values);
   const { error } = await supabase

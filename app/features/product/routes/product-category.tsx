@@ -38,7 +38,10 @@ import {
   ItemDescription,
   ItemTitle,
 } from "~/components/ui/item";
-import { DeskProductCategoryActionDropdown } from "../components/desk-category";
+import {
+  DeskProductCategoryActionDropdown,
+  FieldProductCategory,
+} from "../components/desk-category";
 import { DeskBottomBarItem } from "~/features/desk/components/bar";
 import {
   Dialog,
@@ -48,8 +51,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { FieldTextInput } from "~/components/ui/field-input";
-import { Field, FieldError, FieldLabel } from "~/components/ui/field";
 import { getFormProps } from "@conform-to/react";
 import { parseForm } from "~/utils/request";
 import { createProductCategorySchema } from "../schemas/product-category";
@@ -57,7 +58,7 @@ import { productSidebarRegistry } from "../sidebar";
 import { useDeskForm } from "~/features/desk/hooks/use-form";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import { ProductCategoryCombobox } from "../components/product-category-combobox";
+import { FieldText } from "~/components/form/fields/input";
 
 const title = "Kategori";
 
@@ -119,12 +120,8 @@ export async function loader({ url, context }: Route.LoaderArgs) {
   const metadata = promiseGetProductCategories.then(
     (result) => result.metadata,
   );
-  const parentOptions = allProductCategories.map((productCategory) => ({
-    value: productCategory.id,
-    label: productCategory.name,
-  }));
 
-  return data({ productCategories, metadata, parentOptions });
+  return data({ productCategories, metadata });
 }
 
 export async function action({ request, url, context }: Route.ActionArgs) {
@@ -153,7 +150,7 @@ export default function ProductCategoryList({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { productCategories, metadata, parentOptions } = loaderData;
+  const { productCategories, metadata } = loaderData;
 
   const filter = useDeskFilter();
   const { table, rows, state, ...listProps } = useDeskList({
@@ -224,18 +221,11 @@ export default function ProductCategoryList({
           <DialogHeader>
             <DialogTitle>Tambah Kategori</DialogTitle>
           </DialogHeader>
-          <FieldTextInput field={fields.name} label="Nama" />
-          <Field data-invalid={!fields.parentId.valid}>
-            <FieldLabel htmlFor={fields.parentId.id}>Kategori Induk</FieldLabel>
-            <ProductCategoryCombobox
-              id={fields.parentId.id}
-              name={fields.parentId.name}
-              items={parentOptions}
-              placeholder="Pilih Kategori Induk"
-              invalid={!fields.parentId.valid}
-            />
-            <FieldError errors={fields.parentId.errors} />
-          </Field>
+          <FieldText field={fields.name} label="Nama" />
+          <FieldProductCategory
+            field={fields.parentId}
+            label="Kategori Induk"
+          />
           <DialogFooter className="flex-row">
             <DialogClose
               render={<Button variant="secondary">Batalkan</Button>}
