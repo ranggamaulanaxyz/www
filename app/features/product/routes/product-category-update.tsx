@@ -120,7 +120,7 @@ export default function ProductCategoryUpdate({
           </ButtonGroup>
         </DeskHeader>
       </TopBar>
-      <div className="max-w-1/2 p-4">
+      <div className="p-4 lg:max-w-1/2">
         <FieldGroup>
           <FieldTextInput field={fields.name} label="Nama" />
           <FieldProductCategory
