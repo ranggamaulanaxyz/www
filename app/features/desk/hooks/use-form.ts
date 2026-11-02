@@ -10,7 +10,7 @@ export type DeskFormOptions<T extends DeskFormSchema> = {
   /** Optional form id. Defaults to a stable React `useId`. */
   id?: string;
   /** Initial values of the form. */
-  defaultValue?: z.input<T>;
+  defaultValue?: Partial<z.input<T>>;
   /** When the form should be validated. */
   shouldValidate?: "onSubmit" | "onBlur" | "onInput";
   /** When the form should be revalidated. */

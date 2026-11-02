@@ -1,20 +1,13 @@
 import {
-  tableFeatures,
-  columnSizingFeature,
-  columnResizingFeature,
-  rowSelectionFeature,
   createColumnHelper,
   type RowData,
-  useTable,
   type ColumnDef,
   type HeaderGroup,
   type Header,
   type Row,
   type Cell_Core,
   type ColumnSizingState,
-  type Table as TableInstance,
   type ReactTable,
-  type TableFeatures,
 } from "@tanstack/react-table";
 import {
   Fragment,
@@ -35,16 +28,24 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import type { ListFeatures } from "../hooks/use-list";
+import type { DeskTableColumnMeta, DeskTableFeatures } from "../types/table";
 import { ArrowRightLeftIcon } from "lucide-react";
 import { Button } from "~/components/ui/button";
 
-const features = tableFeatures({
-  columnSizingFeature,
-  columnResizingFeature,
-  rowSelectionFeature,
-});
+export type { DeskTableColumnMeta, DeskTableFeatures } from "../types/table";
 
-export type DeskTableFeatures = typeof features;
+const alignClasses: Record<
+  NonNullable<DeskTableColumnMeta["align"]>,
+  string
+> = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+};
+
+function getAlignClass(align: DeskTableColumnMeta["align"]) {
+  return align ? alignClasses[align] : undefined;
+}
 
 export type DeskTableColumn<T extends RowData = any> = ColumnDef<
   DeskTableFeatures,
@@ -288,7 +289,9 @@ export function DeskTableHeader<T extends RowData>({
           {group.headers.map((header) => (
             <TableHead
               key={header.id}
-              className="relative overflow-hidden text-ellipsis first:pl-4 last:pr-4"
+              className={`relative overflow-hidden text-ellipsis first:pl-4 last:pr-4 ${getAlignClass(
+                header.column.columnDef.meta?.align,
+              )}`}
               style={{ width: `calc(var(--header-${header.id}-size) * 1px)` }}
             >
               {render(header)}
@@ -314,7 +317,11 @@ export function DeskTableBody<T extends RowData>({
       {rows.map((row) => (
         <TableRow key={row.id}>
           {row.getAllCells().map((cell) => (
-            <DeskTableCell key={cell.id} columnId={cell.id}>
+            <DeskTableCell
+              key={cell.id}
+              columnId={cell.id}
+              align={cell.column.columnDef.meta?.align}
+            >
               {renderCell(cell)}
             </DeskTableCell>
           ))}
@@ -327,13 +334,17 @@ export function DeskTableBody<T extends RowData>({
 export function DeskTableCell({
   children,
   columnId,
+  align,
 }: {
   children: ReactNode;
   columnId: string;
+  align?: DeskTableColumnMeta["align"];
 }) {
   return (
     <TableCell
-      className="overflow-hidden text-ellipsis first:pl-4 last:pr-4"
+      className={`overflow-hidden text-ellipsis first:pl-4 last:pr-4 ${getAlignClass(
+        align,
+      )}`}
       style={{ width: `calc(var(--col-${columnId}-size) * 1px)` }}
     >
       {children}
@@ -357,7 +368,11 @@ export function DeskTableBodyFallback<TData extends RowData>({
       {Array.from({ length: rowNumber }).map((_, rowIndex) => (
         <TableRow key={rowIndex}>
           {columns.map((column, columnIndex) => (
-            <DeskTableCell key={column.id} columnId={column.id}>
+            <DeskTableCell
+              key={column.id}
+              columnId={column.id}
+              align={column.columnDef.meta?.align}
+            >
               <Skeleton
                 className={`h-4 ${
                   SKELETON_WIDTHS[columnIndex % SKELETON_WIDTHS.length]

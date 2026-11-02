@@ -5,10 +5,10 @@ import {
 } from "~/features/desk/components/table";
 import type { Route } from "./+types/product";
 import { supabaseClientContext } from "~/context";
-import { getProducts } from "../services/product";
+import { getProductTemplates } from "../services/product-template";
 import { data, Outlet, useOutlet } from "react-router";
 import { createShouldRevalidate } from "~/utils/revalidate";
-import type { Product } from "../types/product";
+import type { ProductTemplateWithRelations } from "../types/product-template";
 import { parseFilter } from "~/features/desk/services/filter";
 import { formatCurrency } from "~/utils/tools";
 import type { Handle } from "~/features/desk/types/route";
@@ -36,11 +36,39 @@ import { useNavigate } from "~/hooks/use-navigate";
 
 const title = "Produk";
 
-const columnBuilder = deskColumnBuilder<Product>();
+const columnBuilder = deskColumnBuilder<ProductTemplateWithRelations>();
 const columns = columnBuilder.columns([
   selectionColumn,
   columnBuilder.accessor("code", { header: "Kode", size: 100 }),
   columnBuilder.accessor("name", { header: "Nama" }),
+  columnBuilder.display({
+    id: "categoryId",
+    header: "Kategori",
+    cell: ({ row: { original } }) =>
+      original.category?.name ?? original.categoryId ?? "-",
+  }),
+  columnBuilder.display({
+    id: "brandId",
+    header: "Merek",
+    cell: ({ row: { original } }) =>
+      original.brand?.name ?? original.brandId ?? "-",
+  }),
+  columnBuilder.display({
+    id: "defaultIncomeAccountId",
+    header: "Akun Pendapatan",
+    cell: ({ row: { original } }) =>
+      original.defaultIncomeAccount?.name ??
+      original.defaultIncomeAccountId ??
+      "-",
+  }),
+  columnBuilder.display({
+    id: "defaultExpenseAccountId",
+    header: "Akun Beban",
+    cell: ({ row: { original } }) =>
+      original.defaultExpenseAccount?.name ??
+      original.defaultExpenseAccountId ??
+      "-",
+  }),
   columnBuilder.accessor("costPrice", {
     header: "Harga Beli",
     cell: ({ getValue }) => formatCurrency(getValue()),
@@ -74,9 +102,14 @@ export async function loader({ url, context }: Route.LoaderArgs) {
   const filterOptions = parseFilter(url.searchParams);
   const supabase = context.get(supabaseClientContext);
 
-  const promiseGetProducts = getProducts(supabase, filterOptions);
-  const products = promiseGetProducts.then((result) => result.products);
-  const metadata = promiseGetProducts.then((result) => result.metadata);
+  const promiseGetProductTemplates = getProductTemplates(
+    supabase,
+    filterOptions,
+  );
+  const products = promiseGetProductTemplates.then(
+    (result) => result.productTemplates,
+  );
+  const metadata = promiseGetProductTemplates.then((result) => result.metadata);
 
   return data({ data: products, metadata });
 }
@@ -87,7 +120,7 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
   const { data, metadata } = loaderData;
   const { navigate } = useNavigate();
   const { table, rows, state, ...listProps } = useDeskList({
-    resource: "products",
+    resource: "product_templates",
     columns,
     data,
     metadata,

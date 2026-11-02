@@ -1,24 +1,11 @@
-import {
-  tableFeatures,
-  columnSizingFeature,
-  columnResizingFeature,
-  rowSelectionFeature,
-  useTable,
-  type RowData,
-  type ColumnDef,
-} from "@tanstack/react-table";
+import { useTable, type RowData, type ColumnDef } from "@tanstack/react-table";
 import { useResolveData } from "./use-resolve-data";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { useSearchParams } from "react-router";
 import { useHasAccess } from "./use-has-access";
+import { deskTableFeatures } from "../types/table";
 
-const features = tableFeatures({
-  columnSizingFeature,
-  columnResizingFeature,
-  rowSelectionFeature,
-});
-
-export type ListFeatures = typeof features;
+export type ListFeatures = typeof deskTableFeatures;
 
 type ListColumn<T extends RowData> = ColumnDef<ListFeatures, T>;
 type ListColumns<T extends RowData> = Array<ListColumn<T>>;
@@ -42,7 +29,7 @@ export function useDeskList<T extends RowData & { id: string }>({
   const canCreate = useHasAccess("insert", resource);
 
   const table = useTable({
-    features,
+    features: deskTableFeatures,
     data: resolvedData ?? [],
     columns,
     getRowId: (row) => row.id,

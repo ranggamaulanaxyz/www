@@ -5,13 +5,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import type { Product } from "../types/product";
+import type { ProductTemplate } from "../types/product-template";
 import { Button } from "~/components/ui/button";
 import { EllipsisVerticalIcon, EyeIcon } from "lucide-react";
 import { Link } from "react-router";
 
 type DeskProductActionDropdownProps = {
-  product: Product;
+  product: ProductTemplate;
 };
 export function DeskProductActionDropdown({
   product,
