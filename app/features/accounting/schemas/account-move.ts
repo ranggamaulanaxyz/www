@@ -25,7 +25,11 @@ export const accountMoveSchema = z.object({
   items: z.array(accountMoveItemSchema).optional(),
 });
 
+export type AccountMove = z.infer<typeof accountMoveSchema>;
+
 export const accountMoveListSchema = z.array(accountMoveSchema);
+
+export type AccountMoves = z.infer<typeof accountMoveListSchema>;
 
 export const nullableAccountMoveNumberSchema = z.preprocess(
   (value) => (value === "" || value === undefined ? null : value),
@@ -45,6 +49,4 @@ export const accountMoveFormSchema = z.object({
 export type AccountMoveStatus = z.infer<typeof accountMoveStatusSchema>;
 export type AccountMoveItem = z.infer<typeof accountMoveItemSchema>;
 export type AccountMoveItems = z.infer<typeof accountMoveItemListSchema>;
-export type AccountMove = z.infer<typeof accountMoveSchema>;
-export type AccountMoves = z.infer<typeof accountMoveListSchema>;
 export type AccountMoveFormValues = z.infer<typeof accountMoveFormSchema>;

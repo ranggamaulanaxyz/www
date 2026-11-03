@@ -1,4 +1,4 @@
-import { Outlet } from "react-router";
+import { Outlet, useOutlet } from "react-router";
 import type { Handle } from "~/features/desk/types/route";
 import type { Route } from "./+types/accounting";
 import {
@@ -9,6 +9,7 @@ import {
   FolderTreeIcon,
   ListTree,
 } from "lucide-react";
+import { DeskTopBar } from "~/features/desk/components/bar";
 
 export const handle = {
   breadcrumb: { label: "Akuntansi" },
@@ -57,5 +58,15 @@ export function meta() {
 }
 
 export default function Accounting() {
-  return <Outlet />;
+  const outlet = useOutlet();
+  if (outlet) {
+    return <Outlet />;
+  }
+
+  return (
+    <div className="flex min-h-dvh flex-col overflow-hidden">
+      <DeskTopBar></DeskTopBar>
+      <div className="flex-1"></div>
+    </div>
+  );
 }

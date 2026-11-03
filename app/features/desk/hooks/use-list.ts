@@ -4,6 +4,7 @@ import { useIsMobile } from "~/hooks/use-mobile";
 import { useSearchParams } from "react-router";
 import { useHasAccess } from "./use-has-access";
 import { deskTableFeatures } from "../types/table";
+import { useDeskFilter } from "../components/filter";
 
 export type ListFeatures = typeof deskTableFeatures;
 
@@ -24,6 +25,7 @@ export function useDeskList<T extends RowData & { id: string }>({
   columns,
 }: ListOptions<T>) {
   const isMobile = useIsMobile();
+  const filter = useDeskFilter();
   const { data: resolvedData, state } = useResolveData(data);
   const [searchParams, setSearchParams] = useSearchParams();
   const canCreate = useHasAccess("insert", resource);
@@ -65,5 +67,6 @@ export function useDeskList<T extends RowData & { id: string }>({
     view: getView(),
     setView,
     canCreate,
+    filter,
   };
 }

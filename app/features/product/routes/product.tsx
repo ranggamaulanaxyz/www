@@ -125,7 +125,6 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
     data,
     metadata,
   });
-  const filter = useDeskFilter();
   const outlet = useOutlet();
 
   if (outlet) {
@@ -133,14 +132,10 @@ export default function ProductList({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <DeskList
-      filter={filter}
-      onClickCreate={() => navigate("new")}
-      {...listProps}
-    >
+    <DeskList onClickCreate={() => navigate("new")} {...listProps}>
       <DeskListTopBar metadata={metadata}>
         <div className="hidden items-center md:flex">
-          <DeskFilter {...filter} />
+          <DeskFilter {...listProps.filter} />
         </div>
       </DeskListTopBar>
       <DeskListContent view="table">
