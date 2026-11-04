@@ -3,7 +3,7 @@ import type { Route } from "./+types/account-move";
 import { supabaseClientContext } from "~/context";
 import { getAccountMoves } from "../services/account-move";
 import { data } from "react-router";
-import { useDeskList } from "~/features/desk/hooks/use-list";
+import { getDeskListProps, useDeskList } from "~/features/desk/hooks/use-list";
 import {
   deskColumnBuilder,
   DeskTable,
@@ -15,12 +15,18 @@ import {
   DeskListContent,
   DeskListTopBar,
 } from "~/features/desk/components/list";
-import { DeskFilter, useDeskFilter } from "~/features/desk/components/filter";
+import {
+  DeskFilter,
+  getFilterProps,
+  useDeskFilter,
+} from "~/features/desk/components/filter";
 
 const columnBuilder = deskColumnBuilder<AccountMove>();
 const columns = columnBuilder.columns([
   selectionColumn,
   columnBuilder.accessor("number", { header: "Nomor" }),
+  columnBuilder.accessor("date", { header: "Tanggal" }),
+  columnBuilder.accessor("status", { header: "Status" }),
 ]);
 
 export async function loader({ url, context }: Route.LoaderArgs) {
@@ -35,7 +41,7 @@ export async function loader({ url, context }: Route.LoaderArgs) {
 
 export default function AccountMoveList({ loaderData }: Route.ComponentProps) {
   const { moves, metadata } = loaderData;
-  const { table, rows, state, ...listProps } = useDeskList({
+  const list = useDeskList({
     resource: "account_moves",
     columns,
     data: moves,
@@ -43,12 +49,12 @@ export default function AccountMoveList({ loaderData }: Route.ComponentProps) {
   });
 
   return (
-    <DeskList {...listProps} onClickCreate={() => console.log("")}>
+    <DeskList {...getDeskListProps(list)}>
       <DeskListTopBar metadata={metadata}>
-        <DeskFilter {...listProps.filter} />
+        <DeskFilter {...getFilterProps(list.filter)} />
       </DeskListTopBar>
       <DeskListContent view="table">
-        <DeskTable table={table} isLoading={state === "loading"} />
+        <DeskTable table={list.table} isLoading={list.state === "loading"} />
       </DeskListContent>
     </DeskList>
   );

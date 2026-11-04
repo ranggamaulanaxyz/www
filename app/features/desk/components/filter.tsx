@@ -188,6 +188,20 @@ export type DeskFilterProps<T extends QueryFilter> = {
   onSubmit: (event: SyntheticEvent) => void;
 };
 
+export function getFilterProps<T extends QueryFilter>({
+  getFilter,
+  setFilter,
+  clearFilter,
+  onSubmit,
+}: DeskFilterState<T>): DeskFilterProps<T> {
+  return {
+    getFilter: (key) => getFilter(key) as string | undefined,
+    setFilter,
+    clearFilter,
+    onSubmit,
+  };
+}
+
 export function DeskFilter<T extends QueryFilter>({
   children,
   mode = "default",

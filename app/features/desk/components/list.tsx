@@ -52,15 +52,10 @@ type DeskListMetadata = {
   size: number;
 };
 
-type CanCreate =
-  | {
-      canCreate: true;
-      onClickCreate: (event?: MouseEvent<HTMLButtonElement>) => void;
-    }
-  | {
-      canCreate?: false;
-      onClickCreate?: (event?: MouseEvent<HTMLButtonElement>) => void;
-    };
+type CanCreate = {
+  canCreate?: boolean;
+  onClickCreate?: (event?: MouseEvent<HTMLButtonElement>) => void;
+};
 
 type DeskListContext = {
   view: ListView;

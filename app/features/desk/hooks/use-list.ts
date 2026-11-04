@@ -18,11 +18,13 @@ type ListOptions<T extends RowData> = {
   data: T[] | Promise<T[]>;
   columns: ListColumns<T>;
   metadata: any;
+  onClickCreate?: () => void;
 };
 export function useDeskList<T extends RowData & { id: string }>({
   resource,
   data,
   columns,
+  onClickCreate,
 }: ListOptions<T>) {
   const isMobile = useIsMobile();
   const filter = useDeskFilter();
@@ -66,7 +68,18 @@ export function useDeskList<T extends RowData & { id: string }>({
     state,
     view: getView(),
     setView,
-    canCreate,
+    canCreate: (onClickCreate && canCreate) || undefined,
+    onClickCreate,
     filter,
   };
+}
+
+export function getDeskListProps<T extends RowData & { id: string }>({
+  view,
+  setView,
+  filter,
+  canCreate,
+  onClickCreate,
+}: ReturnType<typeof useDeskList<T>>) {
+  return { view, setView, filter, canCreate, onClickCreate };
 }
