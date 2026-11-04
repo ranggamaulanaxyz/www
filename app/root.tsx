@@ -21,6 +21,7 @@ import DevelopmentErrorContent from "./components/development-error-content";
 import UnexpectedErrorContent from "./components/unexpected-error-content";
 import { Button } from "./components/ui/button";
 import { ArrowLeftIcon, HomeIcon, RefreshCwIcon } from "lucide-react";
+import { NavigationProgress } from "./components/navigation-progress";
 
 export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
@@ -76,6 +77,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
       supabaseUrl={env.SUPABASE_URL}
       supabaseKey={env.SUPABASE_PUBLISHABLE_KEY}
     >
+      <NavigationProgress />
       <Outlet />
     </SupabaseProvider>
   );
