@@ -13,4 +13,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   envPrefix: "PUBLIC_",
+  server: {
+    allowedHosts: ["dev.ranggamaulana.xyz"],
+  },
 });

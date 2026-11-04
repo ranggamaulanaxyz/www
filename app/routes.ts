@@ -69,6 +69,9 @@ export default [
       ],
     ),
 
+    route("/desk/telegram", "features/telegram/routes/bot-setting.tsx"),
+
     route("/desk/me", "features/auth/routes/account.tsx"),
   ]),
+  route("/webhook/telegram", "features/telegram/routes/webhook.ts"),
 ] satisfies RouteConfig;
