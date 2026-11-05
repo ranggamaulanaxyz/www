@@ -2,7 +2,7 @@ import { parseFilter } from "~/features/desk/services/filter";
 import type { Route } from "./+types/account-move";
 import { supabaseClientContext } from "~/context";
 import { getAccountMoves } from "../services/account-move";
-import { data } from "react-router";
+import { data, Outlet, useNavigate, useOutlet } from "react-router";
 import { getDeskListProps, useDeskList } from "~/features/desk/hooks/use-list";
 import {
   deskColumnBuilder,
@@ -20,6 +20,7 @@ import {
   getFilterProps,
   useDeskFilter,
 } from "~/features/desk/components/filter";
+import type { Handle } from "~/features/desk/types/route";
 
 const columnBuilder = deskColumnBuilder<AccountMove>();
 const columns = columnBuilder.columns([
@@ -28,6 +29,14 @@ const columns = columnBuilder.columns([
   columnBuilder.accessor("date", { header: "Tanggal" }),
   columnBuilder.accessor("status", { header: "Status" }),
 ]);
+
+export const handle = {
+  breadcrumb: { label: "Journal Umum" },
+} satisfies Handle<Route.ComponentProps["loaderData"]>;
+
+export function meta() {
+  return [{ title: "Jurnal Umum" }];
+}
 
 export async function loader({ url, context }: Route.LoaderArgs) {
   const supabase = context.get(supabaseClientContext);
@@ -41,12 +50,21 @@ export async function loader({ url, context }: Route.LoaderArgs) {
 
 export default function AccountMoveList({ loaderData }: Route.ComponentProps) {
   const { moves, metadata } = loaderData;
+  const navigate = useNavigate();
   const list = useDeskList({
     resource: "account_moves",
     columns,
     data: moves,
     metadata,
+    onClickCreate: () => {
+      navigate("new");
+    },
   });
+
+  const outlet = useOutlet();
+  if (outlet) {
+    return <Outlet />;
+  }
 
   return (
     <DeskList {...getDeskListProps(list)}>

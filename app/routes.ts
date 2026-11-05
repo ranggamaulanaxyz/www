@@ -3,6 +3,7 @@ import { type RouteConfig, index, route } from "@react-router/dev/routes";
 const accounting = [
   route("accounting", "features/accounting/routes/accounting.tsx", [
     route("moves", "features/accounting/routes/account-move.tsx", [
+      route("new", "features/accounting/routes/account-move-create.tsx"),
       route(
         ":accountMoveId",
         "features/accounting/routes/account-move-form.tsx",

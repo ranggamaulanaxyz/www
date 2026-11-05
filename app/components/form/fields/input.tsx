@@ -12,11 +12,13 @@ import { Input } from "~/components/ui/input";
 export function FieldText(props: {
   field: FieldMetadata;
   type?: "text" | "email" | "number";
-  label: string;
+  label?: string;
 }) {
   return (
     <Field data-invalid={!props.field.valid}>
-      <FieldLabel htmlFor={props.field.id}>{props.label}</FieldLabel>
+      {props.label && (
+        <FieldLabel htmlFor={props.field.id}>{props.label}</FieldLabel>
+      )}
       <Input {...getInputProps(props.field, { type: props.type ?? "text" })} />
       <FieldError errors={props.field.errors} />
     </Field>
