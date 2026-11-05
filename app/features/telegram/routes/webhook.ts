@@ -2,7 +2,13 @@ import { getEnv } from "~/utils/env.server";
 import type { Route } from "./+types/webhook";
 import { Ollama } from "ollama";
 
-const ollama = new Ollama();
+const ollama = new Ollama({
+  host: "https://ollama.ranggamaulana.xyz",
+  headers: {
+    "CF-Access-Client-Id": getEnv("CLOUDFLARE_ACCESS_CLIENT_ID"),
+    "CF-Access-Client-Secret": getEnv("CLOUDFLARE_ACCESS_CLIENT_SECRET"),
+  },
+});
 
 async function sendTyping(chatId: number) {
   await fetch(
@@ -308,6 +314,7 @@ async function runAssistant(userMessage: string) {
       model: "zet",
       messages,
       tools: availableTools,
+      think: false,
     });
 
     const assistantMessage = response.message;
