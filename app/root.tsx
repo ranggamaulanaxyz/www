@@ -67,10 +67,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <SupabaseProvider
-      supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL}
-      supabaseKey={import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY}
-    >
+    <SupabaseProvider>
       <NavigationProgress />
       <Outlet />
     </SupabaseProvider>

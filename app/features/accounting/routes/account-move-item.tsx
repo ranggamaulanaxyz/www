@@ -48,7 +48,6 @@ import {
 } from "../services/account-move-item";
 import { getAccountMoves } from "../services/account-move";
 import { getAccounts } from "../services/account";
-import { formatAccountMoveDate } from "./account-move";
 import type { Route } from "./+types/account-move-item";
 
 export const handle = {
@@ -74,7 +73,7 @@ export async function loader({ url, context }: Route.LoaderArgs) {
 
   const moveOptions: AccountMoveOption[] = accountMoves.map((accountMove) => ({
     value: accountMove.id,
-    label: accountMove.number || formatAccountMoveDate(accountMove.date),
+    label: accountMove.number || "",
   }));
   const accountOptions: AccountOption[] = accounts.map((account) => ({
     value: account.id,
@@ -183,8 +182,7 @@ export default function AccountMoveItem({ loaderData }: Route.ComponentProps) {
               {({ accountMoveItems }) =>
                 accountMoveItems.map((accountMoveItem) => {
                   const moveLabel = accountMoveItem.move
-                    ? accountMoveItem.move.number ||
-                      formatAccountMoveDate(accountMoveItem.move.date)
+                    ? accountMoveItem.move.number || ""
                     : moveLabels.get(accountMoveItem.moveId || "") || "-";
                   const accountLabel = accountMoveItem.account
                     ? `${accountMoveItem.account.code} · ${accountMoveItem.account.name}`

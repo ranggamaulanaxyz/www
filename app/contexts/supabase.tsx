@@ -5,22 +5,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { createClient } from "~/utils/supabase.browser";
+import { createClient } from "~/utils/supabase.client";
 
 const SupabaseClientContext = createReactContext<SupabaseClient | null>(null);
 
-export function SupabaseProvider({
-  supabaseUrl,
-  supabaseKey,
-  children,
-}: {
-  supabaseUrl: string;
-  supabaseKey: string;
-  children: ReactNode;
-}) {
-  const [supabase] = useState(() =>
-    createClient(supabaseUrl, supabaseKey),
-  );
+export function SupabaseProvider({ children }: { children: ReactNode }) {
+  const [supabase] = useState(() => createClient());
 
   return (
     <SupabaseClientContext.Provider value={supabase}>
