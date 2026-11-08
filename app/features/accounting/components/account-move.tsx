@@ -45,7 +45,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 
 const itemSchema = z.object({
-  productId: z.string("Produk tidak valid.").optional(),
+  productId: z.string("Produk tidak valid.").nullable().optional(),
   name: z.string("Deskripsi tidak valid."),
   accountId: z.string("Akun tidak valid."),
   debit: z.coerce
@@ -59,7 +59,7 @@ const itemSchema = z.object({
 });
 
 export const schema = z.object({
-  number: z.string("Nomor tidak valid.").optional(),
+  number: z.string("Nomor tidak valid.").optional().nullable(),
   date: z.iso.date("Tanggal tidak valid."),
   journalId: z.string("Jurnal tidak valid."),
   partnerId: z.string("Kontak tidak valid.").nullable(),
@@ -113,7 +113,7 @@ export function AccountMoveForm({ defaultValue }: AccountMoveFormProps) {
       <div className="flex flex-col gap-5 p-4">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <FieldGroup>
-            <FieldCombobox {...journalField} label="Journal" />
+            <FieldCombobox {...journalField} label="Jurnal" />
             <FieldDate field={fields.date} label="Tanggal" />
           </FieldGroup>
           <FieldGroup>

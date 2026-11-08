@@ -43,7 +43,7 @@ const columns = columnBuilder.columns([
 ]);
 
 export const handle = {
-  breadcrumb: { label: "Journal Umum" },
+  breadcrumb: { label: "Jurnal Umum" },
 } satisfies Handle<Route.ComponentProps["loaderData"]>;
 
 export function meta() {

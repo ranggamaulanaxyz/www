@@ -19,7 +19,7 @@ export const accountMoveSchema = z.object({
   id: z.uuid(),
   createdAt: z.string(),
   updatedAt: z.string().optional().nullable(),
-  number: z.string().optional().nullable(),
+  number: z.string().nullable().optional(),
   date: z.string("Tanggal jurnal tidak valid."),
   journalId: z.uuid("Buku jurnal tidak valid."),
   partnerId: z.uuid("Kontak tidak valid."),
