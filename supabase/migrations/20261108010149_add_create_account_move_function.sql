@@ -36,7 +36,7 @@ BEGIN
             (v_item->>'account_id')::UUID,
             (v_item->>'debit')::DOUBLE PRECISION,
             (v_item->>'credit')::DOUBLE PRECISION,
-            (v_item->>'move_id')::UUID
+            v_move_id::UUID
         );
     END LOOP;
     RETURN jsonb_build_object('success', TRUE, 'message', 'Jurnal umum dibuat', 'id', v_move_id);
