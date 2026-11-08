@@ -23,7 +23,6 @@ import { parseWithZod } from "@conform-to/zod/v4";
 import { authMiddleware, guestOnlyMiddleware } from "../middlewares.server";
 import type { Route } from "./+types/reset-password";
 import { supabaseClientContext } from "~/context";
-import { getEnv } from "~/utils/env.server";
 import { Spinner } from "~/components/ui/spinner";
 
 const schema = z.object({
@@ -49,7 +48,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     );
   }
 
-  const baseUrl = getEnv("BASE_URL");
+  const baseUrl = import.meta.env.PUBLIC_BASE_URL;
   const supabase = context.get(supabaseClientContext);
   const { error } = await supabase.auth.resetPasswordForEmail(
     submission.value.email,

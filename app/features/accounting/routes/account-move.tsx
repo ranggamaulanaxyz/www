@@ -15,19 +15,31 @@ import {
   DeskListContent,
   DeskListTopBar,
 } from "~/features/desk/components/list";
-import {
-  DeskFilter,
-  getFilterProps,
-  useDeskFilter,
-} from "~/features/desk/components/filter";
+import { DeskFilter, getFilterProps } from "~/features/desk/components/filter";
 import type { Handle } from "~/features/desk/types/route";
+import {
+  AccountMoveActions,
+  AccountMoveStatus,
+} from "../components/account-move";
 
 const columnBuilder = deskColumnBuilder<AccountMove>();
 const columns = columnBuilder.columns([
   selectionColumn,
   columnBuilder.accessor("number", { header: "Nomor" }),
   columnBuilder.accessor("date", { header: "Tanggal" }),
-  columnBuilder.accessor("status", { header: "Status" }),
+  columnBuilder.accessor("status", {
+    header: "Status",
+    cell: ({ getValue }) => <AccountMoveStatus value={getValue()} />,
+  }),
+  columnBuilder.display({
+    id: "actions",
+    cell: ({ row }) => {
+      const move = row.original;
+      return <AccountMoveActions move={move} />;
+    },
+    size: 50,
+    meta: { align: "right" },
+  }),
 ]);
 
 export const handle = {

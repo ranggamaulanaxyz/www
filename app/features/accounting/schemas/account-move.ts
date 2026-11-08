@@ -13,6 +13,8 @@ export const accountMoveStatusSchema = z.enum(["draft", "posted"], {
   message: "Status jurnal tidak valid.",
 });
 
+export type AccountMoveStatus = z.infer<typeof accountMoveStatusSchema>;
+
 export const accountMoveSchema = z.object({
   id: z.uuid(),
   createdAt: z.string(),
@@ -38,15 +40,12 @@ export const nullableAccountMoveNumberSchema = z.preprocess(
 
 export const accountMoveFormSchema = z.object({
   number: nullableAccountMoveNumberSchema,
-  date: z
-    .string("Tanggal jurnal tidak valid.")
-    .min(1, "Tanggal jurnal wajib diisi."),
+  date: z.iso.date("Tanggal jurnal tidak valid."),
   journalId: z.uuid("Buku jurnal tidak valid."),
   partnerId: z.uuid("Kontak tidak valid."),
   status: accountMoveStatusSchema.default("draft"),
 });
 
-export type AccountMoveStatus = z.infer<typeof accountMoveStatusSchema>;
 export type AccountMoveItem = z.infer<typeof accountMoveItemSchema>;
 export type AccountMoveItems = z.infer<typeof accountMoveItemListSchema>;
 export type AccountMoveFormValues = z.infer<typeof accountMoveFormSchema>;

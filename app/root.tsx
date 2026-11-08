@@ -12,9 +12,9 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { supabaseMiddleware } from "./middlewares.server";
+import { supabaseClientMiddleware } from "./middlewares.client";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster } from "./components/ui/toast";
-import { getEnv } from "./utils/env.server";
 import { SupabaseProvider } from "./contexts/supabase";
 import RouteErrorContent from "./components/route-error-content";
 import DevelopmentErrorContent from "./components/development-error-content";
@@ -24,6 +24,10 @@ import { ArrowLeftIcon, HomeIcon, RefreshCwIcon } from "lucide-react";
 import { NavigationProgress } from "./components/navigation-progress";
 
 export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
+
+export const clientMiddleware: Route.ClientMiddlewareFunction[] = [
+  supabaseClientMiddleware,
+];
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -40,15 +44,6 @@ export const links: Route.LinksFunction = () => [
 
 export function meta() {
   return [{ title: "Rangga Maulana" }];
-}
-
-export async function loader() {
-  return {
-    env: {
-      SUPABASE_URL: getEnv("SUPABASE_URL"),
-      SUPABASE_PUBLISHABLE_KEY: getEnv("SUPABASE_PUBLISHABLE_KEY"),
-    },
-  };
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -70,12 +65,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App({ loaderData }: Route.ComponentProps) {
-  const { env } = loaderData;
+export default function App() {
   return (
     <SupabaseProvider
-      supabaseUrl={env.SUPABASE_URL}
-      supabaseKey={env.SUPABASE_PUBLISHABLE_KEY}
+      supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL}
+      supabaseKey={import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY}
     >
       <NavigationProgress />
       <Outlet />

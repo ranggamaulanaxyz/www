@@ -6,7 +6,7 @@ const accounting = [
       route("new", "features/accounting/routes/account-move-create.tsx"),
       route(
         ":accountMoveId",
-        "features/accounting/routes/account-move-form.tsx",
+        "features/accounting/routes/account-move-update.tsx",
       ),
     ]),
     route("move-items", "features/accounting/routes/account-move-item.tsx", [

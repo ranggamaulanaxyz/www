@@ -7,6 +7,7 @@ import {
   accountJournalListSchema,
   accountJournalSchema,
 } from "../schemas/account-journal";
+import { sleep } from "~/utils/tools";
 
 export type AccountJournalValues = {
   name: string;
@@ -23,9 +24,22 @@ export async function getAccountJournals(
   const statement = supabase
     .from("account_journals")
     .select("*", { count: "exact" });
+
   if (options?.query) {
     statement.ilike("name", `%${options.query}%`);
   }
+
+  const excludeIds = (options?.excludeIds ?? []).filter((id): id is string =>
+    Boolean(id),
+  );
+  if (excludeIds.length > 0) {
+    statement.not(
+      "id",
+      "in",
+      `(${excludeIds.map((id) => `"${id}"`).join(",")})`,
+    );
+  }
+
   statement.order("name", { ascending: true });
   statement.range(from - 1, to - 1);
 

@@ -29,7 +29,7 @@ function getNavigationSnapshot() {
   const navigation = window.navigation;
   const entries = navigation.entries();
   const index = entries.findIndex(
-    (entry) => entry.key === navigation.currentEntry?.key,
+    (entry) => entry.key === navigation?.currentEntry?.key,
   );
 
   const canGoBack = index > 0;

@@ -81,6 +81,22 @@ export async function createAccountMove(
   return accountMove;
 }
 
+export async function createAccountMoveWithItems(
+  supabase: SupabaseClient,
+  values: any,
+) {
+  const snakecasedValues = snakecaseKeys(values);
+  const { data, error } = await supabase.rpc("create_account_move", {
+    p_values: snakecasedValues,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data as { success: boolean; message: string; id: string };
+}
+
 export async function updateAccountMove(
   supabase: SupabaseClient,
   id: string,

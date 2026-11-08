@@ -50,7 +50,7 @@ export async function createAccount(
   supabase: SupabaseClient,
   values: { code: string; name: string; accountSubtypeId: string },
 ) {
-  const snakecasedValues = snakecaseKeys(values)
+  const snakecasedValues = snakecaseKeys(values);
   const { data, error } = await supabase
     .from("accounts")
     .insert(snakecasedValues)

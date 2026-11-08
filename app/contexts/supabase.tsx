@@ -1,4 +1,3 @@
-import { createBrowserClient } from "@supabase/ssr";
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
   createContext as createReactContext,
@@ -6,6 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { createClient } from "~/utils/supabase.browser";
 
 const SupabaseClientContext = createReactContext<SupabaseClient | null>(null);
 
@@ -19,7 +19,7 @@ export function SupabaseProvider({
   children: ReactNode;
 }) {
   const [supabase] = useState(() =>
-    createBrowserClient(supabaseUrl, supabaseKey),
+    createClient(supabaseUrl, supabaseKey),
   );
 
   return (
