@@ -45,6 +45,8 @@ import {
 } from "~/components/ui/dropdown-menu";
 
 const itemSchema = z.object({
+  /** Existing item id, used to update only changed rows. */
+  id: z.string().nullable().optional(),
   productId: z.string("Produk tidak valid.").nullable().optional(),
   name: z.string("Deskripsi tidak valid."),
   accountId: z.string("Akun tidak valid."),
@@ -66,19 +68,40 @@ export const schema = z.object({
   items: z.array(itemSchema).optional(),
 });
 
+type AccountMoveItemDefaultValue = Partial<z.input<typeof itemSchema>> & {
+  /** Current product, used to show its label in the combobox. */
+  product?: { id: string; name: string } | null;
+  /** Current account, used to show its label in the combobox. */
+  account?: { id: string; name: string } | null;
+};
+
 type AccountMoveFormProps = {
-  defaultValue?: Partial<z.input<typeof schema>>;
+  defaultValue?: Omit<Partial<z.input<typeof schema>>, "items"> & {
+    /** Current journal, used to show its label in the combobox. */
+    journal?: { id: string; name: string } | null;
+    /** Current partner, used to show its label in the combobox. */
+    partner?: { id: string; name: string } | null;
+    items?: AccountMoveItemDefaultValue[];
+  };
 };
 
 export function AccountMoveForm({ defaultValue }: AccountMoveFormProps) {
+  const {
+    journal,
+    partner,
+    items: defaultItems,
+    ...formDefaultValue
+  } = defaultValue ?? {};
   const [form, fields] = useForm<
     z.input<typeof schema>,
     z.output<typeof schema>,
     string[]
   >({
     defaultValue: {
-      ...defaultValue,
-      items: defaultValue?.items ?? [{ debit: "0", credit: "0" }],
+      ...formDefaultValue,
+      items: defaultItems?.map(({ product, account, ...item }) => item) ?? [
+        { debit: "0", credit: "0" },
+      ],
     } as never,
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
@@ -113,11 +136,23 @@ export function AccountMoveForm({ defaultValue }: AccountMoveFormProps) {
       <div className="flex flex-col gap-5 p-4">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <FieldGroup>
-            <FieldCombobox {...journalField} label="Jurnal" />
+            <FieldCombobox
+              {...journalField}
+              label="Jurnal"
+              defaultValue={
+                journal ? { label: journal.name, value: journal.id } : undefined
+              }
+            />
             <FieldDate field={fields.date} label="Tanggal" />
           </FieldGroup>
           <FieldGroup>
-            <FieldCombobox {...partnerField} label="Kontak" />
+            <FieldCombobox
+              {...partnerField}
+              label="Kontak"
+              defaultValue={
+                partner ? { label: partner.name, value: partner.id } : undefined
+              }
+            />
             <FieldText field={fields.number} label="Nomor" exclude={true} />
           </FieldGroup>
         </div>
@@ -142,17 +177,17 @@ export function AccountMoveForm({ defaultValue }: AccountMoveFormProps) {
                       form={form}
                       item={item}
                       index={index}
+                      defaultItems={defaultItems}
                     />
                   );
                 })}
-              </TableBody>
-              <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={6} className="py-0">
                     <Button
                       size="sm"
                       variant="link"
                       type="button"
+                      className="w-full justify-start px-0"
                       onClick={() =>
                         form.insert({
                           name: fields.items.name,
@@ -164,6 +199,14 @@ export function AccountMoveForm({ defaultValue }: AccountMoveFormProps) {
                       Tambah
                     </Button>
                   </TableCell>
+                </TableRow>
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableHead colSpan={3}>Total</TableHead>
+                  <TableCell className="px-4 text-right">0</TableCell>
+                  <TableCell className="px-4 text-right">0</TableCell>
+                  <TableCell></TableCell>
                 </TableRow>
               </TableFooter>
             </Table>
@@ -178,26 +221,52 @@ export function AccountMoveItemTableRow({
   form,
   item,
   index,
+  defaultItems,
 }: {
   form: FormMetadata<z.input<typeof schema>>;
   item: FieldMetadata<z.input<typeof itemSchema>>;
   index: number;
+  defaultItems?: AccountMoveItemDefaultValue[];
 }) {
   const fields = form.getFieldset();
   const itemFields = item.getFieldset();
   const accountField = useAccountField(itemFields.accountId);
   const productField = useProductField(itemFields.productId);
 
+  const defaultProduct = defaultItems?.find(
+    (defaultItem) =>
+      (defaultItem.productId ?? null) ===
+      (itemFields.productId.initialValue ?? null),
+  )?.product;
+  const defaultAccount = defaultItems?.find(
+    (defaultItem) =>
+      defaultItem.accountId === itemFields.accountId.initialValue,
+  )?.account;
+
   return (
     <TableRow key={item.key}>
       <TableCell className="align-top">
-        <FieldCombobox {...productField} />
+        <FieldCombobox
+          {...productField}
+          defaultValue={
+            defaultProduct
+              ? { label: defaultProduct.name, value: defaultProduct.id }
+              : undefined
+          }
+        />
       </TableCell>
       <TableCell className="align-top">
         <FieldText field={itemFields.name} />
       </TableCell>
       <TableCell className="align-top">
-        <FieldCombobox {...accountField} />
+        <FieldCombobox
+          {...accountField}
+          defaultValue={
+            defaultAccount
+              ? { label: defaultAccount.name, value: defaultAccount.id }
+              : undefined
+          }
+        />
       </TableCell>
       <TableCell className="align-top">
         <FieldText field={itemFields.debit} align="right" />

@@ -3,6 +3,8 @@ import {
   accountMoveItemListSchema,
   accountMoveItemSchema,
 } from "./account-move-item";
+import { accountJournalSchema } from "./account-journal";
+import { partnerSchema } from "~/features/partner/schemas/partner";
 
 export {
   accountMoveItemListSchema,
@@ -22,7 +24,9 @@ export const accountMoveSchema = z.object({
   number: z.string().nullable().optional(),
   date: z.string("Tanggal jurnal tidak valid."),
   journalId: z.uuid("Buku jurnal tidak valid."),
+  journal: accountJournalSchema,
   partnerId: z.uuid("Kontak tidak valid."),
+  partner: partnerSchema,
   status: accountMoveStatusSchema.default("draft"),
   items: z.array(accountMoveItemSchema).optional(),
 });

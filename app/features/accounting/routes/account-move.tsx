@@ -13,6 +13,7 @@ import type { AccountMove } from "../schemas/account-move";
 import {
   DeskList,
   DeskListContent,
+  DeskListGrid,
   DeskListTopBar,
 } from "~/features/desk/components/list";
 import { DeskFilter, getFilterProps } from "~/features/desk/components/filter";
@@ -21,12 +22,21 @@ import {
   AccountMoveActions,
   AccountMoveStatus,
 } from "../components/account-move";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "~/components/ui/item";
 
 const columnBuilder = deskColumnBuilder<AccountMove>();
 const columns = columnBuilder.columns([
   selectionColumn,
   columnBuilder.accessor("number", { header: "Nomor" }),
   columnBuilder.accessor("date", { header: "Tanggal" }),
+  columnBuilder.accessor("journal.name", { header: "Jurnal" }),
+  columnBuilder.accessor("partner.name", { header: "Kontak" }),
   columnBuilder.accessor("status", {
     header: "Status",
     cell: ({ getValue }) => <AccountMoveStatus value={getValue()} />,
@@ -85,6 +95,23 @@ export default function AccountMoveList({ loaderData }: Route.ComponentProps) {
       </DeskListTopBar>
       <DeskListContent view="table">
         <DeskTable table={list.table} isLoading={list.state === "loading"} />
+      </DeskListContent>
+      <DeskListContent view="grid">
+        <DeskListGrid isLoading={list.state === "loading"}>
+          {list.rows.map(({ original: move, ...row }) => (
+            <Item key={row.id} variant="outline">
+              <ItemContent>
+                <ItemTitle>
+                  {move.journal.name} ({move.date})
+                </ItemTitle>
+                <ItemDescription>{move.number}</ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <AccountMoveActions move={move} />
+              </ItemActions>
+            </Item>
+          ))}
+        </DeskListGrid>
       </DeskListContent>
     </DeskList>
   );

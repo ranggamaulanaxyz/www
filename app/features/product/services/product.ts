@@ -3,7 +3,6 @@ import camelcaseKeys from "camelcase-keys";
 import type { FilterOptions } from "~/features/desk/types/filter";
 import { parseMetadata, parseRange } from "~/utils/supabase";
 import { productListSchema, productSchema } from "../schemas/product";
-import { sleep } from "~/utils/tools";
 import type { CreateProductValues } from "../types/product";
 import snakecaseKeys from "snakecase-keys";
 
@@ -26,7 +25,6 @@ export async function getProducts(
   }
   const camelcasedData = camelcaseKeys(data, { deep: true });
   const products = await productListSchema.parseAsync(camelcasedData);
-  await sleep(2000);
   return {
     products,
     metadata: parseMetadata({ count, range: { from, to } }),

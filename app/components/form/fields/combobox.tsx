@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -27,6 +28,8 @@ type FieldComboboxProps = {
   label?: string;
   placeholder?: string;
   items: FieldComboboxItem[];
+  /** Initial option to show even when it's not part of `items` yet. */
+  defaultValue?: FieldComboboxItem | null;
   state: "loading" | "loaded" | "error";
   control: {
     value?: string;
@@ -46,6 +49,7 @@ export function FieldCombobox({
   field,
   label,
   items,
+  defaultValue,
   state,
   placeholder,
   control,
@@ -53,7 +57,16 @@ export function FieldCombobox({
   reload,
   onChange,
 }: FieldComboboxProps) {
-  const [selected, setSelected] = useState<FieldComboboxItem | null>(null);
+  const [selected, setSelected] = useState<FieldComboboxItem | null>(
+    defaultValue && defaultValue.value === control.value ? defaultValue : null,
+  );
+
+  // Always expose the default option, even before it shows up in `items`.
+  const allItems = useMemo(() => {
+    if (!defaultValue) return items;
+    if (items.some((item) => item.value === defaultValue.value)) return items;
+    return [defaultValue, ...items];
+  }, [defaultValue, items]);
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
     search(value, selected?.value);
@@ -66,15 +79,15 @@ export function FieldCombobox({
     }
     setSelected((current) => {
       if (current?.value === control.value) return current;
-      return items.find((item) => item.value === control.value) ?? null;
+      return allItems.find((item) => item.value === control.value) ?? null;
     });
-  }, [control.value, items]);
+  }, [control.value, allItems]);
 
   // Keep the selected option in the list when the current query doesn't match it.
   const newItems =
-    selected && !items.some((item) => item.value === selected.value)
-      ? [selected, ...items]
-      : items;
+    selected && !allItems.some((item) => item.value === selected.value)
+      ? [selected, ...allItems]
+      : allItems;
 
   return (
     <Field data-invalid={!field.valid}>
