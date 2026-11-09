@@ -43,7 +43,7 @@ export async function clientAction({
   const { success, message } = await updateAccountMoveWithItems(
     supabase,
     params.accountMoveId,
-    submission.value as never,
+    submission.value,
   );
   if (success) {
     return data({ success: true, lastResult: null });
@@ -63,36 +63,8 @@ export default function AccountMoveUpdate({
   return (
     <AccountMoveForm
       key={move.updatedAt ?? move.id}
+      move={move}
       lastResult={actionData?.lastResult ?? null}
-      initialValue={{
-        journalId: move.journalId,
-        journal: move.journal,
-        partnerId: move.partnerId,
-        partner: move.partner,
-        date: move.date,
-        number: move.number,
-        items: move.items?.map(
-          ({
-            id,
-            productId,
-            name,
-            accountId,
-            debit,
-            credit,
-            product,
-            account,
-          }) => ({
-            id,
-            productId,
-            name,
-            accountId,
-            debit,
-            credit,
-            product,
-            account,
-          }),
-        ),
-      }}
     />
   );
 }

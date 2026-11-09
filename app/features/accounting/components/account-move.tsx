@@ -36,7 +36,11 @@ import { useJournalField } from "../hooks/use-journal";
 import { usePartnerField } from "~/features/partner/hooks/use-partner";
 import { useAccountField } from "../hooks/use-account";
 import { useProductField } from "~/features/product/hooks/use-product";
-import type { AccountMove, AccountMoveStatus } from "../schemas/account-move";
+import {
+  accountMoveFormSchema,
+  type AccountMove,
+  type AccountMoveStatus,
+} from "../schemas/account-move";
 import { Badge } from "~/components/ui/badge";
 import {
   DropdownMenu,
@@ -45,76 +49,36 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-
-const itemSchema = z.object({
-  /** Existing item id, used to update only changed rows. */
-  id: z.string().nullable().optional(),
-  productId: z.string("Produk tidak valid.").nullable().optional(),
-  name: z.string("Deskripsi tidak valid."),
-  accountId: z.string("Akun tidak valid."),
-  debit: z.coerce
-    .number("Debit tidak valid.")
-    .nonnegative("Debit harus sama atau lebih besar dari 0.")
-    .default(0),
-  credit: z.coerce
-    .number("Kredit tidak valid.")
-    .nonnegative("Kredit harus sama atau lebih besar dari 0.")
-    .default(0),
-});
-
-export const schema = z.object({
-  number: z.string("Nomor tidak valid.").optional().nullable(),
-  date: z.iso.date("Tanggal tidak valid."),
-  journalId: z.string("Jurnal tidak valid."),
-  partnerId: z.string("Kontak tidak valid.").nullable(),
-  items: z.array(itemSchema).optional(),
-});
-
-type AccountMoveItemDefaultValue = Partial<z.input<typeof itemSchema>> & {
-  product?: { id: string; name: string } | null;
-  account?: { id: string; name: string } | null;
-};
+import type { AccountMoveItems } from "../schemas/account-move-item";
 
 type AccountMoveFormProps = {
-  initialValue?: Omit<Partial<z.input<typeof schema>>, "items"> & {
-    journal?: { id: string; name: string } | null;
-    partner?: { id: string; name: string } | null;
-    items?: AccountMoveItemDefaultValue[];
-  };
+  move?: AccountMove;
   lastResult?: SubmissionResult<string[]> | null;
 };
 
-export function AccountMoveForm({
-  initialValue,
-  lastResult,
-}: AccountMoveFormProps) {
-  const {
-    journal,
-    partner,
-    items: itemsInitialValue,
-    ...defaultValue
-  } = initialValue ?? {};
-
-  const itemsDefaultValue = [{ id: "", debit: "0", credit: "0" }];
-
-  const [form, fields] = useForm<
-    z.input<typeof schema>,
-    z.output<typeof schema>,
-    string[]
-  >({
+export function AccountMoveForm({ move, lastResult }: AccountMoveFormProps) {
+  const [form, fields] = useForm({
     lastResult: lastResult ?? null,
-    defaultValue: {
-      ...defaultValue,
-      items:
-        itemsInitialValue?.map(({ product, account, ...item }) => ({
-          ...item,
-          id: item.id ?? "",
-        })) ?? itemsDefaultValue,
-    } as never,
+    defaultValue: move
+      ? {
+          journalId: move.journalId || "",
+          partnerId: move.partnerId || "",
+          date: move.date || "",
+          number: move.number || "",
+          items: move.items?.map((item) => ({
+            id: item.id || "",
+            productId: item.productId || "",
+            name: item.name || "",
+            accountId: item.accountId || "",
+            debit: item.debit.toString() || "0",
+            credit: item.credit.toString() || "0",
+          })),
+        }
+      : { items: [{ id: "", debit: "0", credit: "0" }] },
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
     onValidate({ formData }) {
-      return parseForm(formData, { schema }) as never;
+      return parseForm(formData, { schema: accountMoveFormSchema });
     },
   });
   const items = fields.items.getFieldList();
@@ -148,7 +112,9 @@ export function AccountMoveForm({
               {...journalField}
               label="Jurnal"
               defaultValue={
-                journal ? { label: journal.name, value: journal.id } : undefined
+                move?.journal
+                  ? { label: move.journal.name, value: move.journal.id }
+                  : undefined
               }
             />
             <FieldDate field={fields.date} label="Tanggal" />
@@ -158,7 +124,9 @@ export function AccountMoveForm({
               {...partnerField}
               label="Kontak"
               defaultValue={
-                partner ? { label: partner.name, value: partner.id } : undefined
+                move?.partner
+                  ? { label: move?.partner.name, value: move?.partner.id }
+                  : undefined
               }
             />
             <FieldText field={fields.number} label="Nomor" exclude={true} />
@@ -185,7 +153,7 @@ export function AccountMoveForm({
                       form={form}
                       item={item}
                       index={index}
-                      itemsInitialValue={itemsInitialValue}
+                      moveItems={move?.items}
                     />
                   );
                 })}
@@ -229,23 +197,23 @@ export function AccountMoveItemTableRow({
   form,
   item,
   index,
-  itemsInitialValue,
+  moveItems,
 }: {
-  form: FormMetadata<z.input<typeof schema>>;
-  item: FieldMetadata<z.input<typeof itemSchema>>;
+  form: FormMetadata<z.input<typeof accountMoveFormSchema>>;
+  item: FieldMetadata<z.input<typeof accountMoveFormSchema>["items"][number]>;
   index: number;
-  itemsInitialValue?: AccountMoveItemDefaultValue[];
+  moveItems?: AccountMoveItems;
 }) {
   const fields = form.getFieldset();
   const itemFields = item.getFieldset();
   const accountField = useAccountField(itemFields.accountId);
   const productField = useProductField(itemFields.productId);
 
-  const defaultProduct = itemsInitialValue?.find(
+  const defaultProduct = moveItems?.find(
     (item) =>
       (item.productId ?? null) === (itemFields.productId.initialValue ?? null),
   )?.product;
-  const defaultAccount = itemsInitialValue?.find(
+  const defaultAccount = moveItems?.find(
     (item) => item.accountId === itemFields.accountId.initialValue,
   )?.account;
 

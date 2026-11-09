@@ -2,7 +2,13 @@ import { parseFilter } from "~/features/desk/services/filter";
 import type { Route } from "./+types/account-move";
 import { supabaseClientContext } from "~/context";
 import { getAccountMoves } from "../services/account-move";
-import { data, Outlet, useNavigate, useOutlet } from "react-router";
+import {
+  data,
+  Outlet,
+  useNavigate,
+  useOutlet,
+  useSearchParams,
+} from "react-router";
 import { getDeskListProps, useDeskList } from "~/features/desk/hooks/use-list";
 import {
   deskColumnBuilder,
@@ -14,6 +20,7 @@ import {
   DeskList,
   DeskListContent,
   DeskListGrid,
+  DeskListLink,
   DeskListTopBar,
 } from "~/features/desk/components/list";
 import { DeskFilter, getFilterProps } from "~/features/desk/components/filter";
@@ -33,7 +40,14 @@ import {
 const columnBuilder = deskColumnBuilder<AccountMove>();
 const columns = columnBuilder.columns([
   selectionColumn,
-  columnBuilder.accessor("number", { header: "Nomor" }),
+  columnBuilder.accessor("number", {
+    header: "Nomor",
+    cell: ({ row: { original } }) => (
+      <DeskListLink to={`/desk/accounting/moves/${original.id}`}>
+        {original.number || "#"}
+      </DeskListLink>
+    ),
+  }),
   columnBuilder.accessor("date", { header: "Tanggal" }),
   columnBuilder.accessor("journal.name", { header: "Jurnal" }),
   columnBuilder.accessor("partner.name", { header: "Kontak" }),
@@ -53,21 +67,26 @@ const columns = columnBuilder.columns([
 ]);
 
 export const handle = {
-  breadcrumb: { label: "Jurnal Umum" },
+  breadcrumb: ({ loaderData }) => {
+    return {
+      label: "Jurnal Umum",
+      to: `/desk/accounting/moves?${loaderData?.searchParams}`,
+    };
+  },
 } satisfies Handle<Route.ComponentProps["loaderData"]>;
 
 export function meta() {
   return [{ title: "Jurnal Umum" }];
 }
 
-export async function loader({ url, context }: Route.LoaderArgs) {
+export async function clientLoader({ url, context }: Route.ClientActionArgs) {
   const supabase = context.get(supabaseClientContext);
   const filterOptions = parseFilter(url.searchParams);
   const promiseGetAccountMoves = getAccountMoves(supabase, filterOptions);
   const moves = promiseGetAccountMoves.then((result) => result.accountMoves);
   const metadata = promiseGetAccountMoves.then((result) => result.metadata);
 
-  return data({ moves, metadata });
+  return data({ moves, metadata, searchParams: url.searchParams.toString() });
 }
 
 export default function AccountMoveList({ loaderData }: Route.ComponentProps) {
@@ -102,7 +121,9 @@ export default function AccountMoveList({ loaderData }: Route.ComponentProps) {
             <Item key={row.id} variant="outline">
               <ItemContent>
                 <ItemTitle>
-                  {move.journal.name} ({move.date})
+                  <DeskListLink to={`/desk/accounting/moves/${move.id}`}>
+                    {move.journal.name} ({move.date})
+                  </DeskListLink>
                 </ItemTitle>
                 <ItemDescription>{move.number}</ItemDescription>
               </ItemContent>

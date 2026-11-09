@@ -7,7 +7,7 @@ import {
 } from "react";
 import { DeskBottomBar, DeskBottomBarItem, DeskTopBar } from "./bar";
 import DeskPagination from "./pagination";
-import { Await } from "react-router";
+import { Await, Link, useSearchParams, type LinkProps } from "react-router";
 import { useListView } from "../hooks/use-list-view";
 import {
   DropdownMenu,
@@ -283,5 +283,18 @@ export function DeskListGrid({ children, isLoading }: DeskListGridProps) {
           ))
         : children}
     </div>
+  );
+}
+
+export function DeskListLink({
+  children,
+  to,
+  ...props
+}: Omit<LinkProps, "to"> & { to: string }) {
+  const [searchParams] = useSearchParams();
+  return (
+    <Link to={{ pathname: to, search: searchParams.toString() }} {...props}>
+      {children}
+    </Link>
   );
 }

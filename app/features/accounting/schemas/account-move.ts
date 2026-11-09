@@ -37,19 +37,29 @@ export const accountMoveListSchema = z.array(accountMoveSchema);
 
 export type AccountMoves = z.infer<typeof accountMoveListSchema>;
 
-export const nullableAccountMoveNumberSchema = z.preprocess(
-  (value) => (value === "" || value === undefined ? null : value),
-  z.string("Nomor jurnal tidak valid.").nullable(),
-);
-
 export const accountMoveFormSchema = z.object({
-  number: nullableAccountMoveNumberSchema,
-  date: z.iso.date("Tanggal jurnal tidak valid."),
-  journalId: z.uuid("Buku jurnal tidak valid."),
-  partnerId: z.uuid("Kontak tidak valid."),
-  status: accountMoveStatusSchema.default("draft"),
+  number: z.string("Nomor tidak valid.").optional().nullable(),
+  date: z.iso.date("Tanggal tidak valid."),
+  journalId: z.string("Jurnal tidak valid."),
+  partnerId: z.string("Kontak tidak valid.").nullable(),
+  items: z
+    .array(
+      z.object({
+        id: z.string().nullable().optional(),
+        productId: z.string("Produk tidak valid.").nullable().optional(),
+        name: z.string("Deskripsi tidak valid."),
+        accountId: z.string("Akun tidak valid."),
+        debit: z.coerce
+          .number("Debit tidak valid.")
+          .nonnegative("Debit harus sama atau lebih besar dari 0.")
+          .default(0),
+        credit: z.coerce
+          .number("Kredit tidak valid.")
+          .nonnegative("Kredit harus sama atau lebih besar dari 0.")
+          .default(0),
+      }),
+    )
+    .min(1, "Mohon tambahkan baris jurnal."),
 });
 
-export type AccountMoveItem = z.infer<typeof accountMoveItemSchema>;
-export type AccountMoveItems = z.infer<typeof accountMoveItemListSchema>;
-export type AccountMoveFormValues = z.infer<typeof accountMoveFormSchema>;
+export type AccountMoveValues = z.infer<typeof accountMoveFormSchema>;

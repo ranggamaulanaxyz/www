@@ -118,6 +118,33 @@ export async function updateAccountMove(
   return true;
 }
 
+export type AccountMovePostResult = {
+  success: boolean;
+  message: string;
+  id: string;
+};
+
+/**
+ * Posts an account move, moving it from `draft` to `posted`.
+ *
+ * The database function rejects moves without items so an empty journal can
+ * never be posted.
+ */
+export async function postAccountMove(
+  supabase: SupabaseClient,
+  id: string,
+): Promise<AccountMovePostResult> {
+  const { data, error } = await supabase.rpc("post_account_move", {
+    p_id: id,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data as AccountMovePostResult;
+}
+
 export type AccountMoveItemInput = {
   /** Existing item id. `null`/absent means a new item. */
   id?: string | null;
