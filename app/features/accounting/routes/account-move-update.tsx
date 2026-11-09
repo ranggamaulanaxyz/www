@@ -1,4 +1,4 @@
-import { data, redirect } from "react-router";
+import { data } from "react-router";
 import { AccountMoveForm, schema } from "../components/account-move";
 import type { Route } from "./+types/account-move-update";
 import { supabaseClientContext } from "~/context";
@@ -31,7 +31,6 @@ export async function clientLoader({
 export async function clientAction({
   request,
   params,
-  url,
   context,
 }: Route.ClientActionArgs) {
   const formData = await request.formData();
@@ -41,27 +40,31 @@ export async function clientAction({
   }
 
   const supabase = context.get(supabaseClientContext);
-  const { success, message, id } = await updateAccountMoveWithItems(
+  const { success, message } = await updateAccountMoveWithItems(
     supabase,
     params.accountMoveId,
     submission.value as never,
   );
   if (success) {
-    throw redirect(
-      `/desk/accounting/moves/${id}?${url.searchParams.toString()}`,
-    );
+    return data({ success: true, lastResult: null });
   }
 
-  return data({ lastResult: submission.reply({ formErrors: [message] }) });
+  return data({
+    success: false,
+    lastResult: submission.reply({ formErrors: [message] }),
+  });
 }
 
 export default function AccountMoveUpdate({
   loaderData,
+  actionData,
 }: Route.ComponentProps) {
   const { move } = loaderData;
   return (
     <AccountMoveForm
-      defaultValue={{
+      key={move.updatedAt ?? move.id}
+      lastResult={actionData?.lastResult ?? null}
+      initialValue={{
         journalId: move.journalId,
         journal: move.journal,
         partnerId: move.partnerId,

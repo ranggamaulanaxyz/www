@@ -27,7 +27,16 @@ BEGIN
     END IF;
 
     IF p_values ? 'items' THEN
-        v_items := COALESCE(p_values->'items', '[]'::JSONB);
+        -- Treat empty ids as new rows so they never reach a UUID cast.
+        v_items := COALESCE((
+            SELECT jsonb_agg(
+                CASE
+                    WHEN COALESCE(item->>'id', '') = '' THEN item - 'id'
+                    ELSE item
+                END
+            )
+            FROM jsonb_array_elements(COALESCE(p_values->'items', '[]'::JSONB)) AS item
+        ), '[]'::JSONB);
 
         -- Delete rows that are no longer present in the payload in one pass.
         DELETE FROM public.account_move_items AS item

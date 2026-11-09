@@ -1,8 +1,10 @@
 import {
   getFormProps,
+  getInputProps,
   useForm,
   type FieldMetadata,
   type FormMetadata,
+  type SubmissionResult,
 } from "@conform-to/react";
 import {
   EllipsisVerticalIcon,
@@ -69,39 +71,45 @@ export const schema = z.object({
 });
 
 type AccountMoveItemDefaultValue = Partial<z.input<typeof itemSchema>> & {
-  /** Current product, used to show its label in the combobox. */
   product?: { id: string; name: string } | null;
-  /** Current account, used to show its label in the combobox. */
   account?: { id: string; name: string } | null;
 };
 
 type AccountMoveFormProps = {
-  defaultValue?: Omit<Partial<z.input<typeof schema>>, "items"> & {
-    /** Current journal, used to show its label in the combobox. */
+  initialValue?: Omit<Partial<z.input<typeof schema>>, "items"> & {
     journal?: { id: string; name: string } | null;
-    /** Current partner, used to show its label in the combobox. */
     partner?: { id: string; name: string } | null;
     items?: AccountMoveItemDefaultValue[];
   };
+  lastResult?: SubmissionResult<string[]> | null;
 };
 
-export function AccountMoveForm({ defaultValue }: AccountMoveFormProps) {
+export function AccountMoveForm({
+  initialValue,
+  lastResult,
+}: AccountMoveFormProps) {
   const {
     journal,
     partner,
-    items: defaultItems,
-    ...formDefaultValue
-  } = defaultValue ?? {};
+    items: itemsInitialValue,
+    ...defaultValue
+  } = initialValue ?? {};
+
+  const itemsDefaultValue = [{ id: "", debit: "0", credit: "0" }];
+
   const [form, fields] = useForm<
     z.input<typeof schema>,
     z.output<typeof schema>,
     string[]
   >({
+    lastResult: lastResult ?? null,
     defaultValue: {
-      ...formDefaultValue,
-      items: defaultItems?.map(({ product, account, ...item }) => item) ?? [
-        { debit: "0", credit: "0" },
-      ],
+      ...defaultValue,
+      items:
+        itemsInitialValue?.map(({ product, account, ...item }) => ({
+          ...item,
+          id: item.id ?? "",
+        })) ?? itemsDefaultValue,
     } as never,
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
@@ -177,21 +185,21 @@ export function AccountMoveForm({ defaultValue }: AccountMoveFormProps) {
                       form={form}
                       item={item}
                       index={index}
-                      defaultItems={defaultItems}
+                      itemsInitialValue={itemsInitialValue}
                     />
                   );
                 })}
                 <TableRow>
-                  <TableCell colSpan={6} className="py-0">
+                  <TableCell colSpan={6}>
                     <Button
                       size="sm"
                       variant="link"
                       type="button"
-                      className="w-full justify-start px-0"
+                      className="w-full px-0"
                       onClick={() =>
                         form.insert({
                           name: fields.items.name,
-                          defaultValue: { debit: "0", credit: "0" },
+                          defaultValue: { id: "", debit: "0", credit: "0" },
                         })
                       }
                     >
@@ -221,31 +229,30 @@ export function AccountMoveItemTableRow({
   form,
   item,
   index,
-  defaultItems,
+  itemsInitialValue,
 }: {
   form: FormMetadata<z.input<typeof schema>>;
   item: FieldMetadata<z.input<typeof itemSchema>>;
   index: number;
-  defaultItems?: AccountMoveItemDefaultValue[];
+  itemsInitialValue?: AccountMoveItemDefaultValue[];
 }) {
   const fields = form.getFieldset();
   const itemFields = item.getFieldset();
   const accountField = useAccountField(itemFields.accountId);
   const productField = useProductField(itemFields.productId);
 
-  const defaultProduct = defaultItems?.find(
-    (defaultItem) =>
-      (defaultItem.productId ?? null) ===
-      (itemFields.productId.initialValue ?? null),
+  const defaultProduct = itemsInitialValue?.find(
+    (item) =>
+      (item.productId ?? null) === (itemFields.productId.initialValue ?? null),
   )?.product;
-  const defaultAccount = defaultItems?.find(
-    (defaultItem) =>
-      defaultItem.accountId === itemFields.accountId.initialValue,
+  const defaultAccount = itemsInitialValue?.find(
+    (item) => item.accountId === itemFields.accountId.initialValue,
   )?.account;
 
   return (
     <TableRow key={item.key}>
       <TableCell className="align-top">
+        <input {...getInputProps(itemFields.id, { type: "hidden" })} />
         <FieldCombobox
           {...productField}
           defaultValue={
