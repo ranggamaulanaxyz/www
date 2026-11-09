@@ -27,8 +27,6 @@ export type User = {
   deletedAt?: string;
 };
 
-export const userContext = createContext<User | null>(null);
-
 export async function authMiddleware({
   context,
 }: {
@@ -47,23 +45,6 @@ export async function authMiddleware({
       expiresAt: session.expires_at,
     });
   }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user) {
-    context.set(userContext, {
-      id: user.id,
-      firstName: user.user_metadata.firstName || user.user_metadata.name,
-      middleName: user.user_metadata.middleName,
-      lastName: user.user_metadata.lastName,
-      email: user.email,
-      confirmationSentAt: user.confirmation_sent_at,
-      confirmedAt: user.confirmed_at,
-      bannedUntil: user.banned_until,
-      deletedAt: user.deleted_at,
-    });
-  }
 }
 
 export async function userOnlyMiddleware({
@@ -71,8 +52,8 @@ export async function userOnlyMiddleware({
 }: {
   context: Readonly<RouterContextProvider>;
 }) {
-  const user = context.get(userContext);
-  if (!user) {
+  const session = context.get(userSessionContext);
+  if (!session) {
     throw redirect("/signin");
   }
 }
@@ -82,8 +63,8 @@ export async function guestOnlyMiddleware({
 }: {
   context: Readonly<RouterContextProvider>;
 }) {
-  const user = context.get(userContext);
-  if (user) {
+  const session = context.get(userSessionContext);
+  if (session) {
     throw redirect("/");
   }
 }

@@ -22,6 +22,8 @@ import UnexpectedErrorContent from "./components/unexpected-error-content";
 import { Button } from "./components/ui/button";
 import { ArrowLeftIcon, HomeIcon, RefreshCwIcon } from "lucide-react";
 import { NavigationProgress } from "./components/navigation-progress";
+import { createClient } from "./utils/supabase.client";
+import { supabaseClientContext } from "./context";
 
 export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
@@ -65,9 +67,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
+export async function clientLoader({ context }: Route.ClientLoaderArgs) {
+  const supabase = context.get(supabaseClientContext);
+  return { supabase };
+}
+
+export default function App({ loaderData }: Route.ComponentProps) {
+  const { supabase } = loaderData;
   return (
-    <SupabaseProvider>
+    <SupabaseProvider value={supabase}>
       <NavigationProgress />
       <Outlet />
     </SupabaseProvider>
