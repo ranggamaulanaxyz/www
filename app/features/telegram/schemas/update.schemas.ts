@@ -1,6 +1,6 @@
 import z from "zod";
 
-const userSchema = z.object({
+const telegramUserSchema = z.object({
   id: z.number(),
   isBot: z.boolean(),
   firstName: z.string(),
@@ -9,7 +9,7 @@ const userSchema = z.object({
   languageCode: z.string().optional(),
 });
 
-const chatSchema = z.object({
+const telegramChatSchema = z.object({
   id: z.number(),
   type: z.enum(["private", "group", "supergroups", "channel"]),
   firstName: z.string().optional(),
@@ -17,15 +17,32 @@ const chatSchema = z.object({
   username: z.string().optional(),
 });
 
-const messageSchema = z.object({
+const telegramMessageSchema = z.object({
   messageId: z.number(),
-  from: userSchema.optional(),
-  chat: chatSchema,
-  date: z.number(),
+  from: telegramUserSchema.optional(),
+  chat: telegramChatSchema,
+  // Telegram sends `date` as Unix seconds.
+  date: z
+    .number()
+    .int()
+    .nonnegative()
+    .transform((date) => new Date(date * 1000).toISOString()),
   text: z.string().optional(),
 });
 
-export const updateSchema = z.object({
+export const telegramUpdateSchema = z.object({
   updateId: z.number(),
-  message: messageSchema.optional(),
+  message: telegramMessageSchema.optional(),
+});
+
+export const updateSchema = z.object({
+  id: z.uuid(),
+  createdAt: z.iso.datetime({ offset: true }),
+  updatedAt: z.iso.datetime({ offset: true }).nullable(),
+  updateId: z.number(),
+  messageId: z.number().nullable(),
+  telegramUserId: z.number().nullable(),
+  chatId: z.number().nullable(),
+  messageDate: z.iso.datetime({ offset: true }).nullable(),
+  status: z.enum(["pending", "processing", "completed", "failed"]),
 });

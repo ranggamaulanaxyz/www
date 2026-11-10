@@ -15,7 +15,7 @@
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true
+	"upload_source_maps": true,
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -37,4 +37,14 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
 	 */
 	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
+
+	"queues": {
+		"consumers": [{
+			"queue": "telegram-updates"
+		}],
+		"producers": [{
+			"queue": "telegram-updates",
+			"binding": "TELEGRAM_UPDATE_QUEUE"
+		}]
+	}
 }
