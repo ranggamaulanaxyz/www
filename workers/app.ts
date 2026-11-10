@@ -9,4 +9,9 @@ export default {
   async fetch(request) {
     return requestHandler(request);
   },
+  async queue(batch) {
+    for (const message of batch.messages) {
+      message.body;
+    }
+  },
 } satisfies ExportedHandler<Env>;

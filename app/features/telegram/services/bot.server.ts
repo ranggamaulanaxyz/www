@@ -1,5 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
-import { getEnv } from "~/utils/env.server";
+import { env } from "cloudflare:workers";
+
+export async function addJobQueue(jobId: string) {
+  await env.TELEGRAM_BOT_JOB_QUEUE.send({ jobId });
+}
 
 export async function chat({
   text,
@@ -10,7 +14,7 @@ export async function chat({
   messageId: number;
   chatId: number;
 }) {
-  const ai = new GoogleGenAI({ apiKey: getEnv("GEMINI_API_KEY") });
+  const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
   const interaction = await ai.interactions.create({
     model: "gemini-3.5-flash-lite",
     input: text,
@@ -28,7 +32,7 @@ async function sendMessage(
   text: string,
 ) {
   const response = await fetch(
-    `https://api.telegram.org/bot${getEnv("ZET_TELEGRAM_API_TOKEN")}/sendMessage`,
+    `https://api.telegram.org/bot${env.TELEGRAM_BOT_API_TOKEN}/sendMessage`,
     {
       method: "POST",
       headers: {

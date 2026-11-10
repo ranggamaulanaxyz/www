@@ -40,11 +40,11 @@
 
 	"queues": {
 		"consumers": [{
-			"queue": "telegram-updates"
+			"queue": "telegram-bot-jobs"
 		}],
 		"producers": [{
-			"queue": "telegram-updates",
-			"binding": "TELEGRAM_UPDATE_QUEUE"
+			"queue": "telegram-bot-jobs",
+			"binding": "TELEGRAM_BOT_JOB_QUEUE"
 		}]
 	}
 }

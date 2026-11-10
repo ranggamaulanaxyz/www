@@ -35,14 +35,15 @@ export const telegramUpdateSchema = z.object({
   message: telegramMessageSchema.optional(),
 });
 
-export const updateSchema = z.object({
+export type TelegramUpdate = z.infer<typeof telegramUpdateSchema>;
+
+export const telegramBotJobSchema = z.object({
   id: z.uuid(),
   createdAt: z.iso.datetime({ offset: true }),
   updatedAt: z.iso.datetime({ offset: true }).nullable(),
   updateId: z.number(),
-  messageId: z.number().nullable(),
-  telegramUserId: z.number().nullable(),
-  chatId: z.number().nullable(),
-  messageDate: z.iso.datetime({ offset: true }).nullable(),
+  body: telegramUpdateSchema,
   status: z.enum(["pending", "processing", "completed", "failed"]),
 });
+
+export type TelegramBotJob = z.infer<typeof telegramBotJobSchema>;

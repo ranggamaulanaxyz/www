@@ -1,21 +1,21 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import camelcaseKeys from "camelcase-keys";
 import snakecaseKeys from "snakecase-keys";
-import { updateSchema } from "../schemas/update.schemas";
+import {
+  telegramBotJobSchema,
+  type TelegramUpdate,
+} from "../schemas/update.schemas";
 
-export async function upsertUpdate(
+export async function upsertJob(
   supabase: SupabaseClient,
   values: {
     updateId: number;
-    messageId?: number;
-    telegramUserId?: number;
-    chatId?: number;
-    messageDate?: string;
+    updateData: TelegramUpdate;
   },
 ) {
   const snakecasedValues = snakecaseKeys(values);
   const { data, error } = await supabase
-    .from("telegram_updates")
+    .from("telegram_bot_jobs")
     .upsert(snakecasedValues, { onConflict: "update_id" })
     .select()
     .single();
@@ -25,6 +25,6 @@ export async function upsertUpdate(
   }
 
   const camelcasedData = camelcaseKeys(data);
-  const update = updateSchema.parse(camelcasedData);
-  return update;
+  const job = telegramBotJobSchema.parse(camelcasedData);
+  return job;
 }
