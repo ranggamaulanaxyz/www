@@ -42,7 +42,7 @@ export const telegramBotJobSchema = z.object({
   createdAt: z.iso.datetime({ offset: true }),
   updatedAt: z.iso.datetime({ offset: true }).nullable(),
   updateId: z.number(),
-  body: telegramUpdateSchema,
+  updateData: telegramUpdateSchema,
   status: z.enum(["pending", "processing", "completed", "failed"]),
 });
 

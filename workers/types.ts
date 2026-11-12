@@ -1,4 +1,6 @@
 export type TelegramBotJobQueue = {
   type: "telegram_bot_job";
-  jobId: string;
+  id: string;
 };
+
+export type Queue = TelegramBotJobQueue;

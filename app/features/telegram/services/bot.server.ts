@@ -1,8 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
 import { env } from "cloudflare:workers";
+import { createAdminClient } from "~/utils/supabase.server";
+import { getTelegramJobById } from "./job";
 
-export async function addJobQueue(jobId: string) {
-  await env.TELEGRAM_BOT_JOB_QUEUE.send({ jobId });
+export async function addJobQueue(id: string) {
+  await env.TELEGRAM_BOT_JOB_QUEUE.send({ id, type: "telegram_bot_job" });
 }
 
 export async function chat({
@@ -55,4 +57,19 @@ async function sendMessage(
   }
 
   return response.json();
+}
+
+export async function runTelegramJob(id: string) {
+  const supabase = createAdminClient();
+  const job = await getTelegramJobById(supabase, id);
+
+  if (!job.updateData.message || !job.updateData.message?.text) {
+    return;
+  }
+
+  await chat({
+    text: job.updateData.message?.text,
+    messageId: job.updateData.message?.messageId,
+    chatId: job.updateData.message?.chat.id,
+  });
 }

@@ -9,7 +9,7 @@ export async function action({ context, request }: Route.ActionArgs) {
   const requestData = (await request.json()) as any;
   const supabase = context.get(supabaseAdminClientContext);
   const update = await upsertJob(supabase, {
-    updateId: requestData?.updateId,
+    updateId: requestData?.update_id,
     updateData: requestData,
   });
 
