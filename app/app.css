@@ -2,8 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
-@import "@fontsource/rubik-glitch";
-@import "@fontsource/black-han-sans";
+@import "@fontsource-variable/manrope";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -23,8 +22,8 @@ body {
 }
 
 @theme inline {
-  --font-brand: "Rubik Glitch", serif;
-  --font-display: "Black Han Sans", sans-serif;
+  --font-brand: "Manrope Variable", sans-serif;
+  --font-display: "Manrope Variable", sans-serif;
   --font-heading: var(--font-sans);
   --font-sans: "Inter Variable", sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);

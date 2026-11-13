@@ -31,8 +31,8 @@ export default function WebsiteNavbar() {
             src="/logo42x42.png"
             className="h-10 rounded-full bg-slate-600 outline-2 outline-offset-1 outline-slate-700 transition-all duration-300 hover:bg-slate-500"
           />
-          <span className="font-brand hidden text-3xl text-slate-500 transition-colors duration-300 hover:text-slate-700 sm:inline-block">
-            Rangga
+          <span className="font-brand hidden text-2xl font-bold text-slate-500 transition-colors duration-300 hover:text-slate-700 sm:inline-block">
+            RANGGA
           </span>
         </Link>
         <nav className="ml-auto">

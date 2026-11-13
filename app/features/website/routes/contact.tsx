@@ -61,17 +61,24 @@ export default function Contact() {
 
       <main className="container mx-auto flex flex-1 flex-col justify-center px-4 py-12 md:py-20">
         <div className="grid grid-cols-1 items-start gap-12 lg:grid-cols-12 lg:gap-16">
-          <div className="space-y-8 lg:col-span-5">
+          <div className="space-y-8 font-light lg:col-span-7">
             <div className="space-y-4">
-              <h1 className="font-display text-foreground text-3xl leading-tight font-bold tracking-tight sm:text-4xl lg:text-5xl">
-                Mari Bicara Tentang Projek Anda
+              <h1 className="font-display text-foreground text-3xl leading-tight font-bold tracking-tight sm:text-xl lg:text-6xl">
+                Mari Terhubung!
               </h1>
 
-              <p className="leading-relaxed">
-                Punya ide aplikasi, butuh kustomisasi ERP, atau ingin
-                mendigitalkan proses bisnis Anda? Kirimkan pesan, saya akan
-                membalasnya dalam 1x24 jam.
-              </p>
+              <div className="leading-relaxed">
+                <p>
+                  Kamu dapat menghubungi saya melalui informasi kontak di bawah
+                  ini atau menggunakan formulir kontak yang tersedia. Saya akan
+                  berusaha membalas setiap pesan dalam waktu 1×24 jam.
+                </p>
+                <p>
+                  Jangan ragu untuk mengirimkan pesan, baik untuk keperluan
+                  profesional, berdiskusi, maupun sekadar berkenalan. Saya
+                  terbuka untuk berbagai kesempatan dan percakapan baru.
+                </p>
+              </div>
             </div>
 
             <div className="border-border/60 space-y-4 border-t pt-4">
@@ -136,7 +143,7 @@ export default function Contact() {
             </div>
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-5">
             <div className="bg-card border-border/80 rounded-2xl border p-6 shadow-sm sm:p-8 md:shadow-md">
               <Form {...getFormProps(form)} className="space-y-6">
                 <FieldGroup className="space-y-5">
