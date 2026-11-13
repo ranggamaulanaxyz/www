@@ -42,10 +42,14 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { useIsMobile } from "~/hooks/use-mobile";
 import DeskPagination from "~/features/desk/components/pagination";
 import FilterInputQuery from "~/features/desk/components/filter-input-query";
-import { nullableAccountIdSchema } from "../schemas/account-journal";
+import {
+  accountJournalPrefixSchema,
+  nullableAccountIdSchema,
+} from "../schemas/account-journal";
 
 const schema = z.object({
   name: z.string("Nama jurnal tidak valid."),
+  prefix: accountJournalPrefixSchema,
   defaultDebitAccountId: nullableAccountIdSchema,
   defaultCreditAccountId: nullableAccountIdSchema,
 });
@@ -232,6 +236,7 @@ function AccountJournalCreateDialog({
   return (
     <DeskCreateDialog form={form} title="Tambah Jurnal">
       <FieldTextInput field={fields.name} label="Nama" />
+      <FieldTextInput field={fields.prefix} label="Prefix" />
       <Field data-invalid={!fields.defaultDebitAccountId.valid}>
         <FieldLabel htmlFor={fields.defaultDebitAccountId.id}>
           Akun Debit Default

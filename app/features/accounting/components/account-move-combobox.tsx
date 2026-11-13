@@ -17,7 +17,7 @@ export function AccountMoveCombobox({
   name,
   items,
   defaultValue,
-  placeholder = "Pilih Jurnal Umum",
+  placeholder = "Pilih Jurnal",
   invalid,
   disabled,
 }: {
@@ -47,7 +47,7 @@ export function AccountMoveCombobox({
         showClear
       />
       <ComboboxContent>
-        <ComboboxEmpty>Jurnal umum tidak ditemukan.</ComboboxEmpty>
+        <ComboboxEmpty>Jurnal tidak ditemukan.</ComboboxEmpty>
         <ComboboxList>
           {(item: AccountMoveOption) => (
             <ComboboxItem key={item.value} value={item}>

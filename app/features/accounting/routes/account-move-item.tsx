@@ -295,7 +295,7 @@ function AccountMoveItemCreateDialog({
     <DeskCreateDialog form={form} title="Tambah Baris Jurnal">
       <FieldTextInput field={fields.name} label="Deskripsi" />
       <Field data-invalid={!fields.moveId.valid}>
-        <FieldLabel htmlFor={fields.moveId.id}>Jurnal Umum</FieldLabel>
+        <FieldLabel htmlFor={fields.moveId.id}>Entri Jurnal</FieldLabel>
         <AccountMoveCombobox
           id={fields.moveId.id}
           name={fields.moveId.name}

@@ -1,18 +1,19 @@
 import type { Handle } from "~/features/desk/types/route";
-import { AccountMoveForm, schema } from "../components/account-move";
+import { AccountMoveForm } from "../components/account-move";
 import type { Route } from "./+types/account-move-create";
 import { parseForm } from "~/utils/request";
 import { data, redirect } from "react-router";
 import { supabaseClientContext } from "~/context";
 import { createAccountMoveWithItems } from "../services/account-move";
 import { ur } from "zod/v4/locales";
+import { accountMoveFormSchema } from "../schemas/account-move";
 
 export const handle = {
-  breadcrumb: { label: "Jurnal Umum Baru" },
+  breadcrumb: { label: "Entri Jurnal Baru" },
 } satisfies Handle<Route.ComponentProps["loaderData"]>;
 
 export function meta() {
-  return [{ title: "Tambah Jurnal Umum" }];
+  return [{ title: "Tambah Entri Jurnal" }];
 }
 
 export async function clientAction({
@@ -21,7 +22,7 @@ export async function clientAction({
   context,
 }: Route.ClientActionArgs) {
   const formData = await request.formData();
-  const submission = parseForm(formData, { schema });
+  const submission = parseForm(formData, { schema: accountMoveFormSchema });
   console.log(submission);
   if (submission.status !== "success") {
     return data({ lastResult: submission.reply() }, { status: 422 });

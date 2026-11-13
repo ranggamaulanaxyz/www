@@ -23,11 +23,12 @@ export function formatCurrency(
   value: number | bigint,
   currency: string = "IDR",
   locales: Intl.LocalesArgument = "id-ID",
+  maximumFractionDigits: number = 0,
 ) {
   const formater = new Intl.NumberFormat(locales, {
     style: "currency",
     currency: currency,
-    maximumFractionDigits: 0,
+    maximumFractionDigits,
   });
 
   return formater.format(value);

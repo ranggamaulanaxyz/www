@@ -14,7 +14,7 @@ BEGIN
     IF NOT FOUND THEN
         RETURN jsonb_build_object(
             'success', FALSE,
-            'message', 'Jurnal umum tidak ditemukan',
+            'message', 'Entri jurnal tidak ditemukan',
             'id', p_id
         );
     END IF;
@@ -22,7 +22,7 @@ BEGIN
     IF v_status = 'posted' THEN
         RETURN jsonb_build_object(
             'success', FALSE,
-            'message', 'Jurnal umum sudah dibukukan',
+            'message', 'Entri jurnal sudah dibukukan',
             'id', p_id
         );
     END IF;
@@ -34,7 +34,7 @@ BEGIN
     ) THEN
         RETURN jsonb_build_object(
             'success', FALSE,
-            'message', 'Jurnal umum harus memiliki minimal satu baris',
+            'message', 'Entri jurnal harus memiliki minimal satu baris',
             'id', p_id
         );
     END IF;
@@ -45,7 +45,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'success', TRUE,
-        'message', 'Jurnal umum dibukukan',
+        'message', 'Entri jurnal dibukukan',
         'id', p_id
     );
 END;$function$;

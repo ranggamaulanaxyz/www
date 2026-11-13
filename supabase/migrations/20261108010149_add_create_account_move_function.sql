@@ -39,7 +39,7 @@ BEGIN
             v_move_id::UUID
         );
     END LOOP;
-    RETURN jsonb_build_object('success', TRUE, 'message', 'Jurnal umum dibuat', 'id', v_move_id);
+    RETURN jsonb_build_object('success', TRUE, 'message', 'Entri jurnal dibuat', 'id', v_move_id);
 END;$function$;
 
 GRANT EXECUTE ON FUNCTION "public"."create_account_move"(jsonb) TO PUBLIC, "anon", "authenticated";

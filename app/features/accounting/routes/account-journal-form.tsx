@@ -23,10 +23,14 @@ import DeskHeader from "~/features/desk/components/header";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import type { Handle } from "~/features/desk/types/route";
-import { nullableAccountIdSchema } from "../schemas/account-journal";
+import {
+  accountJournalPrefixSchema,
+  nullableAccountIdSchema,
+} from "../schemas/account-journal";
 
 const schema = z.object({
   name: z.string("Nama jurnal tidak valid."),
+  prefix: accountJournalPrefixSchema,
   defaultDebitAccountId: nullableAccountIdSchema,
   defaultCreditAccountId: nullableAccountIdSchema,
 });
@@ -97,6 +101,7 @@ export default function AccountJournalForm({
       <div className="max-w-1/2 p-4">
         <FieldGroup>
           <FieldTextInput field={fields.name} label="Nama" />
+          <FieldTextInput field={fields.prefix} label="Prefix" />
           <Field data-invalid={!fields.defaultDebitAccountId.valid}>
             <FieldLabel htmlFor={fields.defaultDebitAccountId.id}>
               Akun Debit Default

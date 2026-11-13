@@ -6,7 +6,7 @@ import { parseMetadata, parseRange } from "~/utils/supabase";
 import {
   accountMoveListSchema,
   accountMoveSchema,
-  type AccountMoveFormValues,
+  type AccountMoveFormData,
 } from "../schemas/account-move";
 
 export async function getAccountMoves(
@@ -67,7 +67,7 @@ export async function getAccountMoveById(supabase: SupabaseClient, id: string) {
 
 export async function createAccountMove(
   supabase: SupabaseClient,
-  values: AccountMoveFormValues,
+  values: AccountMoveFormData,
 ) {
   const snakecasedValues = snakecaseKeys(values);
   const { data, error } = await supabase
@@ -104,7 +104,7 @@ export async function createAccountMoveWithItems(
 export async function updateAccountMove(
   supabase: SupabaseClient,
   id: string,
-  values: AccountMoveFormValues,
+  values: AccountMoveFormData,
 ) {
   const snakecasedValues = snakecaseKeys(values);
   const { error } = await supabase
@@ -118,7 +118,7 @@ export async function updateAccountMove(
   return true;
 }
 
-export type AccountMovePostResult = {
+export type AccountMovePostingResult = {
   success: boolean;
   message: string;
   id: string;
@@ -133,7 +133,7 @@ export type AccountMovePostResult = {
 export async function postAccountMove(
   supabase: SupabaseClient,
   id: string,
-): Promise<AccountMovePostResult> {
+): Promise<AccountMovePostingResult> {
   const { data, error } = await supabase.rpc("post_account_move", {
     p_id: id,
   });
@@ -142,7 +142,7 @@ export async function postAccountMove(
     throw error;
   }
 
-  return data as AccountMovePostResult;
+  return data as AccountMovePostingResult;
 }
 
 export type AccountMoveItemInput = {
@@ -155,7 +155,7 @@ export type AccountMoveItemInput = {
   credit?: number | null;
 };
 
-export type AccountMoveWithItemsValues = AccountMoveFormValues & {
+export type AccountMoveWithItemsValues = AccountMoveFormData & {
   items?: AccountMoveItemInput[];
 };
 

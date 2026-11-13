@@ -113,8 +113,8 @@ export function DeskListTopBar({
         {children}
 
         <ButtonGroup className="hidden md:flex">
-          {canCreate && onClickCreate && (
-            <Button onClick={onClickCreate}>
+          {onClickCreate && (
+            <Button onClick={onClickCreate} disabled={!canCreate}>
               <PlusIcon /> <span>Tambah</span>
             </Button>
           )}

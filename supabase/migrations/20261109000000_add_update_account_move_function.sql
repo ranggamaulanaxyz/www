@@ -21,7 +21,7 @@ BEGIN
     IF NOT FOUND THEN
         RETURN jsonb_build_object(
             'success', FALSE,
-            'message', 'Jurnal umum tidak ditemukan',
+            'message', 'Entri jurnal tidak ditemukan',
             'id', p_id
         );
     END IF;
@@ -118,7 +118,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'success', TRUE,
-        'message', 'Jurnal umum diperbarui',
+        'message', 'Entri jurnal diperbarui',
         'id', p_id
     );
 END;$function$;

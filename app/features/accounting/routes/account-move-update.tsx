@@ -1,5 +1,5 @@
 import { data } from "react-router";
-import { AccountMoveForm, schema } from "../components/account-move";
+import { AccountMoveForm } from "../components/account-move";
 import type { Route } from "./+types/account-move-update";
 import { supabaseClientContext } from "~/context";
 import {
@@ -8,6 +8,7 @@ import {
 } from "../services/account-move";
 import type { Handle } from "~/features/desk/types/route";
 import { parseForm } from "~/utils/request";
+import { accountMoveFormSchema } from "../schemas/account-move";
 
 export const handle = {
   breadcrumb: ({ loaderData }) => {
@@ -34,7 +35,7 @@ export async function clientAction({
   context,
 }: Route.ClientActionArgs) {
   const formData = await request.formData();
-  const submission = parseForm(formData, { schema });
+  const submission = parseForm(formData, { schema: accountMoveFormSchema });
   if (submission.status !== "success") {
     return data({ lastResult: submission.reply() }, { status: 422 });
   }

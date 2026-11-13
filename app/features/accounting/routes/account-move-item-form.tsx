@@ -130,7 +130,7 @@ export default function AccountMoveItemForm({
           <input {...getInputProps(fields.productId, { type: "hidden" })} />
           <FieldTextInput field={fields.name} label="Deskripsi" />
           <Field data-invalid={!fields.moveId.valid}>
-            <FieldLabel htmlFor={fields.moveId.id}>Jurnal Umum</FieldLabel>
+            <FieldLabel htmlFor={fields.moveId.id}>Entri Jurnal</FieldLabel>
             <AccountMoveCombobox
               id={fields.moveId.id}
               name={fields.moveId.name}

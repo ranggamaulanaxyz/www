@@ -10,6 +10,7 @@ import {
 
 export type AccountJournalValues = {
   name: string;
+  prefix: string | null;
   defaultDebitAccountId: string | null;
   defaultCreditAccountId: string | null;
 };

@@ -19,7 +19,7 @@ export const handle = {
         items: [
           {
             icon: BookMarkedIcon,
-            label: "Jurnal Umum",
+            label: "Entri Jurnal",
             pathname: "/desk/accounting/moves",
             matchPattern: "/desk/accounting/moves/*",
           },

@@ -62,4 +62,4 @@ export const accountMoveFormSchema = z.object({
     .min(1, "Mohon tambahkan baris jurnal."),
 });
 
-export type AccountMoveValues = z.infer<typeof accountMoveFormSchema>;
+export type AccountMoveFormData = z.infer<typeof accountMoveFormSchema>;

@@ -32,6 +32,7 @@ import {
 } from "~/components/ui/table";
 import { DeskTopBar } from "~/features/desk/components/bar";
 import { parseForm } from "~/utils/request";
+import { formatCurrency } from "~/utils/tools";
 import { useJournalField } from "../hooks/use-journal";
 import { usePartnerField } from "~/features/partner/hooks/use-partner";
 import { useAccountField } from "../hooks/use-account";
@@ -50,6 +51,8 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import type { AccountMoveItems } from "../schemas/account-move-item";
+import { cn } from "cn";
+import { useAccountMove } from "../hooks/use-account-move";
 
 type AccountMoveFormProps = {
   move?: AccountMove;
@@ -81,29 +84,48 @@ export function AccountMoveForm({ move, lastResult }: AccountMoveFormProps) {
       return parseForm(formData, { schema: accountMoveFormSchema });
     },
   });
-  const items = fields.items.getFieldList();
+
+  const { post } = useAccountMove();
 
   const journalField = useJournalField(fields.journalId);
   const partnerField = usePartnerField(fields.partnerId);
 
+  const items = fields.items.getFieldList();
+
+  const totalDebit = items.reduce((sum, item) => {
+    const value = Number(item.getFieldset().debit.value);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+  const totalCredit = items.reduce((sum, item) => {
+    const value = Number(item.getFieldset().credit.value);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+  const difference = totalDebit - totalCredit;
+  const isBalanced = Math.abs(difference) < 0.005;
+
   return (
     <Form {...getFormProps(form)} method="post">
       <DeskTopBar>
-        {form.dirty && (
-          <ButtonGroup className="gap-1">
-            <Button type="submit">
-              <SaveIcon /> <span>Simpan</span>
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => form.reset()}
-            >
-              <XCircleIcon />
-              <span>Batalkan</span>
-            </Button>
-          </ButtonGroup>
-        )}
+        <ButtonGroup className="gap-1">
+          <Button
+            type="submit"
+            disabled={!form.dirty || !isBalanced || totalDebit <= 0}
+          >
+            <SaveIcon /> <span>Simpan</span>
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => form.reset()}
+            disabled={!form.dirty}
+          >
+            <XCircleIcon />
+            <span>Batalkan</span>
+          </Button>
+          <Button size="icon" onClick={() => post(move?.id!!)}>
+            <EllipsisVerticalIcon />
+          </Button>
+        </ButtonGroup>
       </DeskTopBar>
       <div className="flex flex-col gap-5 p-4">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -177,11 +199,30 @@ export function AccountMoveForm({ move, lastResult }: AccountMoveFormProps) {
                   </TableCell>
                 </TableRow>
               </TableBody>
-              <TableFooter>
+              <TableFooter className={cn(!isBalanced && "bg-red-50")}>
                 <TableRow>
-                  <TableHead colSpan={3}>Total</TableHead>
-                  <TableCell className="px-4 text-right">0</TableCell>
-                  <TableCell className="px-4 text-right">0</TableCell>
+                  <TableHead
+                    colSpan={3}
+                    className={cn(!isBalanced && "text-destructive")}
+                  >
+                    Jumlah
+                  </TableHead>
+                  <TableCell
+                    className={cn(
+                      !isBalanced && "text-destructive",
+                      "px-4 text-right",
+                    )}
+                  >
+                    {formatAmount(totalDebit)}
+                  </TableCell>
+                  <TableCell
+                    className={cn(
+                      !isBalanced && "text-destructive",
+                      "px-4 text-right",
+                    )}
+                  >
+                    {formatAmount(totalCredit)}
+                  </TableCell>
                   <TableCell></TableCell>
                 </TableRow>
               </TableFooter>
@@ -244,10 +285,22 @@ export function AccountMoveItemTableRow({
         />
       </TableCell>
       <TableCell className="align-top">
-        <FieldText field={itemFields.debit} align="right" />
+        <FieldText
+          field={itemFields.debit}
+          type="number"
+          min={0}
+          step="any"
+          align="right"
+        />
       </TableCell>
       <TableCell className="align-top">
-        <FieldText field={itemFields.credit} align="right" />
+        <FieldText
+          field={itemFields.credit}
+          type="number"
+          min={0}
+          step="any"
+          align="right"
+        />
       </TableCell>
       <TableCell className="text-right align-top">
         <Button
@@ -305,4 +358,8 @@ export function AccountMoveActions({ move }: { move: AccountMove }) {
       </DropdownMenuContent>
     </DropdownMenu>
   );
+}
+
+function formatAmount(value: number) {
+  return formatCurrency(value, "IDR", "id-ID", 2);
 }

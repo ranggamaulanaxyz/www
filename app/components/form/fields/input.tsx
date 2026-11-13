@@ -35,6 +35,8 @@ export function FieldText(props: {
   exclude?: boolean;
   readonly?: boolean;
   align?: "left" | "right";
+  min?: number;
+  step?: number | "any";
 }) {
   return (
     <Field data-invalid={!props.field.valid}>
@@ -44,6 +46,8 @@ export function FieldText(props: {
       <Input
         {...getInputProps(props.field, { type: props.type ?? "text" })}
         {...(props.exclude ? { name: undefined } : {})}
+        min={props.min}
+        step={props.step}
         readOnly={props.exclude || props.readonly}
         className={cn(props.align === "right" ? "text-right" : undefined)}
       />

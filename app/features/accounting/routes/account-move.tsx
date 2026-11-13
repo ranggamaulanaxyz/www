@@ -69,14 +69,14 @@ const columns = columnBuilder.columns([
 export const handle = {
   breadcrumb: ({ loaderData }) => {
     return {
-      label: "Jurnal Umum",
+      label: "Entri Jurnal",
       to: `/desk/accounting/moves?${loaderData?.searchParams}`,
     };
   },
 } satisfies Handle<Route.ComponentProps["loaderData"]>;
 
 export function meta() {
-  return [{ title: "Jurnal Umum" }];
+  return [{ title: "Entri Jurnal" }];
 }
 
 export async function clientLoader({ url, context }: Route.ClientActionArgs) {
