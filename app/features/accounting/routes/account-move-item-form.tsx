@@ -21,14 +21,12 @@ import { AccountMoveCombobox } from "../components/account-move-combobox";
 import type { AccountMoveOption } from "../components/account-move-combobox";
 import { PartnerCombobox } from "../components/partner-combobox";
 import type { PartnerOption } from "../components/partner-combobox";
-import { accountMoveItemFormSchema } from "../schemas/account-move-item";
 import {
   getAccountMoveItemById,
   updateAccountMoveItem,
 } from "../services/account-move-item";
 import { getAccountMoves } from "../services/account-move";
 import { getAccounts } from "../services/account";
-import { formatAccountMoveDate } from "./account-move";
 import type { Route } from "./+types/account-move-item-form";
 
 export const handle = {

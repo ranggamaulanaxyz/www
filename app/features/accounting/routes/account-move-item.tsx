@@ -41,7 +41,6 @@ import { AccountMoveCombobox } from "../components/account-move-combobox";
 import type { AccountMoveOption } from "../components/account-move-combobox";
 import { PartnerCombobox } from "../components/partner-combobox";
 import type { PartnerOption } from "../components/partner-combobox";
-import { accountMoveItemFormSchema } from "../schemas/account-move-item";
 import {
   createAccountMoveItem,
   getAccountMoveItems,
