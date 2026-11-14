@@ -29,8 +29,6 @@ import {
 } from "~/components/ui/table";
 import type { ListFeatures } from "../hooks/use-list";
 import type { DeskTableColumnMeta, DeskTableFeatures } from "../types/table";
-import { ArrowRightLeftIcon } from "lucide-react";
-import { Button } from "~/components/ui/button";
 
 export type { DeskTableColumnMeta, DeskTableFeatures } from "../types/table";
 
@@ -246,19 +244,22 @@ export function DeskTable<TData extends RowData>({
                 }
               >
                 {(isResizing) => (
-                  <div className="absolute inset-y-0 right-0 z-10 flex h-full items-center">
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      onDoubleClick={() => header.column.resetSize()}
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
-                      className={`bg-background cursor-col-resize touch-none select-none ${
-                        isResizing ? "bg-border" : ""
+                  <div
+                    role="separator"
+                    aria-orientation="vertical"
+                    title="Tarik untuk mengubah lebar kolom"
+                    className="group/resizer absolute inset-y-0 right-0 z-10 flex w-2 cursor-col-resize touch-none items-center justify-center select-none"
+                    onDoubleClick={() => header.column.resetSize()}
+                    onMouseDown={header.getResizeHandler()}
+                    onTouchStart={header.getResizeHandler()}
+                  >
+                    <span
+                      className={`h-full w-px transition-colors ${
+                        isResizing
+                          ? "bg-primary"
+                          : "group-hover/resizer:bg-border bg-transparent"
                       }`}
-                    >
-                      <ArrowRightLeftIcon className="size-3" />
-                    </Button>
+                    />
                   </div>
                 )}
               </table.Subscribe>
@@ -286,17 +287,21 @@ export function DeskTableHeader<T extends RowData>({
     <TableHeader className="bg-background shadow-border sticky top-0 z-40 shadow-[0_1px_0_0]">
       {groups.map((group) => (
         <TableRow key={group.id}>
-          {group.headers.map((header) => (
-            <TableHead
-              key={header.id}
-              className={`relative overflow-hidden text-ellipsis first:pl-4 last:pr-4 ${getAlignClass(
-                header.column.columnDef.meta?.align,
-              )}`}
-              style={{ width: `calc(var(--header-${header.id}-size) * 1px)` }}
-            >
-              {render(header)}
-            </TableHead>
-          ))}
+          {group.headers.map((header) => {
+            const align = header.column.columnDef.meta?.align;
+
+            return (
+              <TableHead
+                key={header.id}
+                className={`relative overflow-hidden text-ellipsis first:pl-4 ${
+                  align === "right" ? "pr-6" : "last:pr-4"
+                } ${getAlignClass(align)}`}
+                style={{ width: `calc(var(--header-${header.id}-size) * 1px)` }}
+              >
+                {render(header)}
+              </TableHead>
+            );
+          })}
         </TableRow>
       ))}
     </TableHeader>
@@ -342,9 +347,9 @@ export function DeskTableCell({
 }) {
   return (
     <TableCell
-      className={`overflow-hidden text-ellipsis first:pl-4 last:pr-4 ${getAlignClass(
-        align,
-      )}`}
+      className={`overflow-hidden text-ellipsis first:pl-4 ${
+        align === "right" ? "pr-6" : "last:pr-4"
+      } ${getAlignClass(align)}`}
       style={{ width: `calc(var(--col-${columnId}-size) * 1px)` }}
     >
       {children}
