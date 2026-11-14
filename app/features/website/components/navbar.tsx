@@ -29,9 +29,9 @@ export default function WebsiteNavbar() {
         >
           <img
             src="/logo42x42.png"
-            className="h-10 rounded-full bg-slate-600 outline-2 outline-offset-1 outline-slate-700 transition-all duration-300 hover:bg-slate-500"
+            className="outline-foreground/90 bg-foreground/80 hover:bg-foreground/10 h-10 rounded-full outline-2 outline-offset-1 transition-all duration-300"
           />
-          <span className="font-brand hidden text-2xl font-bold text-slate-500 transition-colors duration-300 hover:text-slate-700 sm:inline-block">
+          <span className="font-brand hidden text-2xl font-bold transition-colors duration-300 sm:inline-block">
             RANGGA
           </span>
         </Link>

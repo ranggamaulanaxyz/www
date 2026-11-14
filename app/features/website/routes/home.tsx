@@ -147,8 +147,8 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section className="py-8">
-          <div className="container mx-auto flex flex-col items-center gap-10 overflow-hidden md:flex-row">
+        <section className="flex min-h-dvh flex-col justify-center py-8">
+          <div className="container mx-auto flex flex-1 flex-col items-center gap-10 overflow-hidden md:flex-row">
             <div className="p-4 md:max-w-sm">
               <div className="relative z-0">
                 <img
@@ -192,10 +192,13 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section className="">
-          <div className="container mx-auto px-4 py-8">
+        <section className="flex min-h-dvh flex-col items-center justify-center">
+          <div className="container mx-auto flex-1 space-y-8 px-4 py-8">
+            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl">
+              Proyek yang saya kerjakan.
+            </h2>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-              <Card className="relative">
+              <Card className="from-card via-card to-foreground/5 hover:to-foreground/10 relative bg-linear-to-br transition-all">
                 <img
                   src="https://avatar.vercel.sh/shadcn1"
                   alt="Event cover"
@@ -212,12 +215,12 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full" disabled={true}>
+                  <Button className="w-full" disabled={true} variant="link">
                     Lihat Aplikasi
                   </Button>
                 </CardFooter>
               </Card>
-              <Card className="relative">
+              <Card className="from-card via-card to-foreground/5 hover:to-foreground/10 relative bg-linear-to-br transition-all">
                 <img
                   src="https://avatar.vercel.sh/shadcn1"
                   alt="Event cover"
@@ -234,12 +237,12 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full" disabled={true}>
+                  <Button className="w-full" disabled={true} variant="link">
                     Lihat Aplikasi
                   </Button>
                 </CardFooter>
               </Card>
-              <Card className="relative">
+              <Card className="from-card via-card to-foreground/5 hover:to-foreground/10 relative bg-linear-to-br transition-all">
                 <img
                   src="https://avatar.vercel.sh/shadcn1"
                   alt="Event cover"
@@ -256,12 +259,12 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full" disabled={true}>
+                  <Button className="w-full" disabled={true} variant="link">
                     Lihat Aplikasi
                   </Button>
                 </CardFooter>
               </Card>
-              <Card className="relative">
+              <Card className="from-card via-card to-foreground/5 hover:to-foreground/10 relative bg-linear-to-br transition-all">
                 <img
                   src="https://avatar.vercel.sh/shadcn1"
                   alt="Event cover"
@@ -278,9 +281,19 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full" disabled={true}>
-                    Lihat Aplikasi
-                  </Button>
+                  <Button
+                    className="w-full"
+                    variant="link"
+                    render={
+                      <a
+                        href="https://demoerp.ranggamaulana.xyz"
+                        rel="nofollow"
+                        target="_blank"
+                      >
+                        Lihat Aplikasi
+                      </a>
+                    }
+                  />
                 </CardFooter>
               </Card>
             </div>
