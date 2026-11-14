@@ -25,6 +25,17 @@ export async function getAccountMoves(
     statement.ilike("number", `%${options.query}%`);
   }
 
+  const excludeIds = (options?.excludeIds ?? []).filter((id): id is string =>
+    Boolean(id),
+  );
+  if (excludeIds.length > 0) {
+    statement.not(
+      "id",
+      "in",
+      `(${excludeIds.map((id) => `"${id}"`).join(",")})`,
+    );
+  }
+
   statement.order("date", { ascending: false });
   statement.order("created_at", { ascending: false });
   statement.range(from - 1, to - 1);
@@ -47,7 +58,7 @@ export async function getAccountMoveById(supabase: SupabaseClient, id: string) {
   const { data, error } = await supabase
     .from("account_moves")
     .select(
-      "*, journal:account_journals (*), partner:partners (*), items:account_move_items(*, product:products(id, name), account:accounts(id, name))",
+      "*, journal:account_journals (*), partner:partners (*), items:account_move_items(*, product:products(id, name), account:accounts(id, code, name))",
     )
     .eq("id", id)
     .order("created_at", {

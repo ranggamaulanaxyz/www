@@ -1,5 +1,19 @@
 import z from "zod";
 
+/**
+ * Minimal reference to the parent account move.
+ *
+ * Kept inline instead of importing `accountMoveSchema` because
+ * `account-move.ts` already imports this module and a direct import would
+ * create a circular dependency.
+ */
+export const accountMoveItemMoveSchema = z.object({
+  id: z.uuid(),
+  number: z.string().optional().nullable(),
+  date: z.string(),
+  status: z.enum(["draft", "posted"]),
+});
+
 export const accountMoveItemSchema = z.object({
   id: z.uuid(),
   createdAt: z.string(),
@@ -21,6 +35,7 @@ export const accountMoveItemSchema = z.object({
   account: z
     .object({
       id: z.uuid(),
+      code: z.string(),
       name: z.string(),
     })
     .optional()
@@ -28,5 +43,42 @@ export const accountMoveItemSchema = z.object({
 });
 
 export const accountMoveItemListSchema = z.array(accountMoveItemSchema);
+
+export const accountMoveItemWithRelationsSchema = accountMoveItemSchema.extend({
+  move: accountMoveItemMoveSchema.optional().nullable(),
+  partner: z
+    .object({
+      name: z.string(),
+    })
+    .optional()
+    .nullable(),
+});
+
+export const accountMoveItemWithRelationsListSchema = z.array(
+  accountMoveItemWithRelationsSchema,
+);
+
+export const nullableAccountMoveItemProductIdSchema = z.preprocess(
+  (value) => (value === "" || value === undefined ? null : value),
+  z.uuid("Produk tidak valid.").nullable(),
+);
+
+export const accountMoveItemFormSchema = z.object({
+  name: z
+    .string("Deskripsi item jurnal tidak valid.")
+    .min(1, "Deskripsi item jurnal wajib diisi."),
+  moveId: z.uuid("Entri jurnal tidak valid."),
+  accountId: z.uuid("Akun tidak valid."),
+  partnerId: z.uuid("Kontak tidak valid."),
+  productId: nullableAccountMoveItemProductIdSchema,
+  debit: z.coerce
+    .number("Debit tidak valid.")
+    .min(0, "Debit minimal 0.")
+    .default(0),
+  credit: z.coerce
+    .number("Kredit tidak valid.")
+    .min(0, "Kredit minimal 0.")
+    .default(0),
+});
 
 export type AccountMoveItems = z.infer<typeof accountMoveItemListSchema>;

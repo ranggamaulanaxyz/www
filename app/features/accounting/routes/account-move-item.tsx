@@ -1,21 +1,10 @@
-import { getInputProps, useForm } from "@conform-to/react";
-import { ArrowRightIcon } from "lucide-react";
-import { cn } from "cn";
-import { Suspense, useEffect, useState } from "react";
-import {
-  Await,
-  data,
-  Link,
-  Outlet,
-  redirect,
-  useOutlet,
-  useSearchParams,
-} from "react-router";
+import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { Button } from "~/components/ui/button";
-import { Field, FieldError, FieldLabel } from "~/components/ui/field";
+import { ArrowRightIcon } from "lucide-react";
+import { data, Outlet, redirect, useOutlet } from "react-router";
+import { FieldCombobox } from "~/components/form/fields/combobox";
 import { FieldText } from "~/components/form/fields/input";
-import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
 import {
   Item,
   ItemActions,
@@ -23,31 +12,94 @@ import {
   ItemDescription,
   ItemTitle,
 } from "~/components/ui/item";
-import { Skeleton } from "~/components/ui/skeleton";
 import { supabaseClientContext } from "~/context";
-import { TopBar } from "~/features/desk/components/bar";
 import { DeskCreateDialog } from "~/features/desk/components/create-dialog";
-import DeskHeader from "~/features/desk/components/header";
-import DeskPagination from "~/features/desk/components/pagination";
-import FilterInputQuery from "~/features/desk/components/filter-input-query";
+import { DeskFilter, getFilterProps } from "~/features/desk/components/filter";
+import { getDeskListProps, useDeskList } from "~/features/desk/hooks/use-list";
+import {
+  deskColumnBuilder,
+  DeskTable,
+  selectionColumn,
+} from "~/features/desk/components/table";
+import {
+  DeskList,
+  DeskListContent,
+  DeskListGrid,
+  DeskListLink,
+  DeskListTopBar,
+} from "~/features/desk/components/list";
 import { hasAccess } from "~/features/desk/services/access";
 import { parseFilter } from "~/features/desk/services/filter";
 import type { Handle } from "~/features/desk/types/route";
-import { getPartners } from "~/features/partner/services/partner";
-import { useIsMobile } from "~/hooks/use-mobile";
-import { AccountCombobox } from "../components/account-combobox";
-import type { AccountOption } from "../components/account-combobox";
-import { AccountMoveCombobox } from "../components/account-move-combobox";
-import type { AccountMoveOption } from "../components/account-move-combobox";
-import { PartnerCombobox } from "../components/partner-combobox";
-import type { PartnerOption } from "../components/partner-combobox";
+import { usePartnerField } from "~/features/partner/hooks/use-partner";
+import { useProductField } from "~/features/product/hooks/use-product";
+import { formatCurrency } from "~/utils/tools";
+import { useAccountMoveField } from "../hooks/use-account-move";
+import { useAccountField } from "../hooks/use-account";
 import {
   createAccountMoveItem,
   getAccountMoveItems,
 } from "../services/account-move-item";
-import { getAccountMoves } from "../services/account-move";
-import { getAccounts } from "../services/account";
+import { accountMoveItemFormSchema } from "../schemas/account-move-item";
+import type { AccountMoveItemWithRelations } from "../types/account-move-item";
 import type { Route } from "./+types/account-move-item";
+
+const columnBuilder = deskColumnBuilder<AccountMoveItemWithRelations>();
+const columns = columnBuilder.columns([
+  selectionColumn,
+  columnBuilder.accessor("name", {
+    header: "Deskripsi",
+    cell: ({ row: { original } }) => (
+      <DeskListLink to={`/desk/accounting/move-items/${original.id}`}>
+        {original.name}
+      </DeskListLink>
+    ),
+  }),
+  columnBuilder.display({
+    id: "move",
+    header: "Entri Jurnal",
+    cell: ({ row: { original } }) => original.move?.number || "-",
+  }),
+  columnBuilder.display({
+    id: "account",
+    header: "Akun",
+    cell: ({ row: { original } }) =>
+      original.account
+        ? `${original.account.code} · ${original.account.name}`
+        : "-",
+  }),
+  columnBuilder.display({
+    id: "partner",
+    header: "Kontak",
+    cell: ({ row: { original } }) => original.partner?.name || "-",
+  }),
+  columnBuilder.accessor("debit", {
+    header: "Debit",
+    meta: { align: "right" },
+    cell: ({ getValue }) => formatAmount(getValue()),
+  }),
+  columnBuilder.accessor("credit", {
+    header: "Kredit",
+    meta: { align: "right" },
+    cell: ({ getValue }) => formatAmount(getValue()),
+  }),
+  columnBuilder.display({
+    id: "actions",
+    cell: ({ row: { original } }) => (
+      <Button
+        variant="link"
+        nativeButton={false}
+        render={
+          <DeskListLink to={`/desk/accounting/move-items/${original.id}`}>
+            <ArrowRightIcon />
+          </DeskListLink>
+        }
+      />
+    ),
+    size: 50,
+    meta: { align: "right" },
+  }),
+]);
 
 export const handle = {
   breadcrumb: { label: "Baris Jurnal" },
@@ -62,34 +114,15 @@ export async function loader({ url, context }: Route.LoaderArgs) {
 
   const supabase = context.get(supabaseClientContext);
   const accountMoveItemResults = getAccountMoveItems(supabase, filterOptions);
-  const [{ accountMoves }, { accounts }, { partners }, canCreate] =
-    await Promise.all([
-      getAccountMoves(supabase, { from: 1, to: 1000 }),
-      getAccounts(supabase, { from: 1, to: 1000 }),
-      getPartners(supabase, { from: 1, to: 1000 }),
-      hasAccess(supabase, "insert", "account_move_items"),
-    ]);
-
-  const moveOptions: AccountMoveOption[] = accountMoves.map((accountMove) => ({
-    value: accountMove.id,
-    label: accountMove.number || "",
-  }));
-  const accountOptions: AccountOption[] = accounts.map((account) => ({
-    value: account.id,
-    label: `${account.code} · ${account.name}`,
-  }));
-  const partnerOptions: PartnerOption[] = partners.map((partner) => ({
-    value: partner.id,
-    label: partner.email ? `${partner.name} · ${partner.email}` : partner.name,
-  }));
+  const accountMoveItems = accountMoveItemResults.then(
+    (result) => result.accountMoveItems,
+  );
+  const metadata = accountMoveItemResults.then((result) => result.metadata);
+  const canCreate = await hasAccess(supabase, "insert", "account_move_items");
 
   return data({
-    accountMoveItemResults,
-    searchParams: url.searchParams.toString(),
-    filterOptions,
-    moveOptions,
-    accountOptions,
-    partnerOptions,
+    accountMoveItems,
+    metadata,
     canCreate,
   });
 }
@@ -116,40 +149,14 @@ export async function action({ request, url, context }: Route.ActionArgs) {
 }
 
 export default function AccountMoveItem({ loaderData }: Route.ComponentProps) {
-  const {
-    accountMoveItemResults,
-    canCreate,
-    filterOptions,
-    moveOptions,
-    accountOptions,
-    partnerOptions,
-  } = loaderData;
-  const [searchParams] = useSearchParams();
-  const [paginationData, setPaginationData] = useState({
-    from: filterOptions.from,
-    to: filterOptions.to,
-    count: 0,
+  const { accountMoveItems, metadata, canCreate } = loaderData;
+
+  const list = useDeskList({
+    resource: "account_move_items",
+    columns,
+    data: accountMoveItems,
+    metadata,
   });
-
-  useEffect(() => {
-    const resolveAccountMoveItems = async () => {
-      const {
-        metadata: { from, to, count },
-      } = await accountMoveItemResults;
-      setPaginationData({ from, to, count });
-    };
-    resolveAccountMoveItems();
-  }, [filterOptions]);
-
-  const moveLabels = new Map(
-    moveOptions.map((option) => [option.value, option.label]),
-  );
-  const accountLabels = new Map(
-    accountOptions.map((option) => [option.value, option.label]),
-  );
-  const partnerLabels = new Map(
-    partnerOptions.map((option) => [option.value, option.label]),
-  );
 
   const outlet = useOutlet();
   if (outlet) {
@@ -157,125 +164,49 @@ export default function AccountMoveItem({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <AccountMoveItemTopBar
-        data={{ pagination: paginationData }}
-        options={{
-          showCreateButton: canCreate,
-          moveOptions,
-          accountOptions,
-          partnerOptions,
-        }}
-      />
-      <div className="flex-1">
-        <div
-          className={cn([
-            "grid gap-2 p-4",
-            "md:grid-cols-2 md:gap-3",
-            "lg:grid-cols-3",
-            "xl:grid-cols-4",
-          ])}
-        >
-          <Suspense fallback={<AccountMoveItemSkeleton />}>
-            <Await resolve={accountMoveItemResults}>
-              {({ accountMoveItems }) =>
-                accountMoveItems.map((accountMoveItem) => {
-                  const moveLabel = accountMoveItem.move
-                    ? accountMoveItem.move.number || ""
-                    : moveLabels.get(accountMoveItem.moveId || "") || "-";
-                  const accountLabel = accountMoveItem.account
+    <DeskList {...getDeskListProps(list)}>
+      <DeskListTopBar metadata={metadata}>
+        <DeskFilter {...getFilterProps(list.filter)} />
+        {canCreate && <AccountMoveItemCreateDialog />}
+      </DeskListTopBar>
+      <DeskListContent view="table">
+        <DeskTable table={list.table} isLoading={list.state === "loading"} />
+      </DeskListContent>
+      <DeskListContent view="grid">
+        <DeskListGrid isLoading={list.state === "loading"}>
+          {list.rows.map(({ original: accountMoveItem }) => (
+            <Item key={accountMoveItem.id} variant="outline">
+              <ItemContent>
+                <ItemTitle>
+                  <DeskListLink
+                    to={`/desk/accounting/move-items/${accountMoveItem.id}`}
+                  >
+                    {accountMoveItem.name}
+                  </DeskListLink>
+                </ItemTitle>
+                <ItemDescription>
+                  {accountMoveItem.move?.number || "-"} ·{" "}
+                  {accountMoveItem.account
                     ? `${accountMoveItem.account.code} · ${accountMoveItem.account.name}`
-                    : accountLabels.get(accountMoveItem.accountId) || "-";
-                  const partnerLabel =
-                    accountMoveItem.partner?.name ||
-                    partnerLabels.get(accountMoveItem.partnerId) ||
-                    "-";
-
-                  return (
-                    <Item key={accountMoveItem.id} variant="outline">
-                      <ItemContent>
-                        <ItemTitle>{accountMoveItem.name}</ItemTitle>
-                        <ItemDescription>
-                          {moveLabel} · {accountLabel} · {partnerLabel}
-                        </ItemDescription>
-                      </ItemContent>
-                      <ItemActions>
-                        <div className="flex flex-col items-end text-xs tabular-nums">
-                          <span>D: {formatAmount(accountMoveItem.debit)}</span>
-                          <span>K: {formatAmount(accountMoveItem.credit)}</span>
-                        </div>
-                        <Button
-                          variant="link"
-                          nativeButton={false}
-                          render={
-                            <Link
-                              to={{
-                                pathname: `/desk/accounting/move-items/${accountMoveItem.id}`,
-                                search: searchParams.toString(),
-                              }}
-                            >
-                              <ArrowRightIcon />
-                            </Link>
-                          }
-                        />
-                      </ItemActions>
-                    </Item>
-                  );
-                })
-              }
-            </Await>
-          </Suspense>
-        </div>
-      </div>
-    </div>
+                    : "-"}{" "}
+                  · {accountMoveItem.partner?.name || "-"}
+                </ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <div className="flex flex-col items-end text-xs tabular-nums">
+                  <span>D: {formatAmount(accountMoveItem.debit)}</span>
+                  <span>K: {formatAmount(accountMoveItem.credit)}</span>
+                </div>
+              </ItemActions>
+            </Item>
+          ))}
+        </DeskListGrid>
+      </DeskListContent>
+    </DeskList>
   );
 }
 
-function AccountMoveItemTopBar({
-  data,
-  options,
-}: {
-  data: { pagination: { from: number; to: number; count: number } };
-  options: {
-    showCreateButton?: boolean | null;
-    moveOptions: AccountMoveOption[];
-    accountOptions: AccountOption[];
-    partnerOptions: PartnerOption[];
-  };
-}) {
-  const isMobile = useIsMobile();
-  return (
-    <TopBar>
-      <DeskHeader>
-        <div className="flex justify-between gap-4 p-4">
-          {!isMobile && <FilterInputQuery />}
-          <div className={cn("flex items-center justify-end gap-1")}>
-            {!isMobile && <DeskPagination {...data.pagination} />}
-            <div className="flex">
-              {options.showCreateButton && (
-                <AccountMoveItemCreateDialog
-                  moveOptions={options.moveOptions}
-                  accountOptions={options.accountOptions}
-                  partnerOptions={options.partnerOptions}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </DeskHeader>
-    </TopBar>
-  );
-}
-
-function AccountMoveItemCreateDialog({
-  moveOptions,
-  accountOptions,
-  partnerOptions,
-}: {
-  moveOptions: AccountMoveOption[];
-  accountOptions: AccountOption[];
-  partnerOptions: PartnerOption[];
-}) {
+function AccountMoveItemCreateDialog() {
   const [form, fields] = useForm({
     defaultValue: {
       name: "",
@@ -291,87 +222,40 @@ function AccountMoveItemCreateDialog({
     },
   });
 
+  const moveField = useAccountMoveField(fields.moveId);
+  const accountField = useAccountField(fields.accountId);
+  const partnerField = usePartnerField(fields.partnerId);
+  const productField = useProductField(fields.productId);
+
   return (
     <DeskCreateDialog form={form} title="Tambah Baris Jurnal">
       <FieldText field={fields.name} label="Deskripsi" />
-      <Field data-invalid={!fields.moveId.valid}>
-        <FieldLabel htmlFor={fields.moveId.id}>Entri Jurnal</FieldLabel>
-        <AccountMoveCombobox
-          id={fields.moveId.id}
-          name={fields.moveId.name}
-          items={moveOptions}
-          invalid={!fields.moveId.valid}
-        />
-        <FieldError errors={fields.moveId.errors} />
-      </Field>
-      <Field data-invalid={!fields.accountId.valid}>
-        <FieldLabel htmlFor={fields.accountId.id}>Akun</FieldLabel>
-        <AccountCombobox
-          id={fields.accountId.id}
-          name={fields.accountId.name}
-          items={accountOptions}
-          invalid={!fields.accountId.valid}
-        />
-        <FieldError errors={fields.accountId.errors} />
-      </Field>
-      <Field data-invalid={!fields.partnerId.valid}>
-        <FieldLabel htmlFor={fields.partnerId.id}>Kontak</FieldLabel>
-        <PartnerCombobox
-          id={fields.partnerId.id}
-          name={fields.partnerId.name}
-          items={partnerOptions}
-          invalid={!fields.partnerId.valid}
-        />
-        <FieldError errors={fields.partnerId.errors} />
-      </Field>
+      <FieldCombobox {...moveField} label="Entri Jurnal" />
+      <FieldCombobox {...accountField} label="Akun" />
+      <FieldCombobox {...partnerField} label="Kontak" />
+      <FieldCombobox {...productField} label="Produk" />
       <div className="grid grid-cols-2 gap-2">
-        <Field data-invalid={!fields.debit.valid}>
-          <FieldLabel htmlFor={fields.debit.id}>Debit</FieldLabel>
-          <Input
-            {...getInputProps(fields.debit, { type: "number" })}
-            min={0}
-            step="0.01"
-          />
-          <FieldError errors={fields.debit.errors} />
-        </Field>
-        <Field data-invalid={!fields.credit.valid}>
-          <FieldLabel htmlFor={fields.credit.id}>Kredit</FieldLabel>
-          <Input
-            {...getInputProps(fields.credit, { type: "number" })}
-            min={0}
-            step="0.01"
-          />
-          <FieldError errors={fields.credit.errors} />
-        </Field>
+        <FieldText
+          field={fields.debit}
+          label="Debit"
+          type="number"
+          min={0}
+          step="any"
+          align="right"
+        />
+        <FieldText
+          field={fields.credit}
+          label="Kredit"
+          type="number"
+          min={0}
+          step="any"
+          align="right"
+        />
       </div>
     </DeskCreateDialog>
   );
 }
 
-function AccountMoveItemSkeleton() {
-  const widths = ["w-20", "w-24", "w-28", "w-32", "w-36", "w-24"];
-  return Array.from({ length: 12 }).map((_, index) => {
-    const randomWidth = widths[index % widths.length];
-    return (
-      <Item key={index} variant="outline">
-        <ItemContent>
-          <ItemTitle>
-            <Skeleton className={cn(randomWidth)}>&nbsp;</Skeleton>
-          </ItemTitle>
-          <Skeleton className={cn(randomWidth)}>&nbsp;</Skeleton>
-        </ItemContent>
-        <ItemActions>
-          <Skeleton className="h-4 w-16" />
-        </ItemActions>
-      </Item>
-    );
-  });
-}
-
 function formatAmount(value: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 2,
-  }).format(value);
+  return formatCurrency(value, "IDR", "id-ID", 2);
 }

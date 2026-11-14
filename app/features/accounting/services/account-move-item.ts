@@ -11,7 +11,7 @@ import {
 import type { AccountMoveItemFormValues } from "../types/account-move-item";
 
 const relationsSelect =
-  "*, move:account_moves(number, date), account:accounts(code, name), partner:partners(name)";
+  "*, move:account_moves(id, number, date, status), account:accounts(id, code, name), partner:partners(name)";
 
 export async function getAccountMoveItems(
   supabase: SupabaseClient,

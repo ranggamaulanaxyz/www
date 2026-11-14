@@ -1,32 +1,25 @@
-import { getFormProps, getInputProps, useForm } from "@conform-to/react";
+import { getFormProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
 import { data, Form } from "react-router";
-import { Button } from "~/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "~/components/ui/field";
+import { FieldCombobox } from "~/components/form/fields/combobox";
 import { FieldText } from "~/components/form/fields/input";
+import { Button } from "~/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { supabaseClientContext } from "~/context";
 import { TopBar } from "~/features/desk/components/bar";
 import DeskHeader from "~/features/desk/components/header";
 import type { Handle } from "~/features/desk/types/route";
-import { getPartners } from "~/features/partner/services/partner";
-import { AccountCombobox } from "../components/account-combobox";
-import type { AccountOption } from "../components/account-combobox";
-import { AccountMoveCombobox } from "../components/account-move-combobox";
-import type { AccountMoveOption } from "../components/account-move-combobox";
-import { PartnerCombobox } from "../components/partner-combobox";
-import type { PartnerOption } from "../components/partner-combobox";
+import { usePartnerField } from "~/features/partner/hooks/use-partner";
+import { useProductField } from "~/features/product/hooks/use-product";
+import { formatDate } from "~/utils/tools";
+import { useAccountMoveField } from "../hooks/use-account-move";
+import { useAccountField } from "../hooks/use-account";
 import {
   getAccountMoveItemById,
   updateAccountMoveItem,
 } from "../services/account-move-item";
-import { getAccountMoves } from "../services/account-move";
-import { getAccounts } from "../services/account";
+import { accountMoveItemFormSchema } from "../schemas/account-move-item";
 import type { Route } from "./+types/account-move-item-form";
 
 export const handle = {
@@ -45,31 +38,8 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     supabase,
     params.accountMoveItemId,
   );
-  const [{ accountMoves }, { accounts }, { partners }] = await Promise.all([
-    getAccountMoves(supabase, { from: 1, to: 1000 }),
-    getAccounts(supabase, { from: 1, to: 1000 }),
-    getPartners(supabase, { from: 1, to: 1000 }),
-  ]);
 
-  const moveOptions: AccountMoveOption[] = accountMoves.map((accountMove) => ({
-    value: accountMove.id,
-    label: accountMove.number || formatAccountMoveDate(accountMove.date),
-  }));
-  const accountOptions: AccountOption[] = accounts.map((account) => ({
-    value: account.id,
-    label: `${account.code} · ${account.name}`,
-  }));
-  const partnerOptions: PartnerOption[] = partners.map((partner) => ({
-    value: partner.id,
-    label: partner.email ? `${partner.name} · ${partner.email}` : partner.name,
-  }));
-
-  return data({
-    accountMoveItem,
-    moveOptions,
-    accountOptions,
-    partnerOptions,
-  });
+  return data({ accountMoveItem });
 }
 
 export async function action({ request, params, context }: Route.ActionArgs) {
@@ -94,12 +64,29 @@ export async function action({ request, params, context }: Route.ActionArgs) {
   return data({ success, lastResult: submission.reply() });
 }
 
+function formatDateTime(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const time = date.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return `${formatDate(date)} ${time}`;
+}
+
 export default function AccountMoveItemForm({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { accountMoveItem, moveOptions, accountOptions, partnerOptions } =
-    loaderData;
+  const { accountMoveItem } = loaderData;
   const [form, fields] = useForm({
     defaultValue: {
       name: accountMoveItem.name,
@@ -116,6 +103,11 @@ export default function AccountMoveItemForm({
     },
   });
 
+  const moveField = useAccountMoveField(fields.moveId);
+  const accountField = useAccountField(fields.accountId);
+  const partnerField = usePartnerField(fields.partnerId);
+  const productField = useProductField(fields.productId);
+
   return (
     <Form {...getFormProps(form)} method="post">
       <TopBar>
@@ -127,70 +119,87 @@ export default function AccountMoveItemForm({
       </TopBar>
       <div className="max-w-1/2 p-4">
         <FieldGroup>
-          <input {...getInputProps(fields.productId, { type: "hidden" })} />
           <FieldText field={fields.name} label="Deskripsi" />
-          <Field data-invalid={!fields.moveId.valid}>
-            <FieldLabel htmlFor={fields.moveId.id}>Entri Jurnal</FieldLabel>
-            <AccountMoveCombobox
-              id={fields.moveId.id}
-              name={fields.moveId.name}
-              items={moveOptions}
-              defaultValue={accountMoveItem.moveId}
-              invalid={!fields.moveId.valid}
-            />
-            <FieldError errors={fields.moveId.errors} />
-          </Field>
-          <Field data-invalid={!fields.accountId.valid}>
-            <FieldLabel htmlFor={fields.accountId.id}>Akun</FieldLabel>
-            <AccountCombobox
-              id={fields.accountId.id}
-              name={fields.accountId.name}
-              items={accountOptions}
-              defaultValue={accountMoveItem.accountId}
-              invalid={!fields.accountId.valid}
-            />
-            <FieldError errors={fields.accountId.errors} />
-          </Field>
-          <Field data-invalid={!fields.partnerId.valid}>
-            <FieldLabel htmlFor={fields.partnerId.id}>Kontak</FieldLabel>
-            <PartnerCombobox
-              id={fields.partnerId.id}
-              name={fields.partnerId.name}
-              items={partnerOptions}
-              defaultValue={accountMoveItem.partnerId}
-              invalid={!fields.partnerId.valid}
-            />
-            <FieldError errors={fields.partnerId.errors} />
-          </Field>
+          <FieldCombobox
+            {...moveField}
+            label="Entri Jurnal"
+            defaultValue={
+              accountMoveItem.move
+                ? {
+                    label:
+                      accountMoveItem.move.number || accountMoveItem.move.date,
+                    value: accountMoveItem.move.id,
+                  }
+                : undefined
+            }
+          />
+          <FieldCombobox
+            {...accountField}
+            label="Akun"
+            defaultValue={
+              accountMoveItem.account
+                ? {
+                    label: accountMoveItem.account.name,
+                    value: accountMoveItem.account.id,
+                  }
+                : undefined
+            }
+          />
+          <FieldCombobox
+            {...partnerField}
+            label="Kontak"
+            defaultValue={
+              accountMoveItem.partner
+                ? {
+                    label: accountMoveItem.partner.name,
+                    value: accountMoveItem.partnerId,
+                  }
+                : undefined
+            }
+          />
+          <FieldCombobox
+            {...productField}
+            label="Produk"
+            defaultValue={
+              accountMoveItem.product
+                ? {
+                    label: accountMoveItem.product.name,
+                    value: accountMoveItem.product.id,
+                  }
+                : undefined
+            }
+          />
           <div className="grid grid-cols-2 gap-2">
-            <Field data-invalid={!fields.debit.valid}>
-              <FieldLabel htmlFor={fields.debit.id}>Debit</FieldLabel>
-              <Input
-                {...getInputProps(fields.debit, { type: "number" })}
-                min={0}
-                step="0.01"
-              />
-              <FieldError errors={fields.debit.errors} />
-            </Field>
-            <Field data-invalid={!fields.credit.valid}>
-              <FieldLabel htmlFor={fields.credit.id}>Kredit</FieldLabel>
-              <Input
-                {...getInputProps(fields.credit, { type: "number" })}
-                min={0}
-                step="0.01"
-              />
-              <FieldError errors={fields.credit.errors} />
-            </Field>
+            <FieldText
+              field={fields.debit}
+              label="Debit"
+              type="number"
+              min={0}
+              step="any"
+              align="right"
+            />
+            <FieldText
+              field={fields.credit}
+              label="Kredit"
+              type="number"
+              min={0}
+              step="any"
+              align="right"
+            />
           </div>
           <Field>
             <FieldLabel htmlFor="createdAt">Tanggal Dibuat</FieldLabel>
-            <Input id="createdAt" value={accountMoveItem.createdAt} readOnly />
+            <Input
+              id="createdAt"
+              value={formatDateTime(accountMoveItem.createdAt)}
+              readOnly
+            />
           </Field>
           <Field>
             <FieldLabel htmlFor="updatedAt">Tanggal Terakhir Diubah</FieldLabel>
             <Input
               id="updatedAt"
-              value={accountMoveItem.updatedAt || ""}
+              value={formatDateTime(accountMoveItem.updatedAt)}
               readOnly
             />
           </Field>
