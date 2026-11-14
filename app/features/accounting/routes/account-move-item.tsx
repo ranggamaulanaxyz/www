@@ -43,6 +43,8 @@ import {
 import { accountMoveItemFormSchema } from "../schemas/account-move-item";
 import type { AccountMoveItemWithRelations } from "../types/account-move-item";
 import type { Route } from "./+types/account-move-item";
+import { useState } from "react";
+import { AccountMoveItemCreateDialog } from "../components/account-move-item";
 
 const columnBuilder = deskColumnBuilder<AccountMoveItemWithRelations>();
 const columns = columnBuilder.columns([
@@ -150,12 +152,16 @@ export async function action({ request, url, context }: Route.ActionArgs) {
 
 export default function AccountMoveItem({ loaderData }: Route.ComponentProps) {
   const { accountMoveItems, metadata, canCreate } = loaderData;
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
 
   const list = useDeskList({
     resource: "account_move_items",
     columns,
     data: accountMoveItems,
     metadata,
+    onClickCreate: () => {
+      setOpenCreateDialog(true);
+    },
   });
 
   const outlet = useOutlet();
@@ -167,7 +173,6 @@ export default function AccountMoveItem({ loaderData }: Route.ComponentProps) {
     <DeskList {...getDeskListProps(list)}>
       <DeskListTopBar metadata={metadata}>
         <DeskFilter {...getFilterProps(list.filter)} />
-        {canCreate && <AccountMoveItemCreateDialog />}
       </DeskListTopBar>
       <DeskListContent view="table">
         <DeskTable table={list.table} isLoading={list.state === "loading"} />
@@ -202,57 +207,11 @@ export default function AccountMoveItem({ loaderData }: Route.ComponentProps) {
           ))}
         </DeskListGrid>
       </DeskListContent>
+      <AccountMoveItemCreateDialog
+        open={openCreateDialog}
+        onOpenChange={setOpenCreateDialog}
+      />
     </DeskList>
-  );
-}
-
-function AccountMoveItemCreateDialog() {
-  const [form, fields] = useForm({
-    defaultValue: {
-      name: "",
-      moveId: "",
-      accountId: "",
-      partnerId: "",
-      productId: "",
-      debit: "0",
-      credit: "0",
-    },
-    onValidate({ formData }) {
-      return parseWithZod(formData, { schema: accountMoveItemFormSchema });
-    },
-  });
-
-  const moveField = useAccountMoveField(fields.moveId);
-  const accountField = useAccountField(fields.accountId);
-  const partnerField = usePartnerField(fields.partnerId);
-  const productField = useProductField(fields.productId);
-
-  return (
-    <DeskCreateDialog form={form} title="Tambah Baris Jurnal">
-      <FieldText field={fields.name} label="Deskripsi" />
-      <FieldCombobox {...moveField} label="Entri Jurnal" />
-      <FieldCombobox {...accountField} label="Akun" />
-      <FieldCombobox {...partnerField} label="Kontak" />
-      <FieldCombobox {...productField} label="Produk" />
-      <div className="grid grid-cols-2 gap-2">
-        <FieldText
-          field={fields.debit}
-          label="Debit"
-          type="number"
-          min={0}
-          step="any"
-          align="right"
-        />
-        <FieldText
-          field={fields.credit}
-          label="Kredit"
-          type="number"
-          min={0}
-          step="any"
-          align="right"
-        />
-      </div>
-    </DeskCreateDialog>
   );
 }
 
