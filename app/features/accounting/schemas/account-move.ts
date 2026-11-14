@@ -60,6 +60,7 @@ export const accountMoveFormSchema = z.object({
       }),
     )
     .min(1, "Mohon tambahkan baris jurnal."),
+  action: z.enum(["post"]).optional(),
 });
 
 export type AccountMoveFormData = z.infer<typeof accountMoveFormSchema>;

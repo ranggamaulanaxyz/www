@@ -91,8 +91,7 @@ export function FieldDate({ field, label }: FieldDateProps) {
   return (
     <Field data-invalid={!field.valid}>
       {label && <FieldLabel htmlFor={field.id}>{label}</FieldLabel>}
-      {/* The submitted value is always an ISO date (YYYY-MM-DD). */}
-      <input {...getInputProps(field, { type: "hidden" })} id={undefined} />
+      {/* useInputControl creates the submitted control (ISO date, YYYY-MM-DD). */}
       <InputGroup>
         <InputGroupInput
           {...getInputProps(field, { type: "text" })}

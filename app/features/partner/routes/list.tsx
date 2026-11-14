@@ -52,7 +52,7 @@ import {
 import z from "zod";
 import { parseWithZod, type SubmissionResult } from "@conform-to/zod/v4";
 import { getFormProps, useForm } from "@conform-to/react";
-import { FieldTextInput } from "~/components/ui/field-input";
+import { FieldText } from "~/components/form/fields/input";
 import { hasAccess } from "~/features/desk/services/access";
 import DeskHeader from "~/features/desk/components/header";
 import { BottomBar, TopBar } from "~/features/desk/components/bar";
@@ -241,8 +241,8 @@ function PartnerCreateDialog({
               <DialogTitle>Tambah Kontak</DialogTitle>
             </DialogHeader>
             <FieldGroup>
-              <FieldTextInput field={fields.name} label="Nama" />
-              <FieldTextInput field={fields.email} label="Alamat Email" />
+              <FieldText field={fields.name} label="Nama" />
+              <FieldText field={fields.email} label="Alamat Email" />
             </FieldGroup>
             <DialogFooter>
               <DialogClose

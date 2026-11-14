@@ -15,7 +15,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "~/components/ui/field";
-import { FieldTextInput } from "~/components/ui/field-input";
+import { FieldText } from "~/components/form/fields/input";
 import { TopBar } from "~/features/desk/components/bar";
 import DeskHeader from "~/features/desk/components/header";
 import {
@@ -96,7 +96,7 @@ export default function AccountSubtypeForm({
       </TopBar>
       <div className="max-w-1/2 p-4">
         <FieldGroup>
-          <FieldTextInput field={fields.name} label="Name" />
+          <FieldText field={fields.name} label="Name" />
           <Field data-invalid={!fields.type.valid}>
             <FieldLabel htmlFor={fields.type.id}>Tipe</FieldLabel>
             <Select

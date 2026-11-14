@@ -2,7 +2,7 @@ import { getFormProps } from "@conform-to/react";
 import { data, Form } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
-import { FieldTextInput } from "~/components/ui/field-input";
+import { FieldText } from "~/components/form/fields/input";
 import { Input } from "~/components/ui/input";
 import { supabaseClientContext } from "~/context";
 import { TopBar } from "~/features/desk/components/bar";
@@ -80,7 +80,7 @@ export default function ProductBrandUpdate({
       </TopBar>
       <div className="max-w-1/2 p-4">
         <FieldGroup>
-          <FieldTextInput field={fields.name} label="Nama" />
+          <FieldText field={fields.name} label="Nama" />
           <Field>
             <FieldLabel htmlFor="createdAt">Tanggal Dibuat</FieldLabel>
             <Input id="createdAt" value={productBrand.createdAt} readOnly />

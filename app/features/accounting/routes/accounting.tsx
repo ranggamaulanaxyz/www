@@ -5,7 +5,6 @@ import {
   BookCheckIcon,
   BookMarkedIcon,
   BookOpen,
-  BookOpenIcon,
   FolderTreeIcon,
   ListTree,
 } from "lucide-react";
@@ -16,6 +15,7 @@ export const handle = {
   sidebarRegistry: () => {
     return [
       {
+        label: "Akuntansi",
         items: [
           {
             icon: BookMarkedIcon,
@@ -29,6 +29,11 @@ export const handle = {
             pathname: "/desk/accounting/move-items",
             matchPattern: "/desk/accounting/move-items/*",
           },
+        ],
+      },
+      {
+        label: "Pengaturan",
+        items: [
           {
             icon: BookOpen,
             label: "Jurnal",

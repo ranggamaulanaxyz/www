@@ -15,7 +15,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "~/components/ui/field";
-import { FieldTextInput } from "~/components/ui/field-input";
+import { FieldText } from "~/components/form/fields/input";
 import { AccountCombobox } from "../components/account-combobox";
 import type { AccountOption } from "../components/account-combobox";
 import { TopBar } from "~/features/desk/components/bar";
@@ -100,8 +100,8 @@ export default function AccountJournalForm({
       </TopBar>
       <div className="max-w-1/2 p-4">
         <FieldGroup>
-          <FieldTextInput field={fields.name} label="Nama" />
-          <FieldTextInput field={fields.prefix} label="Prefix" />
+          <FieldText field={fields.name} label="Nama" />
+          <FieldText field={fields.prefix} label="Prefix" />
           <Field data-invalid={!fields.defaultDebitAccountId.valid}>
             <FieldLabel htmlFor={fields.defaultDebitAccountId.id}>
               Akun Debit Default

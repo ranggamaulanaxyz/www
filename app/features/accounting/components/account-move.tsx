@@ -7,6 +7,8 @@ import {
   type SubmissionResult,
 } from "@conform-to/react";
 import {
+  BookCheck,
+  BookCheckIcon,
   EllipsisVerticalIcon,
   EyeIcon,
   PlusIcon,
@@ -85,8 +87,6 @@ export function AccountMoveForm({ move, lastResult }: AccountMoveFormProps) {
     },
   });
 
-  const { post } = useAccountMove();
-
   const journalField = useJournalField(fields.journalId);
   const partnerField = usePartnerField(fields.partnerId);
 
@@ -122,9 +122,34 @@ export function AccountMoveForm({ move, lastResult }: AccountMoveFormProps) {
             <XCircleIcon />
             <span>Batalkan</span>
           </Button>
-          <Button size="icon" onClick={() => post(move?.id!!)}>
-            <EllipsisVerticalIcon />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button size="icon">
+                  <EllipsisVerticalIcon />
+                </Button>
+              }
+            />
+            <DropdownMenuContent>
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  nativeButton={true}
+                  render={
+                    <button
+                      type="submit"
+                      form={form.id}
+                      name="action"
+                      value="post"
+                      className="disabled:text-muted-foreground disabled:bg-muted w-full hover:cursor-pointer disabled:hover:cursor-default"
+                      disabled={move?.status === "posted"}
+                    >
+                      <BookCheck /> <span>Bukukan</span>
+                    </button>
+                  }
+                />
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </ButtonGroup>
       </DeskTopBar>
       <div className="flex flex-col gap-5 p-4">
@@ -151,7 +176,7 @@ export function AccountMoveForm({ move, lastResult }: AccountMoveFormProps) {
                   : undefined
               }
             />
-            <FieldText field={fields.number} label="Nomor" exclude={true} />
+            <FieldText field={fields.number} label="Nomor" readonly={true} />
           </FieldGroup>
         </div>
         <FieldGroup>
@@ -330,7 +355,7 @@ export function AccountMoveStatus({ value }: { value: AccountMoveStatus }) {
 }
 
 export function AccountMoveActions({ move }: { move: AccountMove }) {
-  const [searchParams] = useSearchParams();
+  const { post } = useAccountMove();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -343,17 +368,11 @@ export function AccountMoveActions({ move }: { move: AccountMove }) {
       <DropdownMenuContent>
         <DropdownMenuGroup>
           <DropdownMenuItem
-            render={
-              <Link
-                to={{
-                  pathname: `/desk/accounting/moves/${move.id}`,
-                  search: searchParams.toString(),
-                }}
-              >
-                <EyeIcon /> <span>Buka</span>
-              </Link>
-            }
-          />
+            onClick={() => post(move.id)}
+            disabled={move.status === "posted"}
+          >
+            <BookCheckIcon /> <span>Bukukan</span>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

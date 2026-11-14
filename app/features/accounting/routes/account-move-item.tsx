@@ -14,7 +14,7 @@ import {
 import { parseWithZod } from "@conform-to/zod/v4";
 import { Button } from "~/components/ui/button";
 import { Field, FieldError, FieldLabel } from "~/components/ui/field";
-import { FieldTextInput } from "~/components/ui/field-input";
+import { FieldText } from "~/components/form/fields/input";
 import { Input } from "~/components/ui/input";
 import {
   Item,
@@ -293,7 +293,7 @@ function AccountMoveItemCreateDialog({
 
   return (
     <DeskCreateDialog form={form} title="Tambah Baris Jurnal">
-      <FieldTextInput field={fields.name} label="Deskripsi" />
+      <FieldText field={fields.name} label="Deskripsi" />
       <Field data-invalid={!fields.moveId.valid}>
         <FieldLabel htmlFor={fields.moveId.id}>Entri Jurnal</FieldLabel>
         <AccountMoveCombobox

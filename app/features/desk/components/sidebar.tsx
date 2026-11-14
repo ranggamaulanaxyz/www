@@ -13,6 +13,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -55,6 +56,9 @@ export default function DeskSidebar() {
       <SidebarContent>
         {sidebarItems.map((group, index) => (
           <SidebarGroup key={index}>
+            {group.label && (
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            )}
             <SidebarMenu>
               {group.items.map((menu, index) => {
                 return <DeskSidebarMenuItem key={index} {...menu} />;

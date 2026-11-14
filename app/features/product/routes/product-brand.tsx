@@ -48,7 +48,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { FieldTextInput } from "~/components/ui/field-input";
+import { FieldText } from "~/components/form/fields/input";
 import { getFormProps } from "@conform-to/react";
 import { parseForm } from "~/utils/request";
 import { createProductBrandSchema } from "../schemas/product-brand";
@@ -182,7 +182,7 @@ export default function ProductBrandList({
           <DialogHeader>
             <DialogTitle>Tambah Merek</DialogTitle>
           </DialogHeader>
-          <FieldTextInput field={fields.name} label="Nama" />
+          <FieldText field={fields.name} label="Nama" />
           <DialogFooter className="flex-row">
             <DialogClose
               render={<Button variant="secondary">Batalkan</Button>}

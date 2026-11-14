@@ -7,7 +7,7 @@ import { DeskCreateDialog } from "~/features/desk/components/create-dialog";
 import DeskHeader from "~/features/desk/components/header";
 import { accountTypeSchema } from "../schemas/account-subtype";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { FieldTextInput } from "~/components/ui/field-input";
+import { FieldText } from "~/components/form/fields/input";
 import type { Route } from "./+types/account-subtype";
 import type { Handle } from "~/features/desk/types/route";
 import { Field, FieldError, FieldLabel } from "~/components/ui/field";
@@ -219,7 +219,7 @@ function AccountSubtypeCreateDialog() {
 
   return (
     <DeskCreateDialog form={form} title="Tambah Subtipe">
-      <FieldTextInput field={fields.name} label="Nama" />
+      <FieldText field={fields.name} label="Nama" />
       <Field data-invalid={!fields.type.valid}>
         <FieldLabel htmlFor={fields.type.id}>Tipe</FieldLabel>
         <Select

@@ -6,7 +6,7 @@ import { TopBar } from "~/features/desk/components/bar";
 import { DeskCreateDialog } from "~/features/desk/components/create-dialog";
 import DeskHeader from "~/features/desk/components/header";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { FieldTextInput } from "~/components/ui/field-input";
+import { FieldText } from "~/components/form/fields/input";
 import type { Route } from "./+types/account";
 import type { Handle } from "~/features/desk/types/route";
 import { Field, FieldError, FieldLabel } from "~/components/ui/field";
@@ -225,8 +225,8 @@ function AccountCreateDialog({
 
   return (
     <DeskCreateDialog form={form} title="Tambah Akun">
-      <FieldTextInput field={fields.code} label="Kode" />
-      <FieldTextInput field={fields.name} label="Nama" />
+      <FieldText field={fields.code} label="Kode" />
+      <FieldText field={fields.name} label="Nama" />
       <Field data-invalid={!fields.accountSubtypeId.valid}>
         <FieldLabel htmlFor={fields.accountSubtypeId.id}>Subtipe</FieldLabel>
         <AccountSubtypeCombobox

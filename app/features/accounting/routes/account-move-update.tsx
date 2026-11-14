@@ -4,11 +4,13 @@ import type { Route } from "./+types/account-move-update";
 import { supabaseClientContext } from "~/context";
 import {
   getAccountMoveById,
+  postAccountMove,
   updateAccountMoveWithItems,
 } from "../services/account-move";
 import type { Handle } from "~/features/desk/types/route";
 import { parseForm } from "~/utils/request";
 import { accountMoveFormSchema } from "../schemas/account-move";
+import { sub } from "date-fns";
 
 export const handle = {
   breadcrumb: ({ loaderData }) => {
@@ -40,12 +42,30 @@ export async function clientAction({
     return data({ lastResult: submission.reply() }, { status: 422 });
   }
 
+  const { action, ...values } = submission.value;
+
   const supabase = context.get(supabaseClientContext);
   const { success, message } = await updateAccountMoveWithItems(
     supabase,
     params.accountMoveId,
-    submission.value,
+    values,
   );
+
+  if (action === "post") {
+    const { success: posted } = await postAccountMove(
+      supabase,
+      params.accountMoveId,
+    );
+    if (!posted) {
+      return data({
+        success: false,
+        lastResult: submission.reply({
+          formErrors: ["Gagal membukukan entri jurnal!"],
+        }),
+      });
+    }
+  }
+
   if (success) {
     return data({ success: true, lastResult: null });
   }

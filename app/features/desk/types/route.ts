@@ -19,6 +19,7 @@ export type SidebarItem = {
 };
 
 export type SidebarGroup = {
+  label?: string;
   items: SidebarItem[];
 };
 

@@ -8,7 +8,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "~/components/ui/field";
-import { FieldTextInput } from "~/components/ui/field-input";
+import { FieldText } from "~/components/form/fields/input";
 import { Input } from "~/components/ui/input";
 import { supabaseClientContext } from "~/context";
 import { TopBar } from "~/features/desk/components/bar";
@@ -128,7 +128,7 @@ export default function AccountMoveItemForm({
       <div className="max-w-1/2 p-4">
         <FieldGroup>
           <input {...getInputProps(fields.productId, { type: "hidden" })} />
-          <FieldTextInput field={fields.name} label="Deskripsi" />
+          <FieldText field={fields.name} label="Deskripsi" />
           <Field data-invalid={!fields.moveId.valid}>
             <FieldLabel htmlFor={fields.moveId.id}>Entri Jurnal</FieldLabel>
             <AccountMoveCombobox
