@@ -10,7 +10,8 @@
 	"vars": {
 		"PUBLIC_BASE_URL": "https://ranggamaulana.xyz",
 		"PUBLIC_SUPABASE_URL": "https://aifkexypqptqvywntfdl.supabase.co",
-		"PUBLIC_SUPABASE_PUBLISHABLE_KEY":"sb_publishable_2InMUWrtyhSvwbOeTrcjSw_X2p4ePRd"
+		"PUBLIC_SUPABASE_PUBLISHABLE_KEY":"sb_publishable_2InMUWrtyhSvwbOeTrcjSw_X2p4ePRd",
+		"PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY": "0x4AAAAAAGB8ZnXU6wVdVoJQ"
 	},
 	"observability": {
 		"enabled": true

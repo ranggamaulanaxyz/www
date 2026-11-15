@@ -7,7 +7,7 @@ import {
 import WebsiteFooter from "../components/footer";
 import WebsiteNavbar from "../components/navbar";
 import WebsiteWrapper from "../components/wrapper";
-import z from "zod";
+import z, { success } from "zod";
 import { parseWithZod } from "@conform-to/zod/v4";
 import {
   getFormProps,
@@ -15,23 +15,40 @@ import {
   getTextareaProps,
   useForm,
 } from "@conform-to/react";
-import { Form } from "react-router";
+import { data, Form, useNavigation } from "react-router";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import type { Route } from "./+types/contact";
+import { resendMiddleware } from "~/middlewares.server";
+import { resendContext } from "~/context";
+import { parseForm } from "~/utils/request";
+import { sendContactEmail } from "../services/website";
+import { verifyTurnstile } from "../services/turnstile.server";
+import TurnstileWidget from "../components/turnstile";
+import { useEffect, useState } from "react";
+import { CheckCircleIcon, LoaderCircleIcon, SendIcon } from "lucide-react";
+
+const TURNSTILE_SITE_KEY = "0x4AAAAAAGB8ZnXU6wVdVoJQ";
+const TURNSTILE_ACTION = "contact";
 
 const schema = z.object({
   name: z
-    .string("Nama tidak sah")
-    .min(3, "Nama minimal 3 karakter")
-    .max(32, "Nama maksimal 32 karakter"),
-  email: z.email("Alamat email tidak sah."),
+    .string("Nama tidak valid.")
+    .min(3, "Nama minimal 3 karakter.")
+    .max(32, "Nama maksimal 32 karakter."),
+  email: z.email("Alamat email tidak valid."),
+  subject: z.string("Subjek tidak valid.").min(3, "Subjek minimal 3 karakter."),
   message: z
-    .string("Pesan tidak sah")
-    .min(10, "Pesan minimal 10 karakter")
-    .max(500, "Pesan maksimal 500 karakter"),
+    .string("Pesan tidak valid.")
+    .min(10, "Pesan minimal 10 karakter.")
+    .max(500, "Pesan maksimal 500 karakter."),
+  "cf-turnstile-response": z.string("Turnstile token tidak valid."),
 });
+
+export const middleware = [
+  resendMiddleware,
+] satisfies Route.MiddlewareFunction[];
 
 export function meta() {
   return [
@@ -49,12 +66,63 @@ export function meta() {
   ];
 }
 
-export default function Contact() {
+export async function action({ context, request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const submission = parseForm(formData, { schema });
+  if (submission.status !== "success") {
+    return data(
+      { success: false, lastResult: submission.reply() },
+      { status: 422 },
+    );
+  }
+
+  const resend = context.get(resendContext);
+
+  const isHuman = await verifyTurnstile({
+    token: formData.get("cf-turnstile-response"),
+    action: TURNSTILE_ACTION,
+    remoteIp: request.headers.get("CF-Connecting-IP"),
+  });
+
+  if (!isHuman) {
+    return data(
+      {
+        success: false,
+        lastResult: submission.reply({
+          formErrors: ["Verifikasi keamanan gagal. Silakan coba lagi."],
+        }),
+      },
+      { status: 403 },
+    );
+  }
+
+  await sendContactEmail(resend, submission.value);
+
+  return { success: true, lastResult: submission.reply({ resetForm: true }) };
+}
+
+export default function Contact({ actionData }: Route.ComponentProps) {
   const [form, fields] = useForm({
+    lastResult: actionData?.lastResult ?? null,
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema });
+      return parseForm(formData, { schema });
     },
   });
+
+  const navigation = useNavigation();
+  const [status, setStatus] = useState<"idle" | "success">("idle");
+
+  const isBusy = navigation.state !== "idle";
+  const isSuccess = !isBusy && status === "success";
+
+  useEffect(() => {
+    if (!actionData?.success) return;
+
+    setStatus("success");
+    const timeout = setTimeout(() => setStatus("idle"), 2000);
+
+    return () => clearTimeout(timeout);
+  }, [actionData]);
 
   return (
     <WebsiteWrapper>
@@ -136,7 +204,7 @@ export default function Contact() {
           </div>
 
           <div className="lg:col-span-5">
-            <Form {...getFormProps(form)} className="space-y-6">
+            <Form {...getFormProps(form)} method="post" className="space-y-6">
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor={fields.name.id} className="text-sm">
@@ -145,7 +213,7 @@ export default function Contact() {
                   <Input
                     {...getInputProps(fields.name, { type: "text" })}
                     placeholder="Masukkan nama Anda"
-                    className="md:text-sm"
+                    className="h-10 md:text-sm"
                   />
                   {fields.name.errors && (
                     <FieldError>{fields.name.errors[0]}</FieldError>
@@ -158,11 +226,25 @@ export default function Contact() {
                   </FieldLabel>
                   <Input
                     {...getInputProps(fields.email, { type: "email" })}
-                    placeholder="nama@perusahaan.com"
-                    className="md:text-sm"
+                    placeholder="email@example.com"
+                    className="h-10 md:text-sm"
                   />
                   {fields.email.errors && (
                     <FieldError>{fields.email.errors[0]}</FieldError>
+                  )}
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor={fields.subject.id} className="text-sm">
+                    Subjek
+                  </FieldLabel>
+                  <Input
+                    {...getInputProps(fields.subject, { type: "text" })}
+                    placeholder="Subjek"
+                    className="h-10 md:text-sm"
+                  />
+                  {fields.subject.errors && (
+                    <FieldError>{fields.subject.errors[0]}</FieldError>
                   )}
                 </Field>
 
@@ -181,12 +263,50 @@ export default function Contact() {
                   )}
                 </Field>
 
+                <Field>
+                  <TurnstileWidget
+                    sitekey={TURNSTILE_SITE_KEY}
+                    action={TURNSTILE_ACTION}
+                    resetKey={actionData}
+                  />
+                  {form.errors && <FieldError>{form.errors[0]}</FieldError>}
+                </Field>
+
                 <Button
                   type="submit"
                   size="lg"
                   className="w-full px-8 font-medium sm:w-auto"
+                  disabled={isBusy}
                 >
-                  Kirim Pesan
+                  <span className="inline-grid place-items-center">
+                    <span
+                      aria-hidden
+                      className="invisible col-start-1 row-start-1 flex items-center gap-1.5"
+                    >
+                      <CheckCircleIcon /> BERHASIL TERKIRIM
+                    </span>
+
+                    <span
+                      key={isBusy ? "sending" : isSuccess ? "success" : "idle"}
+                      aria-live="polite"
+                      className="animate-in fade-in-0 zoom-in-95 col-start-1 row-start-1 flex items-center gap-1.5 duration-200"
+                    >
+                      {isBusy ? (
+                        <>
+                          <LoaderCircleIcon className="animate-spin" />{" "}
+                          MENGIRIM...
+                        </>
+                      ) : isSuccess ? (
+                        <>
+                          <CheckCircleIcon /> BERHASIL TERKIRIM
+                        </>
+                      ) : (
+                        <>
+                          <SendIcon /> KIRIM PESAN
+                        </>
+                      )}
+                    </span>
+                  </span>
                 </Button>
               </FieldGroup>
             </Form>
