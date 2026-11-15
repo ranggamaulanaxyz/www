@@ -79,7 +79,7 @@ const auth = [
   route("/password/recovery", "features/auth/routes/password-recovery.tsx"),
 ] satisfies RouteConfig;
 
-const website = [route("/contact/me", "features/website/routes/contact.tsx")];
+const website = [route("/my/contact", "features/website/routes/contact.tsx")];
 
 export default [
   index("features/website/routes/home.tsx"),

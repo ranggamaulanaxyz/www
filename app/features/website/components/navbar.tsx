@@ -1,6 +1,6 @@
 import { cn } from "cn";
 import { ArrowRightIcon } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useMatch } from "react-router";
 import { buttonVariants } from "~/components/ui/button";
 import { useIsScrolled } from "~/hooks/use-is-scrolled";
 import { useScrollDirection } from "~/hooks/use-scroll-direction";
@@ -8,6 +8,7 @@ import { useScrollDirection } from "~/hooks/use-scroll-direction";
 export default function WebsiteNavbar() {
   const isVisible = useScrollDirection();
   const isScrolled = useIsScrolled(10);
+  const isContactMatch = useMatch("/my/contact");
 
   return (
     <header
@@ -37,15 +38,19 @@ export default function WebsiteNavbar() {
         </Link>
         <nav className="ml-auto">
           <ul>
-            <li>
-              <Link
-                to="/contact/me"
-                title="Hubungi Saya"
-                className={cn(buttonVariants({ variant: "ghost", size: "lg" }))}
-              >
-                Hubungi Saya <ArrowRightIcon />
-              </Link>
-            </li>
+            {!isContactMatch && (
+              <li>
+                <Link
+                  to="/my/contact"
+                  title="Kontak Saya"
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "lg" }),
+                  )}
+                >
+                  KONTAK <ArrowRightIcon />
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
       </div>
