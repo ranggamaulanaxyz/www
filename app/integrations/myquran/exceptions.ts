@@ -1,5 +1,3 @@
-import { number } from "zod";
-
 export class MyQuranApiError extends Error {
   public status: number;
   public statusText: string;

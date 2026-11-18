@@ -1,7 +1,6 @@
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -18,7 +17,7 @@ import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
 import { Input } from "~/components/ui/input";
 import { Button, buttonVariants } from "~/components/ui/button";
-import { ArrowLeftIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 import type { Route } from "./+types/signin";
 import { supabaseClientContext } from "~/context";
 import { authMiddleware, guestOnlyMiddleware } from "../middlewares.server";
@@ -26,6 +25,8 @@ import Wrapper from "../components/wrapper";
 import { useEffect } from "react";
 import { toast } from "~/components/ui/toast";
 import { Spinner } from "~/components/ui/spinner";
+import { InvalidCredentialsError } from "../exceptions/auth";
+import { hasGroup, signInWithPassword } from "../sevices/user";
 
 const schema = z.object({
   email: z.email("Alamat email tidak valid."),
@@ -48,35 +49,31 @@ export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
   const submission = parseWithZod(formData, { schema });
   if (submission.status !== "success") {
-    return data({ lastResult: submission.reply() });
+    return data({ success: false, lastResult: submission.reply() });
   }
   const supabase = context.get(supabaseClientContext);
-  const { error } = await supabase.auth.signInWithPassword(submission.value);
-
-  if (error) {
-    switch (error.code) {
-      case "email_address_invalid":
-      case "invalid_credentials":
-        return data({
-          lastResult: submission.reply({
-            formErrors: ["Alamat email atau kata sandi tidak valid."],
-          }),
-        });
-
-      default:
-        throw error;
+  try {
+    await signInWithPassword(supabase, submission.value);
+  } catch (error) {
+    if (error instanceof InvalidCredentialsError) {
+      return data({
+        success: false,
+        lastResult: submission.reply({
+          formErrors: ["Alamat email atau kata sandi tidak valid."],
+        }),
+      });
     }
+    console.error(error);
+    throw error;
   }
 
-  const { data: isInternalUser } = await supabase
-    .rpc("has_group", { p_name: "Internal Users" })
-    .single<boolean>();
+  const isInternalUser = await hasGroup(supabase, "Internal Users");
 
   if (isInternalUser) {
-    return redirect("/desk");
+    throw redirect("/desk");
   }
 
-  return redirect("/");
+  throw redirect("/");
 }
 
 export default function Signin({ actionData }: Route.ComponentProps) {
@@ -114,13 +111,17 @@ export default function Signin({ actionData }: Route.ComponentProps) {
             <FieldGroup>
               <Field data-invalid={!fields.email.valid}>
                 <FieldLabel htmlFor={fields.email.id}>Alamat Email</FieldLabel>
-                <Input {...getInputProps(fields.email, { type: "email" })} />
+                <Input
+                  {...getInputProps(fields.email, { type: "email" })}
+                  autoComplete="current-password"
+                />
                 <FieldError errors={fields.email.errors} />
               </Field>
               <Field data-invalid={!fields.password.valid}>
                 <FieldLabel htmlFor={fields.password.id}>Kata Sandi</FieldLabel>
                 <Input
                   {...getInputProps(fields.password, { type: "password" })}
+                  autoComplete="current-password"
                 />
                 <FieldError errors={fields.password.errors} />
               </Field>
