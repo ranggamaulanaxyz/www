@@ -5,11 +5,7 @@ export default function WebsiteFooter() {
   return (
     <footer>
       <div className="container mx-auto">
-        <div className="flex items-start justify-between p-4 text-sm text-gray-600">
-          <span>
-            &copy; {new Date().getFullYear()} Rangga Maulana. All rights
-            reserved.
-          </span>
+        <div className="flex flex-col items-center justify-between p-4 text-sm text-gray-600 md:flex-row">
           <ul className="flex items-center">
             <li>
               <a
@@ -89,6 +85,11 @@ export default function WebsiteFooter() {
               </a>
             </li>
           </ul>
+
+          <span className="md:order-first">
+            &copy; {new Date().getFullYear()} Rangga Maulana. All rights
+            reserved.
+          </span>
         </div>
       </div>
     </footer>

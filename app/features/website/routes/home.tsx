@@ -5,6 +5,14 @@ import { BriefcaseBusinessIcon } from "lucide-react";
 import WebsiteNavbar from "../components/navbar";
 import WebsiteWrapper from "../components/wrapper";
 import WebsiteFooter from "../components/footer";
+import TechStackCarousel from "../components/tech-stack-carousel";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "~/components/ui/item";
+import { Separator } from "~/components/ui/separator";
 
 export function meta() {
   return [
@@ -27,9 +35,9 @@ export default function Home() {
     <WebsiteWrapper>
       <WebsiteNavbar />
       <main className="flex flex-1 flex-col">
-        <section className="min-h-dvh flex-1 overflow-visible pt-8">
+        <section className="-mt-16 flex min-h-dvh flex-1 flex-col justify-end space-y-8 overflow-visible py-6 md:space-y-34 md:py-16">
           <div className="container mx-auto flex flex-col items-center justify-center gap-4 p-4 md:flex-row md:justify-between md:gap-8">
-            <div className="text-center sm:max-w-2xl md:text-left lg:max-w-4xl">
+            <div className="text-center sm:max-w-2xl md:self-center md:text-left lg:max-w-4xl">
               <h1 className="font-display text-3xl leading-tight font-bold tracking-wider md:mb-4 md:max-w-3xl md:text-4xl lg:text-6xl">
                 SOFTWARE ENGINEER
               </h1>
@@ -42,7 +50,7 @@ export default function Home() {
                   <Button
                     nativeButton={false}
                     size="lg"
-                    className="h-10 text-sm font-normal tracking-wider"
+                    className="h-10 flex-1 text-sm font-normal tracking-wider md:flex-none"
                     render={<Link to="/my/contact">KONTAK SAYA</Link>}
                   />
                   <Button
@@ -58,6 +66,41 @@ export default function Home() {
                   />
                 </div>
               </div>
+              <div className="flex flex-col gap-4">
+                <Item>
+                  <div className="text-background bg-foreground flex size-10 items-center justify-center rounded-full text-2xl font-bold">
+                    7+
+                  </div>
+                  <ItemContent>
+                    <ItemTitle>Pengalaman</ItemTitle>
+                    <ItemDescription>
+                      di Bussiness Application Development
+                    </ItemDescription>
+                  </ItemContent>
+                </Item>
+                <Item>
+                  <div className="text-background bg-foreground flex size-10 items-center justify-center rounded-full text-2xl font-bold">
+                    10
+                  </div>
+                  <ItemContent>
+                    <ItemTitle>Proyek</ItemTitle>
+                    <ItemDescription>
+                      Accounting Software, Company Profile, Portofolio.
+                    </ItemDescription>
+                  </ItemContent>
+                </Item>
+                <Item>
+                  <div className="text-background bg-foreground flex size-10 items-center justify-center rounded-full text-2xl font-bold">
+                    9+
+                  </div>
+                  <ItemContent>
+                    <ItemTitle>Keahlian</ItemTitle>
+                    <ItemDescription>
+                      Odoo, React, REST API, UI/UX, Cloudflare, dll.
+                    </ItemDescription>
+                  </ItemContent>
+                </Item>
+              </div>
             </div>
             <div className="order-first md:order-last md:max-w-2xl">
               <div className="relative max-w-xs md:max-w-none">
@@ -70,54 +113,62 @@ export default function Home() {
               </div>
             </div>
           </div>
+          <div>
+            <TechStackCarousel />
+          </div>
         </section>
-        <section className="flex min-h-dvh flex-1 flex-col justify-center py-8">
-          <div className="container mx-auto flex flex-1 flex-col items-center gap-10 overflow-hidden md:flex-row">
-            <div className="p-4 md:max-w-sm">
-              <div className="relative z-0">
-                <img
-                  src="/me.jpg"
-                  alt="Rangga"
-                  className="relative z-50 object-cover outline outline-offset-1"
-                />
-                <div className="absolute top-4 left-5 z-0 h-full w-full border border-gray-500"></div>
-                <div className="absolute top-1 left-3 z-0 h-full w-full border border-gray-300"></div>
+        <section className="flex flex-1 flex-col justify-center py-6 md:py-16">
+          <div className="container mx-auto p-4">
+            <h2 className="font-display text-xl font-semibold md:text-2xl lg:text-4xl">
+              TENTANG SAYA
+            </h2>
+            <div className="bg-background flex flex-col items-center gap-10 md:flex-row md:items-start">
+              <div className="p-4 md:max-w-sm">
+                <div className="relative z-0">
+                  <img
+                    src="/me.jpg"
+                    alt="Rangga"
+                    className="relative z-50 object-cover outline outline-offset-1"
+                  />
+                  <div className="absolute top-4 left-5 z-0 h-full w-full border border-gray-500"></div>
+                  <div className="absolute top-1 left-3 z-0 h-full w-full border border-gray-300"></div>
+                </div>
               </div>
-            </div>
-            <div className="space-y-6 p-4 leading-relaxed font-light tracking-wider md:text-lg lg:text-xl">
-              <h2 className="font-display text-2xl md:text-3xl lg:text-4xl">
-                Halo, Perkenalkan!
-              </h2>
-              <p>
-                Saya Rangga Maulana, pengembang perangkat lunak dengan 6+ tahun
-                pengalaman dalam pengembangan aplikasi bisnis.
-              </p>
-              <p>
-                Saya membantu pertumbuhan bisnismu dengan solusi digital seperti
-                aplikasi kasir, penjualan dan pembelian, inventori hingga
-                akuntansi yang terintegrasi satu sama lain.
-              </p>
-              <p>
-                Selain itu saya juga membantu dalam pengembangan website dari
-                profil perusahaan hingga toko online untuk meningkat pendapatan
-                bisnis Anda.
-              </p>
-              <p>Silahkan hubungi saya untuk berdiskusi lebih lanjut.</p>
-              <Link
-                to="/my/contact"
-                title="Kontak saya"
-                className={cn(
-                  buttonVariants({ variant: "default" }),
-                  "h-10 gap-1.5 px-4 text-base font-light tracking-normal uppercase has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-                )}
-              >
-                KONTAK SAYA
-              </Link>
+              <div className="space-y-6 p-4 leading-relaxed font-light tracking-wider md:text-lg lg:text-xl">
+                <h2 className="font-display text-2xl md:text-3xl lg:text-4xl">
+                  Halo, Perkenalkan!
+                </h2>
+                <p>
+                  Saya Rangga Maulana, pengembang perangkat lunak dengan 7+
+                  tahun pengalaman dalam pengembangan aplikasi bisnis.
+                </p>
+                <p>
+                  Saya membantu pertumbuhan bisnismu dengan solusi digital
+                  seperti aplikasi kasir, penjualan dan pembelian, inventori
+                  hingga akuntansi yang terintegrasi satu sama lain.
+                </p>
+                <p>
+                  Selain itu saya juga membantu dalam pengembangan website dari
+                  profil perusahaan hingga toko online untuk meningkat
+                  pendapatan bisnis Anda.
+                </p>
+                <p>Silahkan hubungi saya untuk berdiskusi lebih lanjut.</p>
+                <Link
+                  to="/my/contact"
+                  title="Kontak saya"
+                  className={cn(
+                    buttonVariants({ variant: "default" }),
+                    "h-10 gap-1.5 px-4 text-base font-light tracking-normal uppercase has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+                  )}
+                >
+                  KONTAK SAYA
+                </Link>
+              </div>
             </div>
           </div>
         </section>
-        <section className="py-8">
-          <div className="container mx-auto px-4">
+        <section className="pt-8 md:py-16">
+          <div className="container mx-auto md:px-4">
             <div className="bg-primary text-primary-foreground relative overflow-hidden px-6 py-12 md:px-12 md:py-16">
               <div className="relative z-10 mx-auto max-w-3xl text-center">
                 <h2 className="font-display text-3xl leading-tight md:text-4xl lg:text-5xl">

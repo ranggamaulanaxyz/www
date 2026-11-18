@@ -10,7 +10,7 @@
 	"vars": {
 		"PUBLIC_BASE_URL": "https://ranggamaulana.xyz",
 		"PUBLIC_SUPABASE_URL": "https://aifkexypqptqvywntfdl.supabase.co",
-		"PUBLIC_SUPABASE_PUBLISHABLE_KEY":"sb_publishable_2InMUWrtyhSvwbOeTrcjSw_X2p4ePRd",
+		"PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_2InMUWrtyhSvwbOeTrcjSw_X2p4ePRd",
 		"PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY": "0x4AAAAAAGB8ZnXU6wVdVoJQ"
 	},
 	"observability": {
@@ -38,14 +38,17 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
 	 */
 	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
-
 	"queues": {
-		"consumers": [{
-			"queue": "telegram-bot-jobs"
-		}],
-		"producers": [{
-			"queue": "telegram-bot-jobs",
-			"binding": "TELEGRAM_BOT_JOB_QUEUE"
-		}]
+		"consumers": [
+			{
+				"queue": "telegram-bot-jobs"
+			}
+		],
+		"producers": [
+			{
+				"queue": "telegram-bot-jobs",
+				"binding": "TELEGRAM_BOT_JOB_QUEUE"
+			}
+		]
 	}
 }
