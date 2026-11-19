@@ -52,9 +52,31 @@ export async function action({ request, context }: Route.ActionArgs) {
     return data({ success: false, lastResult: submission.reply() });
   }
   const supabase = context.get(supabaseClientContext);
+  console.log("[SIGNIN] Action started");
+
   try {
+    console.log("[SIGNIN] Calling Supabase Auth");
+
     await signInWithPassword(supabase, submission.value);
-  } catch (error) {
+
+    console.log("[SIGNIN] Supabase Auth success");
+  } catch (error: unknown) {
+    console.log("[SIGNIN] CATCH REACHED");
+
+    const details = {
+      isError: error instanceof Error,
+      name: error instanceof Error ? error.name : undefined,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      cause: error instanceof Error ? error.cause : undefined,
+      properties:
+        error && typeof error === "object"
+          ? Object.getOwnPropertyNames(error)
+          : [],
+    };
+
+    console.log("[SIGNIN] ERROR DETAILS", JSON.stringify(details));
+
     if (error instanceof InvalidCredentialsError) {
       return data({
         success: false,
@@ -63,11 +85,18 @@ export async function action({ request, context }: Route.ActionArgs) {
         }),
       });
     }
-    console.error(error);
+
     throw error;
   }
 
-  const isInternalUser = await hasGroup(supabase, "Internal Users");
+  let isInternalUser: boolean;
+
+  try {
+    isInternalUser = await hasGroup(supabase, "Internal Users");
+  } catch (error) {
+    console.error("Group Verification Error", error);
+    throw error;
+  }
 
   if (isInternalUser) {
     throw redirect("/desk");

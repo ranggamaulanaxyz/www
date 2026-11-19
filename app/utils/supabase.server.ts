@@ -4,14 +4,14 @@ import {
   serializeCookieHeader,
 } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { env } from "process";
 import { type Database } from "~/types/supabase.types";
-import { getEnv } from "~/utils/env.server";
 
 export function createClient(request: Request) {
   const headers = new Headers();
 
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? "";
-  const supabaseKey = import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
+  const supabaseUrl = env.PUBLIC_SUPABASE_URL ?? "";
+  const supabaseKey = env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
@@ -42,8 +42,8 @@ export function createClient(request: Request) {
 }
 
 export function createAdminClient() {
-  const supabaseUrl = getEnv("PUBLIC_SUPABASE_URL");
-  const supabaseKey = getEnv("SUPABASE_SECRET_KEY");
+  const supabaseUrl = env.PUBLIC_SUPABASE_URL ?? "";
+  const supabaseKey = env.SUPABASE_SECRET_KEY ?? "";
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(

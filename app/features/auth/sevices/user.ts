@@ -141,5 +141,5 @@ export async function hasGroup(supabase: SupabaseClient, name: UserGroup) {
     .rpc("has_group", { p_name: name })
     .single<boolean>();
 
-  return data;
+  return data || false;
 }
