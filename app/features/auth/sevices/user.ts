@@ -137,9 +137,13 @@ export async function signInWithPassword(
 }
 
 export async function hasGroup(supabase: SupabaseClient, name: UserGroup) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .rpc("has_group", { p_name: name })
     .single<boolean>();
+
+  if (error) {
+    throw error.code;
+  }
 
   return data || false;
 }
