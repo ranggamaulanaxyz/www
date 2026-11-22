@@ -1,2 +1,0 @@
-select * from auth.users;
-update auth.users set raw_user_meta_data = '{"timezone":"Asia/Jakarta","email_verified":true,"prayer_times_city_id":"98dce83da57b0395e163467c9dae521b"}' where id = 'a0000000-0000-4000-8000-000000000001';
