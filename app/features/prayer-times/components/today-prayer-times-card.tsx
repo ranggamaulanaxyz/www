@@ -29,7 +29,7 @@ export default function TodayPrayerTimesCard() {
               </div>
             }
           >
-            {(schedule) => (
+            {({ schedule }) => (
               <div className="grid grid-cols-2 gap-1">
                 <div className="font-bold">Imsak</div>
                 <div className="text-right">{schedule.imsak}</div>

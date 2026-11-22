@@ -1,10 +1,57 @@
 import type { AuthError, SupabaseClient } from "@supabase/supabase-js";
 import { InvalidCredentialsError } from "../exceptions/auth";
 
-function throwAuthError(error: AuthError) {
+export async function getUserBySession(supabase: SupabaseClient) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    firstName: user.user_metadata?.first_name || user.user_metadata.name,
+    middleName: user.user_metadata?.middle_name,
+    lastName: user.user_metadata?.last_name,
+    email: user.email,
+    confirmationSentAt: user.confirmation_sent_at,
+    confirmedAt: user.confirmed_at,
+    bannedUntil: user.banned_until,
+    deletedAt: user.deleted_at,
+    prayerTimesCityId: user.user_metadata.prayer_times_city_id,
+  };
+}
+
+export async function signInWithPassword(
+  supabase: SupabaseClient,
+  credentials: { email: string; password: string },
+) {
+  const { data, error } = await supabase.auth.signInWithPassword(credentials);
+  if (error) {
+    throw authError(error);
+  }
+
+  return data;
+}
+
+export async function hasGroup(supabase: SupabaseClient, name: UserGroup) {
+  const { data, error } = await supabase
+    .rpc("has_group", { p_name: name })
+    .single<boolean>();
+
+  if (error) {
+    throw error.code;
+  }
+
+  return data || false;
+}
+
+function authError(error: AuthError) {
   switch (error.code) {
     case "invalid_credentials":
-      throw new InvalidCredentialsError("Invalid credentials", {
+      return new InvalidCredentialsError("Invalid credentials", {
         cause: error,
       });
     case "unexpected_failure":
@@ -95,55 +142,9 @@ function throwAuthError(error: AuthError) {
     case "mfa_verified_factor_exists":
     case "email_address_not_authorized":
     case "email_address_invalid":
-      throw error;
+      return error;
 
     default:
-      throw error;
+      return error;
   }
-}
-
-export async function getUserBySession(supabase: SupabaseClient) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
-
-  return {
-    id: user.id,
-    firstName: user.user_metadata.firstName || user.user_metadata.name,
-    middleName: user.user_metadata.middleName,
-    lastName: user.user_metadata.lastName,
-    email: user.email,
-    confirmationSentAt: user.confirmation_sent_at,
-    confirmedAt: user.confirmed_at,
-    bannedUntil: user.banned_until,
-    deletedAt: user.deleted_at,
-  };
-}
-
-export async function signInWithPassword(
-  supabase: SupabaseClient,
-  credentials: { email: string; password: string },
-) {
-  const { data, error } = await supabase.auth.signInWithPassword(credentials);
-  if (error) {
-    throwAuthError(error);
-  }
-
-  return data;
-}
-
-export async function hasGroup(supabase: SupabaseClient, name: UserGroup) {
-  const { data, error } = await supabase
-    .rpc("has_group", { p_name: name })
-    .single<boolean>();
-
-  if (error) {
-    throw error.code;
-  }
-
-  return data || false;
 }

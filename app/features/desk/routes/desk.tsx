@@ -10,14 +10,16 @@ import {
   userOnlyMiddleware,
 } from "~/features/auth/middlewares.server";
 import { getTodayPrayerTimes } from "~/features/prayer-times/services/prayer-time";
+import { supabaseClientContext } from "~/context";
 
 export const middleware: Route.MiddlewareFunction[] = [
   authMiddleware,
   userOnlyMiddleware,
 ];
 
-export async function clientLoader() {
-  const todayPrayerTimesPromise = getTodayPrayerTimes();
+export async function clientLoader({ context }: Route.ClientLoaderArgs) {
+  const supabase = context.get(supabaseClientContext);
+  const todayPrayerTimesPromise = getTodayPrayerTimes(supabase);
 
   return { todayPrayerTimesPromise };
 }
