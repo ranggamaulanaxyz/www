@@ -32,6 +32,7 @@ export const clientMiddleware: Route.ClientMiddlewareFunction[] = [
 ];
 
 export const links: Route.LinksFunction = () => [
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
@@ -45,7 +46,10 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function meta() {
-  return [{ title: "Rangga Maulana" }];
+  return [
+    { title: "Rangga Maulana" },
+    { name: "theme-color", content: "#ffffff" },
+  ];
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
