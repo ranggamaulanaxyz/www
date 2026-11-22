@@ -10,6 +10,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: false,
+      workbox: {
+        globIgnores: ["**/server-build-*.js", "**/server-build-*.js"],
+      },
     }),
     cloudflare({ viteEnvironment: { name: "ssr" } }),
     tailwindcss(),
