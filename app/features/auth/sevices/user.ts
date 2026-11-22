@@ -21,6 +21,7 @@ export async function getUserBySession(supabase: SupabaseClient) {
     bannedUntil: user.banned_until,
     deletedAt: user.deleted_at,
     prayerTimesCityId: user.user_metadata.prayer_times_city_id,
+    timeZone: user.user_metadata.timezone,
   };
 }
 

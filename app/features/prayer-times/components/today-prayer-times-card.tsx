@@ -1,8 +1,14 @@
 import { Suspense, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import { getTodayPrayerTimes } from "../services/prayer-time";
 import type { PrayerTimes } from "~/integrations/myquran/schemas";
-import { Await, useLoaderData } from "react-router";
+import { Await, Link, useLoaderData } from "react-router";
 import { clientLoader } from "~/features/desk/routes/desk";
 import {
   Item,
@@ -11,13 +17,23 @@ import {
   ItemTitle,
 } from "~/components/ui/item";
 import { Separator } from "~/components/ui/separator";
+import { Button } from "~/components/ui/button";
+import { ArrowRightIcon } from "lucide-react";
 
 export default function TodayPrayerTimesCard() {
   const { todayPrayerTimesPromise } = useLoaderData<typeof clientLoader>();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Jadwal Shalat Hari Ini</CardTitle>
+        <CardTitle>
+          Waktu Shalat{" "}
+          <Suspense>
+            {" "}
+            <Await resolve={todayPrayerTimesPromise}>
+              {({ city }) => `(${city})`}
+            </Await>
+          </Suspense>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Suspense fallback={<div className="text-center">Memuat data...</div>}>
@@ -56,6 +72,18 @@ export default function TodayPrayerTimesCard() {
           </Await>
         </Suspense>
       </CardContent>
+      <CardFooter>
+        <Button
+          nativeButton={false}
+          variant="link"
+          size="sm"
+          render={
+            <Link to="/desk/prayer/times">
+              Tampilkan Selengkapnya <ArrowRightIcon />
+            </Link>
+          }
+        />
+      </CardFooter>
     </Card>
   );
 }

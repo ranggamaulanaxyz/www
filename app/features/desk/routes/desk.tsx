@@ -11,6 +11,7 @@ import {
 } from "~/features/auth/middlewares.server";
 import { getTodayPrayerTimes } from "~/features/prayer-times/services/prayer-time";
 import { supabaseClientContext } from "~/context";
+import { getUserBySession } from "~/features/auth/sevices/user";
 
 export const middleware: Route.MiddlewareFunction[] = [
   authMiddleware,
@@ -19,9 +20,12 @@ export const middleware: Route.MiddlewareFunction[] = [
 
 export async function clientLoader({ context }: Route.ClientLoaderArgs) {
   const supabase = context.get(supabaseClientContext);
-  const todayPrayerTimesPromise = getTodayPrayerTimes(supabase);
+  const user = await getUserBySession(supabase);
+  const todayPrayerTimesPromise = getTodayPrayerTimes(user?.prayerTimesCityId, {
+    tz: user?.timeZone,
+  });
 
-  return { todayPrayerTimesPromise };
+  return { todayPrayerTimesPromise, user };
 }
 
 export default function Desk() {
