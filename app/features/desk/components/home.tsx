@@ -2,6 +2,7 @@ import { CommandIcon } from "lucide-react";
 import { Link } from "react-router";
 import AccountingSummaryCard from "~/features/accounting/accounting-summary-card";
 import PartnerSummaryCard from "~/features/partner/components/partner-summary-card";
+import TodayPrayerTimesCard from "~/features/prayer-times/components/today-prayer-times-card";
 import ProductSummaryCard from "~/features/product/components/product-summary-card";
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
         </Link>
       </header>
       <main className="grid gap-4">
+        <TodayPrayerTimesCard />
         <AccountingSummaryCard />
         <ProductSummaryCard />
         <PartnerSummaryCard />

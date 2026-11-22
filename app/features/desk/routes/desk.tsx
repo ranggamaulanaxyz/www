@@ -9,11 +9,18 @@ import {
   authMiddleware,
   userOnlyMiddleware,
 } from "~/features/auth/middlewares.server";
+import { getTodayPrayerTimes } from "~/features/prayer-times/services/prayer-time";
 
 export const middleware: Route.MiddlewareFunction[] = [
   authMiddleware,
   userOnlyMiddleware,
 ];
+
+export async function clientLoader() {
+  const todayPrayerTimesPromise = getTodayPrayerTimes();
+
+  return { todayPrayerTimesPromise };
+}
 
 export default function Desk() {
   const outlet = useOutlet();
@@ -26,7 +33,7 @@ export default function Desk() {
     <Fragment>
       <SidebarProvider>
         <DeskSidebar />
-        <SidebarInset className="min-w-0 flex min-h-0 flex-col">
+        <SidebarInset className="flex min-h-0 min-w-0 flex-col">
           <Outlet />
         </SidebarInset>
       </SidebarProvider>

@@ -1,11 +1,17 @@
 export type AppErrorOptions = ErrorOptions & {
   status?: number;
+  code?: string;
 };
 export class AppError extends Error {
-  public name: string = "AppError";
+  public code: string = "unexpected";
   public status: number = 500;
   constructor(message: string, options?: AppErrorOptions) {
     super(message, { cause: options?.cause });
-    this.status = options?.status ?? 500;
+    this.code = options?.code ?? this.code;
+    this.status = options?.status ?? this.status;
   }
+}
+
+export class NotFoundError extends AppError {
+  public code: string = "not_found";
 }
