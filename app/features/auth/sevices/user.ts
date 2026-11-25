@@ -12,7 +12,9 @@ export async function getUserBySession(supabase: SupabaseClient) {
 
   return {
     id: user.id,
-    firstName: user.user_metadata?.first_name || user.user_metadata.name,
+    firstName: (user.user_metadata?.first_name ||
+      user.user_metadata.name ||
+      (user.email && user.email.split("@").at(0))) as string,
     middleName: user.user_metadata?.middle_name,
     lastName: user.user_metadata?.last_name,
     email: user.email,
